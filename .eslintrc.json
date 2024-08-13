@@ -1,0 +1,12 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // "no-undef": "error",
+    // "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    // "import/no-unresolved": "error",
+    // "import/named": "error",
+    // "import/namespace": "error",
+    // "import/default": "error",
+    // "import/export": "error"
+  }
+}
