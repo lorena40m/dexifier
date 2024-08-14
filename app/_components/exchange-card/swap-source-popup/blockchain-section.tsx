@@ -21,9 +21,7 @@ const BlockchainSection: React.FC<{
   isFromBlockchain: boolean;
 }> = ({ blockchains, selectedBlockchain, isFromBlockchain }) => {
   const dispatch = useDispatch();
-  const {isRoutesFetched } = useAppSelector(
-    (state) => state.routes
-  );
+  const { isRoutesFetched } = useAppSelector((state) => state.routes);
 
   const updateBlockchain = (blockchain: Blockchain) => {
     if (isFromBlockchain) {
@@ -59,12 +57,15 @@ const BlockchainSection: React.FC<{
     </div>
   );
 
-  const sortedBlockchains = selectedBlockchain
-    ? [
-        selectedBlockchain,
-        ...blockchains.filter((b) => b.chainId !== selectedBlockchain.chainId),
-      ]
-    : blockchains;
+  const sortedBlockchains =
+    selectedBlockchain.name !== ""
+      ? [
+          selectedBlockchain,
+          ...blockchains.filter(
+            (b) => b.chainId !== selectedBlockchain.chainId
+          ),
+        ]
+      : blockchains;
 
   const totalBlockchains = sortedBlockchains.length;
   const firstSevenBlockchains = sortedBlockchains.slice(0, 7);

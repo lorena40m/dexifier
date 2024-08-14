@@ -3,8 +3,10 @@ import { createWeb3Modal } from "@web3modal/wagmi/react";
 import { defaultWagmiConfig } from "@web3modal/wagmi/react/config";
 
 import { WagmiProvider } from "wagmi";
-import { arbitrum, mainnet } from "wagmi/chains";
+import * as chainsModule from "wagmi/chains";
+import { mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Chain } from "viem";
 // import { InjectedConnector } from 'wagmi/connectors/injected';
 
 // 0. Setup queryClient
@@ -20,11 +22,16 @@ const metadata = {
   url: "https://dexifier.com", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/37784886"],
 };
-const chains = [mainnet, arbitrum] as const;
+const supportedChains: Chain[] = Object.values(chainsModule).filter(
+  (chain) => typeof chain === "object" && chain.id
+);
 // const connectors = [
 //   new InjectedConnector({ chains, options: { name: 'MetaMask' } }),
 //   new InjectedConnector({ chains, options: { name: 'XDEFI' } }),
 // ];
+
+const chains: [Chain, ...Chain[]] = [ mainnet, ...supportedChains];
+
 const config = defaultWagmiConfig({
   // connectors,
   chains,
