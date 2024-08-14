@@ -162,7 +162,7 @@ const TokenSection: React.FC<{
   return (
     <section>
       <h1 className="capitalize text-base sm:text-lg mb-4">select token</h1>
-      {selectedBlockchain == null ? (
+      {(selectedBlockchain == null || selectedBlockchain?.name == "") ? (
         <div>Select blockchain first!</div>
       ) : (
         <>
