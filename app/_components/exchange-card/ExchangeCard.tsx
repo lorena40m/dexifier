@@ -163,7 +163,7 @@ const ExchangeCard = () => {
               onClick={() => setWallet(WALLET.BROWSE)}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
-              Browse Wallet
+              Browser Wallet
             </Button>
           </div>
 

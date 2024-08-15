@@ -120,12 +120,12 @@ const RoutesCard = () => {
             tag.label != "Recommended" && (
               <div
                 key={"tag" + index}
-                className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px]"
+                className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px] justify-center"
               >
                 <span
                   className={`${
                     tag.label == "High Impact" ? "text-rose-500" : ""
-                  }`}
+                  } text-center`}
                 >
                   {tag.label}
                 </span>
