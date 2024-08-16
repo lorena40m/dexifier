@@ -11,6 +11,7 @@ import { resetToken, updateToken } from "@/redux_slice/slice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { DialogClose } from "@/components/ui/dialog";
 import { resetSwap } from "@/redux_slice/slice/swapSlice";
+import TooltipTemplate from "../../common/tooltip-template";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;
@@ -77,8 +78,8 @@ const TokenSection: React.FC<{
 
   useEffect(() => {
     const filteredTokens = tokenData.filter((tok) =>
-      tok.name != null
-        ? tok.name.toLowerCase().includes(search.toLowerCase())
+      tok.symbol != null
+        ? tok.symbol.toLowerCase().includes(search.toLowerCase())
         : false
     );
     setFilteredData(filteredTokens);
@@ -100,9 +101,12 @@ const TokenSection: React.FC<{
   };
 
   const tokenTemplate = (
+    blockchainName: string,
     id: string | null,
+    symbol: string,
     name: string,
     imageSrc: string,
+    address: string | null,
     status: boolean = false,
     index: number
   ) => (
@@ -127,7 +131,7 @@ const TokenSection: React.FC<{
           //   dispatch(resetSwap());
           // }
 
-          toastSuccess(`${tempSelectedToken.name}'s selected as token`);
+          toastSuccess(`${tempSelectedToken.symbol}'s selected as token`);
         } else dispatch(resetToken({ isFromToken }));
       }}
       key={`${id}-${name}-${index}`}
@@ -143,7 +147,23 @@ const TokenSection: React.FC<{
             loading="lazy"
           />
 
-          {name}
+          <div className="flex flex-col">
+            <TooltipTemplate
+              content={name}
+              className="!-mb-1"
+              key={`${index}-${name}`}
+            >
+              <div>
+                <span className="text-base px-1">{symbol}</span>
+                <span className="text-[10px] opacity-60">({blockchainName})</span>
+              </div>
+            </TooltipTemplate>
+            <span className="text-[10px] opacity-40">
+              {address === null
+                ? "null"
+                : address.slice(0, 4) + "..." + address.slice(-4)}
+            </span>
+          </div>
         </div>
 
         {status ? (
@@ -155,14 +175,13 @@ const TokenSection: React.FC<{
     </DialogClose>
   );
 
-
   // loading ? (
   //   <CustomLoader />
-  // ) : 
+  // ) :
   return (
     <section>
       <h1 className="capitalize text-base sm:text-lg mb-4">select token</h1>
-      {(selectedBlockchain == null || selectedBlockchain?.name == "") ? (
+      {selectedBlockchain == null || selectedBlockchain?.name == "" ? (
         <div>Select blockchain first!</div>
       ) : (
         <>
@@ -174,9 +193,12 @@ const TokenSection: React.FC<{
           >
             {displayData.map((token, index) =>
               tokenTemplate(
+                token.blockchain,
                 token.address,
+                token.symbol,
                 token.name,
                 token.image,
+                token.address,
                 storedToken?.address === token.address,
                 index
               )

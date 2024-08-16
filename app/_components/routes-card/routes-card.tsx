@@ -120,12 +120,12 @@ const RoutesCard = () => {
             tag.label != "Recommended" && (
               <div
                 key={"tag" + index}
-                className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px]"
+                className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px] justify-center"
               >
                 <span
                   className={`${
                     tag.label == "High Impact" ? "text-rose-500" : ""
-                  }`}
+                  } text-center`}
                 >
                   {tag.label}
                 </span>
@@ -149,6 +149,7 @@ const RoutesCard = () => {
         onClick={() => dispatch(setSelectedRoute({ route: route }))}
         key={route.requestId}
         disabled={isInProcess || isSwapMade}
+        style={{clipPath: "border-box"}}
       >
         {route.swaps.map((singleNode: Swap, index: number) => {
           const isEven = index % 2 == 0;
@@ -246,11 +247,11 @@ const RoutesCard = () => {
 
   return (
     account.isConnected && (
-      <div className="relative lg:h-[34.0625rem] lg:w-full pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+      <div className="relative w-full pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
         <div className="z-0 w-full">
           <h1 className="text-2xl mb-4">Routes</h1>
 
-          <div className="mb-4 flex items-center gap-x-3">
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
             {optionsButton("Recommended", 0)}
             {optionsButton("Fastest", 1)}
             {optionsButton("Cheapest", 2)}

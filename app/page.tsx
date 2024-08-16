@@ -19,7 +19,7 @@ export default function Home() {
 
   return (
     <Web3ModalProvider>
-      <main className="h-screen p-4 md:pt-32 w-full flex justify-center items-center gap-x-5 bg-[url('/assets/background.png')] bg-cover">
+      <main className="h-screen p-4 pt-32 w-full flex flex-wrap gap-y-5 justify-center items-center gap-x-5 bg-[url('/assets/background.png')] bg-cover">
         <FlexSwapCard />
 
         <FlexExchangeCard />
