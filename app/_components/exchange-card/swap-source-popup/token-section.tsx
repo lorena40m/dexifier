@@ -130,6 +130,7 @@ const TokenSection: React.FC<{
   console.log(selectedBlockchain?.color);
   
   const tokenTemplate = (
+    blockchainName: string,
     id: string | null,
     symbol: string,
     name: string,
@@ -196,7 +197,6 @@ const TokenSection: React.FC<{
             </span>
           </div>
         </div>
-
         {status ? (
           <Check className="w-[1.075rem] h-[1.075rem] p-0.5 bg-primary rounded-full font-bold text-black" />
         ) : (
@@ -205,7 +205,6 @@ const TokenSection: React.FC<{
       </div>
     </DialogClose>
   );
-
   return (
     <section>
       <h1 className="capitalize text-base sm:text-lg mb-4">select token</h1>
@@ -221,6 +220,7 @@ const TokenSection: React.FC<{
           >
             {displayData.map((token, index) =>
               tokenTemplate(
+                token.blockchain,
                 token.address,
                 token.symbol,
                 token.name,

@@ -248,6 +248,7 @@ const RoutesCard = () => {
   return (
     account.isConnected && (
       <div className="relative w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+
         <div className="z-0 w-full">
           <h1 className="text-2xl mb-4">Routes</h1>
 
