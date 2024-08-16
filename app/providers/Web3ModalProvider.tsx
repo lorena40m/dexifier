@@ -7,7 +7,8 @@ import * as chainsModule from "wagmi/chains";
 import { mainnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Chain } from "viem";
-// import { InjectedConnector } from 'wagmi/connectors/injected';
+import { sepolia } from "wagmi/chains";
+import { injected, metaMask, safe, walletConnect } from "wagmi/connectors";
 
 // 0. Setup queryClient
 const queryClient = new QueryClient();
@@ -18,22 +19,17 @@ const projectId = "1810ec8721bc30ad15dcbf39facc2939";
 // 2. Create wagmiConfig
 const metadata = {
   name: "dexifier",
-  description: "Web3Modal Example",
+  description: "Web3Modal For Dexifier",
   url: "https://dexifier.com", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/37784886"],
 };
 const supportedChains: Chain[] = Object.values(chainsModule).filter(
   (chain) => typeof chain === "object" && chain.id
 );
-// const connectors = [
-//   new InjectedConnector({ chains, options: { name: 'MetaMask' } }),
-//   new InjectedConnector({ chains, options: { name: 'XDEFI' } }),
-// ];
 
-const chains: [Chain, ...Chain[]] = [ mainnet, ...supportedChains];
+const chains: [Chain, ...Chain[]] = [mainnet, ...supportedChains];
 
 const config = defaultWagmiConfig({
-  // connectors,
   chains,
   projectId,
   metadata,

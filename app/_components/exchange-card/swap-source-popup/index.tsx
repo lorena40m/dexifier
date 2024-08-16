@@ -46,7 +46,14 @@ const SwapSourcePopup: React.FC<{
         </div>
       )}
 
-      {selectedToken?.symbol !== "" ? selectedToken?.symbol : "Select Token"}
+      {selectedToken?.symbol !== "" ? (
+        <div className="flex flex-col">
+          <span>{selectedToken?.symbol}</span>
+          <span className="text-xs opacity-80">{selectedToken?.blockchain}</span>
+        </div>
+      ) : (
+        "Select Token"
+      )}
     </button>
   );
 
