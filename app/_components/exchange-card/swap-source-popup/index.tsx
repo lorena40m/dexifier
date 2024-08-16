@@ -2,9 +2,10 @@ import PopupTemplate from "../../common/popup-template";
 import BlockchainSection from "./blockchain-section";
 import TokenSection from "./token-section";
 import Image from "next/image";
-import React from "react";
+import React, { Suspense } from "react";
 import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
+import CustomLoader from "../../common/loader";
 
 const SwapSourcePopup: React.FC<{
   blockchains: Blockchain[];
@@ -49,7 +50,10 @@ const SwapSourcePopup: React.FC<{
       {selectedToken?.symbol !== "" ? (
         <div className="flex flex-col">
           <span>{selectedToken?.symbol}</span>
-          <span className="text-xs opacity-80">{selectedToken?.blockchain}</span>
+
+          <span className="text-xs opacity-80">
+            {selectedBlockchain?.displayName}
+          </span>
         </div>
       ) : (
         "Select Token"
@@ -67,10 +71,12 @@ const SwapSourcePopup: React.FC<{
         />
 
         {selectedBlockchain !== null && (
-          <TokenSection
-            selectedBlockchain={selectedBlockchain}
-            isFromToken={isFromToken}
-          />
+          <Suspense fallback={<CustomLoader />}>
+            <TokenSection
+              selectedBlockchain={selectedBlockchain}
+              isFromToken={isFromToken}
+            />
+          </Suspense>
         )}
       </main>
     </PopupTemplate>

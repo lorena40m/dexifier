@@ -21,7 +21,7 @@ const TooltipTemplate = ({
         <TooltipTrigger asChild>{children}</TooltipTrigger>
 
         <TooltipContent
-          className={`${className} -mb-1 bg-black text-primary border-primary text-xs`}
+          className={`${className} -mb-1 bg-black text-primary border-primary text-xs opacity-70`}
         >
           {content}
         </TooltipContent>

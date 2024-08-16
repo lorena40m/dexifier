@@ -80,23 +80,23 @@ const BlockchainSection: React.FC<{
       <div className="grid grid-cols-4 gap-x-6 gap-y-5 px-6">
         {totalBlockchains <= 8
           ? allBlockchains.map((blockchain, index) => {
-              const { chainId, name, logo } = blockchain;
+              const { chainId, displayName, logo } = blockchain;
               return (
                 <TooltipTemplate
-                  content={name}
+                  content={displayName}
                   className="!-mb-3"
-                  key={`${chainId}-${name}`}
+                  key={`${chainId}-${displayName}`}
                 >
                   {blockchainTemplate(
                     chainId,
-                    name,
+                    displayName,
                     () => updateBlockchain(blockchain),
                     <Image
                       key={index}
                       src={logo}
                       width={38}
                       height={38}
-                      alt={`${name}'s icon`}
+                      alt={`${displayName}'s icon`}
                       className="!w-[2.625rem] !h-[2.625rem]"
                     />
                   )}
@@ -104,20 +104,20 @@ const BlockchainSection: React.FC<{
               );
             })
           : firstSevenBlockchains.map((blockchain, index) => {
-              const { chainId, name, logo } = blockchain;
+              const { chainId, displayName, logo } = blockchain;
               return (
                 <TooltipTemplate
-                  content={name}
+                  content={displayName}
                   className="!-mb-3"
-                  key={`${chainId}-${name}`}
+                  key={`${chainId}-${displayName}`}
                 >
                   {blockchainTemplate(
                     chainId,
-                    name,
+                    displayName,
                     () => {
                       updateBlockchain(blockchain);
                       toastSuccess(
-                        `${blockchain.name}'s selected as the blockchain`
+                        `${blockchain.displayName}'s selected as the blockchain`
                       );
                     },
 
@@ -126,7 +126,7 @@ const BlockchainSection: React.FC<{
                       src={logo}
                       width={38}
                       height={38}
-                      alt={`${name}'s icon`}
+                      alt={`${displayName}'s icon`}
                       className="!w-[2.625rem] !h-[2.625rem]"
                     />
                   )}
