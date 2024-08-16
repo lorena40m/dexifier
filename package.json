@@ -18,7 +18,8 @@
     "@reduxjs/toolkit": "^2.2.6",
     "@tanstack/react-query": "^5.51.11",
     "@web3modal/wagmi": "^5.0.11",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
+    "axios-cache-adapter": "^2.7.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "encoding": "^0.1.13",
@@ -52,6 +53,6 @@
     "typescript": "^5"
   },
   "resolutions": {
-  "lit": "^2.0.0"
-}
+    "lit": "^2.0.0"
+  }
 }

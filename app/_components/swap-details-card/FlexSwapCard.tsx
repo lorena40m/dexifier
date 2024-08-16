@@ -5,7 +5,7 @@ const FlexSwapCard = () => {
   const { isSwapMade, isInProcess } = useAppSelector((state) => state.swap);
   return (
     (isSwapMade || isInProcess) && (
-      <div className="w-5/12">
+      <div className="w-1/3 md:w-min-[550px]">
         <SwapDetailsCard />
       </div>
     )

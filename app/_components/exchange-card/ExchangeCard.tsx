@@ -125,9 +125,7 @@ const ExchangeCard = () => {
 
   return (
     <div
-      className={`${
-        !isRoutesFetched && "max-w-[55.9375rem]"
-      } w-full bg-[#fff] bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full bg-[#fff] bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
       <div
         id="__controls"
@@ -163,7 +161,7 @@ const ExchangeCard = () => {
               onClick={() => setWallet(WALLET.BROWSE)}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
-              Browse Wallet
+              Browser Wallet
             </Button>
           </div>
 
@@ -197,7 +195,7 @@ const ExchangeCard = () => {
         <div
           className={`${
             isRoutesFetched ? "py-4" : "mx-auto md:max-w-[85%] p-4"
-          } my-6 flex flex-col gap-4 justify-evenly`}
+          } my-6 flex flex-col gap-3 justify-evenly`}
         >
           <CustomCryptoField
             blockchains={blockchains}
@@ -207,7 +205,7 @@ const ExchangeCard = () => {
 
           <Button
             variant={"outline"}
-            className="bg-transparent self-center cursor-default border-[#333] mt-4 rounded-full h-[54px] w-[54px] p-1"
+            className="bg-transparent self-center cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1"
           >
             <Image
               src={"/assets/icons/swap.png"}

@@ -13,7 +13,7 @@ const FlexRoutesCard = () => {
     isRoutesFetched &&
     !isRouteProcess &&
     account.isConnected && (
-      <div className={`${isSwapMade || isInProcess ? "w-1/3" : "w-5/12"}`}>
+      <div className={`${isSwapMade || isInProcess ? "w-1/3" : "w-full max-w-[550px]"}`}>
         <RoutesCard />
       </div>
     )

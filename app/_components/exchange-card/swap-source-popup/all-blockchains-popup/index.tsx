@@ -100,7 +100,7 @@ const AllBlockchainsPopup = ({
                       loading="lazy"
                     />
 
-                    <h2 className="text-base sm:text-lg">{item.name}</h2>
+                    <h2 className="text-base sm:text-lg">{item.displayName}</h2>
                   </div>
 
                   <div

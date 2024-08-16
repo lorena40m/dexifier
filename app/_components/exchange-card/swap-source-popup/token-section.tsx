@@ -11,12 +11,14 @@ import { resetToken, updateToken } from "@/redux_slice/slice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { DialogClose } from "@/components/ui/dialog";
 import { resetSwap } from "@/redux_slice/slice/swapSlice";
+import TooltipTemplate from "../../common/tooltip-template";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;
   isFromToken: boolean;
 }> = ({ selectedBlockchain, isFromToken }) => {
   const INITIALNUMBER = 5;
+
   // redux hook
   const dispatch = useAppDispatch();
 
@@ -35,21 +37,49 @@ const TokenSection: React.FC<{
   const [filteredData, setFilteredData] = useState<Token[]>([]);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  function filteredTokens(tokens: Token[]): Token[] {
+    try {
+      return tokens.sort((a, b) => {
+        if (a.address === null && b.address !== null) {
+          return -1;
+        }
+        if (a.address !== null && b.address === null) {
+          return 1;
+        }
+        if (a.isPopular && !b.isPopular) {
+          return -1;
+        }
+        if (!a.isPopular && b.isPopular) {
+          return 1;
+        }
+        if(a.supportedSwappers === undefined || b.supportedSwappers === undefined){
+          return 0;
+        }
+        return b.supportedSwappers?.length - a.supportedSwappers?.length; // keep original order if both conditions are the same
+      });
+    } catch {
+      throw new Error("Function not implemented.");
+    }
+  }
+
   //  use Effect
   useEffect(() => {
     if (selectedBlockchain != null) {
+      setLoading(true);
       getBlockchainTokens(selectedBlockchain!.name)
         .then((tokens) => {
-          setTokenData(tokens);
-          setFilteredData(tokens);
-          setDisplayData(tokens.slice(0, itemsToShow));
+          const sortedTokens = filteredTokens(tokens);
+          console.log("sortedTokens", sortedTokens);
+          
+          setTokenData(sortedTokens);
+          setFilteredData(sortedTokens);
+          setDisplayData(sortedTokens.slice(0, itemsToShow));
         })
         .catch((err) => {
           console.log(err);
         });
+      setLoading(false);
     }
-  }, [selectedBlockchain]);
-  useEffect(() => {
     setItemsToShow(INITIALNUMBER);
   }, [selectedBlockchain]);
 
@@ -77,8 +107,8 @@ const TokenSection: React.FC<{
 
   useEffect(() => {
     const filteredTokens = tokenData.filter((tok) =>
-      tok.name != null
-        ? tok.name.toLowerCase().includes(search.toLowerCase())
+      tok.symbol != null
+        ? tok.symbol.toLowerCase().includes(search.toLowerCase())
         : false
     );
     setFilteredData(filteredTokens);
@@ -86,7 +116,6 @@ const TokenSection: React.FC<{
   }, [search, itemsToShow, tokenData]);
 
   const loadMoreData = () => {
-    setLoading(true);
     const nextItemsToShow = itemsToShow * 2;
 
     setTimeout(() => {
@@ -95,19 +124,22 @@ const TokenSection: React.FC<{
         ...filteredData.slice(prevData.length, nextItemsToShow),
       ]);
       setItemsToShow(nextItemsToShow);
-      setLoading(false);
     }, 500);
   };
 
+  console.log(selectedBlockchain?.color);
+  
   const tokenTemplate = (
     id: string | null,
+    symbol: string,
     name: string,
     imageSrc: string,
+    address: string | null,
     status: boolean = false,
     index: number
   ) => (
     <DialogClose
-      className={`mb-2.5 px-3.5 py-3 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${
+      className={`mb-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${
         status ? "border-primary" : "border-seperator"
       }`}
       onClick={() => {
@@ -127,7 +159,7 @@ const TokenSection: React.FC<{
           //   dispatch(resetSwap());
           // }
 
-          toastSuccess(`${tempSelectedToken.name}'s selected as token`);
+          toastSuccess(`${tempSelectedToken.symbol}'s selected as token`);
         } else dispatch(resetToken({ isFromToken }));
       }}
       key={`${id}-${name}-${index}`}
@@ -143,7 +175,26 @@ const TokenSection: React.FC<{
             loading="lazy"
           />
 
-          {name}
+          <div className="flex flex-col">
+            <TooltipTemplate
+              content={name}
+              className="!-mb-1"
+              key={`${index}-${name}`}
+            >
+              <div>
+                <span className="text-base px-1">{symbol}</span>
+                {/* <div></div> */}
+                <span className={`text-[14px] font-bold opacity-70`} style={{color: selectedBlockchain?.color, textShadow: "1px 0px 1px #ffffff"}}>
+                  ({selectedBlockchain?.displayName})
+                </span>
+              </div>
+            </TooltipTemplate>
+            <span className="text-[12px] opacity-40">
+              {address === null
+                ? "null"
+                : address.slice(0, 4) + "...." + address.slice(-4)}
+            </span>
+          </div>
         </div>
 
         {status ? (
@@ -155,14 +206,10 @@ const TokenSection: React.FC<{
     </DialogClose>
   );
 
-
-  // loading ? (
-  //   <CustomLoader />
-  // ) : 
   return (
     <section>
       <h1 className="capitalize text-base sm:text-lg mb-4">select token</h1>
-      {(selectedBlockchain == null || selectedBlockchain?.name == "") ? (
+      {selectedBlockchain == null || selectedBlockchain?.name == "" ? (
         <div>Select blockchain first!</div>
       ) : (
         <>
@@ -175,8 +222,10 @@ const TokenSection: React.FC<{
             {displayData.map((token, index) =>
               tokenTemplate(
                 token.address,
+                token.symbol,
                 token.name,
                 token.image,
+                token.address,
                 storedToken?.address === token.address,
                 index
               )
@@ -189,6 +238,3 @@ const TokenSection: React.FC<{
 };
 
 export default TokenSection;
-function filteredTokens(): any {
-  throw new Error("Function not implemented.");
-}

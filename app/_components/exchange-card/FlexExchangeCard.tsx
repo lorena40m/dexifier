@@ -9,13 +9,13 @@ const FlexExchangeCard = () => {
   const { isRouteProcess } = useAppSelector((state) => state.routes);
   return (
     <div
-      className={`${
-        isSwapMade || isInProcess
-          ? "w-5/12"
+      className={
+        `${isSwapMade || isInProcess
+          ? "w-full max-w-[480px]"
           : isRoutesFetched && !isRouteProcess
-          ? "w-5/12"
-          : "min-w-[55.9375rem]"
-      }`}
+          ? "w-full max-w-[480px]"
+          : "min-w-[650px]"} 
+          `}
     >
       <ExchangeCard />
     </div>
