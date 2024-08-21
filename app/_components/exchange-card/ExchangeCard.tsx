@@ -6,9 +6,9 @@ import SettingsPopup from "../settings-popup/settings-popup";
 import HistoryPopup from "../settings-popup/history-popup";
 import TooltipTemplate from "../common/tooltip-template";
 import CustomLoader from "../common/loader";
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Blockchain, TxSwapRequest, RouteData } from "@/app/types/interface";
+import { Blockchain, TxSwapRequest, RouteData, Token, Result } from "@/app/types/interface";
 import {
   createTransaction,
   getBestRoutes,
@@ -22,6 +22,8 @@ import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import {
   getRoutes,
   resetRoute,
+  setError,
+  setExchangeMode,
   setRouteProcess,
   setSelectedRoute,
   updateRouteFetched,
@@ -32,16 +34,24 @@ import {
   updateSwapResponse,
   updateSwapStatus,
 } from "@/redux_slice/slice/swapSlice";
-import { resetBlockchain } from "@/redux_slice/slice/blockchainSlice";
-import { resetToken } from "@/redux_slice/slice/tokenSlice";
+import { resetBlockchain, updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/blockchainSlice";
+import { resetToken, updateToken, updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { setQuotedata } from "@/redux_slice/slice/quoteDataSlice";
+import { sortQuotesBy } from "@/app/utils/catch-data";
+import WalletSourcePopup from "./wallet-popup";
+import { useWalletList } from "@/app/wallet/useWalletList";
 
 enum WALLET {
   NONE,
   BROWSE,
 }
 
-const ExchangeCard = () => {
+interface ExchangeCardProps {
+  isWalletConnected: boolean;
+}
+
+const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
+  const walletSourcePopupRef = useRef<HTMLButtonElement>(null);
   const events = useWeb3ModalEvents();
   const account = useAccount();
   const { open } = useWeb3Modal();
@@ -54,10 +64,6 @@ const ExchangeCard = () => {
   const selectedBlockchains = useAppSelector((state) => state.blockchains);
   const selectedTokens = useAppSelector((state) => state.tokens);
   const { toToken, fromToken } = useAppSelector((state) => state?.tokens);
-  const { isRoutesFetched, isRouteProcess } = useAppSelector(
-    (state) => state.routes
-  );
-  const { selectedRoute } = useAppSelector((state) => state.routes);
   const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
   // use Memo
   const eventMemo = useMemo(() => {
@@ -71,6 +77,14 @@ const ExchangeCard = () => {
   const [isSelectionsComplete, setIsSelectionsComplete] =
     useState<boolean>(false);
   const { isError } = useAppSelector((state) => state.routes);
+  const selectedTokenData = useAppSelector((state) => state?.tokens);
+  const selectedToken = useAppSelector((state) => state?.tokens?.fromToken
+  );
+  const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
+  const savedRouteData = useAppSelector((state) => state.quoteData);
+  const { isRouteProcess, isRoutesFetched, isExchangeButtonClicked } = useAppSelector(
+    (state) => state.routes
+  );
 
   async function initializeBlockchains() {
     const meta = await getBlockchains();
@@ -82,8 +96,8 @@ const ExchangeCard = () => {
     if (
       toToken?.symbol !== "" &&
       fromToken?.symbol !== "" &&
-      fromToken?.value != 0 &&
-      fromToken?.value != undefined &&
+      fromToken?.value !== 0 &&
+      fromToken?.value !== undefined &&
       fromToken?.value !== ""
     )
       setIsSelectionsComplete(true);
@@ -100,6 +114,69 @@ const ExchangeCard = () => {
     initializeBlockchains();
   }, []);
 
+  const handleConnectButtonClick = () => {
+    if (walletSourcePopupRef.current) {
+      walletSourcePopupRef.current.click();
+      console.log("clicked");
+
+    }
+  };
+
+  const refetchRoutes = async (tempToToken: Token, tempFromToken: Token) => {
+    const routeData: RouteData = {
+      ...savedRouteData,
+      amount: tempToToken.value,
+      from: tempToToken,
+      to: tempFromToken,
+    };
+    if (
+      routeData.from.blockchain == "" ||
+      routeData.to.blockchain == "" ||
+      routeData.amount == "" ||
+      routeData.amount == 0 ||
+      routeData.amount == undefined ||
+      !account.isConnected
+    ) {
+      return;
+    }
+    console.log("newRouteFromInput:", routeData);
+    dispatch(setRouteProcess({ isRouteProcess: true }));
+    await getBestRoutes(routeData)
+      .then((data) => {
+        const sortedResults = sortQuotesBy(
+          "RECOMMENDED",
+          data.results as Result[]
+        );
+        dispatch(setSelectedRoute({ route: sortedResults[0] }));
+        dispatch(getRoutes({ routes: sortedResults }));
+        dispatch(updateRouteFetched({ isRouteFetched: true }));
+      })
+      .catch((error) => {
+        toastError("No routes found!");
+        dispatch(setError({ isError: true }));
+        dispatch(updateRouteFetched({ isRouteFetched: false }));
+      })
+      .finally(() => {
+        dispatch(setRouteProcess({ isRouteProcess: false }));
+        dispatch(setExchangeMode({ isExchangeButtonClicked: false }));
+      });
+  };
+
+  const exchangeFromAndToTokens = async () => {
+    dispatch(setExchangeMode({ isExchangeButtonClicked: true }));
+    if (selectedRoute?.outputAmount === "0") return
+    const output = parseFloat(selectedRoute?.outputAmount || "0").toFixed(3);
+    const tempFromToken = fromToken;
+    const tempToToken = { ...toToken, value: output };
+    const fromBlockchain = selectedBlockchains.fromBlockchain;
+    const toBlockchain = selectedBlockchains.toBlockchain;
+    dispatch(updateToken({ isFromToken: true, token: tempToToken }));
+    dispatch(updateFromBlockchain({ blockchain: toBlockchain }));
+    dispatch(updateToBlockchain({ blockchain: fromBlockchain }));
+    dispatch(updateToken({ isFromToken: false, token: tempFromToken }));
+    await refetchRoutes(tempToToken, tempFromToken);
+  }
+
   // single components
   const buttonTemplate = (
     content: string | ReactNode,
@@ -108,13 +185,11 @@ const ExchangeCard = () => {
     onClick: Function
   ) => (
     <Button
-      className={`${
-        isRouteProcess || isInProcess || isSwapMade
-          ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
-          : "bg-primary hover:bg-primary-dark text-black"
-      } ${
-        isRoutesFetched ? "w-full" : "w-full md:max-w-[75%] lg:max-w-[67%]"
-      } font-semibold h-[3.125rem] mx-auto mt-5 text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+      className={`${isRouteProcess || isInProcess || isSwapMade
+        ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
+        : "bg-primary hover:bg-primary-dark text-black"
+        } ${isRoutesFetched ? "w-full" : "w-full md:max-w-[75%] lg:max-w-[67%]"
+        } font-semibold h-[3.125rem] mx-auto mt-5 text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
       variant={"default"}
       onClick={() => onClick()}
       disabled={disabled}
@@ -136,13 +211,11 @@ const ExchangeCard = () => {
             <Button
               variant="outline"
               size={"sm"}
-              className={`border-primary rounded-full ${
-                isRoutesFetched ? "md:px-4" : "md:px-10"
-              }  ${
-                wallet === WALLET.NONE
+              className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
+                }  ${wallet === WALLET.NONE
                   ? "bg-primary text-[#000]"
                   : " bg-transparent"
-              }`}
+                }`}
               onClick={() => setWallet(WALLET.NONE)}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
@@ -151,13 +224,11 @@ const ExchangeCard = () => {
             <Button
               size={"sm"}
               variant="outline"
-              className={`border-primary rounded-full ${
-                isRoutesFetched ? "md:px-4" : "md:px-10"
-              } ${
-                wallet === WALLET.BROWSE
+              className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
+                } ${wallet === WALLET.BROWSE
                   ? "bg-primary text-[#000]"
                   : " bg-transparent"
-              }`}
+                }`}
               onClick={() => setWallet(WALLET.BROWSE)}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
@@ -171,21 +242,7 @@ const ExchangeCard = () => {
 
               <HistoryPopup />
 
-              <TooltipTemplate content="Connect Wallet">
-                <Button
-                  className="p-2 bg-transparent hover:bg-transparent"
-                  onClick={() => open({ view: "Connect" })}
-                  // disabled={account.isConnected}
-                  disabled={false}
-                >
-                  <Image
-                    src={"/assets/icons/wallet.png"}
-                    alt="button-icon"
-                    width={18}
-                    height={18}
-                  />
-                </Button>
-              </TooltipTemplate>
+              <WalletSourcePopup ref={walletSourcePopupRef} />
             </div>
           )}
         </div>
@@ -193,19 +250,27 @@ const ExchangeCard = () => {
 
       {wallet === WALLET.BROWSE ? (
         <div
-          className={`${
-            isRoutesFetched ? "py-4" : "mx-auto md:max-w-[85%] p-4"
-          } my-6 flex flex-col gap-3 justify-evenly`}
+          className={`${isRoutesFetched ? "py-4" : "mx-auto md:max-w-[85%] p-4"
+            } my-6 flex flex-col gap-3 justify-evenly`}
         >
           <CustomCryptoField
             blockchains={blockchains}
             label="From"
             isFromToken={true}
-          />
+            isWalletConnected={isWalletConnected} />
 
           <Button
             variant={"outline"}
-            className="bg-transparent self-center cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1"
+            className="bg-transparent self-center cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
+            disabled={fromToken.blockchain === "" ||
+              toToken.blockchain === "" ||
+              fromToken.symbol === "" ||
+              toToken.symbol === "" ||
+              selectedToken === undefined ||
+              fromToken.value === "" ||
+              fromToken.value === undefined ||
+              selectedRoute === undefined}
+            onClick={exchangeFromAndToTokens}
           >
             <Image
               src={"/assets/icons/swap.png"}
@@ -217,32 +282,32 @@ const ExchangeCard = () => {
 
           <CustomCryptoField blockchains={blockchains} label="To" />
 
-          {account.isConnected
+          {isWalletConnected
             ? selectedRoute == undefined
               ? buttonTemplate(
-                  fromToken.value == undefined &&
-                    fromToken.value == "" &&
-                    fromToken.value == 0
-                    ? "please choose amount"
-                    : isError
+                fromToken.value == undefined &&
+                  fromToken.value == "" &&
+                  fromToken.value == 0
+                  ? "please choose amount"
+                  : isError
                     ? "Routes not found"
                     : "Please Select tokens",
-                  <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
-                  true,
-                  () => {
-                    // setIsLoading(true);
-                  }
-                )
+                <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
+                true,
+                () => {
+                  // setIsLoading(true);
+                }
+              )
               : !isSwapMade
-              ? buttonTemplate(
+                ? buttonTemplate(
                   isInProcess || !isRoutesFetched
                     ? fromToken.value == undefined &&
                       fromToken.value == "" &&
                       fromToken.value == 0
                       ? "please choose amount"
                       : isError
-                      ? "Routes not found"
-                      : "Please Select tokens"
+                        ? "Routes not found"
+                        : "Please Select tokens"
                     : "swap",
                   <>
                     <span className="pe-2.5">
@@ -283,7 +348,7 @@ const ExchangeCard = () => {
                       );
                   }
                 )
-              : buttonTemplate(
+                : buttonTemplate(
                   <>
                     <Image
                       src={"/assets/icons/reset-icon.png"}
@@ -305,9 +370,7 @@ const ExchangeCard = () => {
                     dispatch(resetSwap());
                   }
                 )
-            : buttonTemplate("Connect Wallet", "", false, () => {
-                open({ view: "Connect" });
-              })}
+            : buttonTemplate("Connect Wallet", "", false, handleConnectButtonClick)}
         </div>
       ) : (
         <div className="flex items-center justify-center h-[50vh] md:max-w-[85%] mx-auto ">

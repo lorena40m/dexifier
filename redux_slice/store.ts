@@ -10,6 +10,7 @@ import { quoteDataSlice } from "./slice/quoteDataSlice";
 import { routeSlice } from "./slice/routeSlice";
 import { settingsSlice } from "./slice/settingsSlice";
 import { swapSlice } from "./slice/swapSlice";
+import { walletSlice } from "./slice/walletSlice";
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   swap: swapSlice.reducer,
   allToken: alltokenSlice.reducer,
   quoteData: quoteDataSlice.reducer,
+  wallet: walletSlice.reducer
 });
 
 // Persist the root reducer

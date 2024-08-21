@@ -2,13 +2,15 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Result } from "@/app/types/interface";
 
 const initialRouteState: {
-  isError :  boolean;
+  isExchangeButtonClicked: boolean;
+  isError: boolean;
   isRoutesFetched: boolean;
   isRouteProcess: boolean;
   selectedRoute: Result | undefined;
   routes: Result[];
 } = {
-  isError : false,
+  isExchangeButtonClicked: false,
+  isError: false,
   isRoutesFetched: false,
   isRouteProcess: false,
   selectedRoute: undefined,
@@ -24,7 +26,7 @@ export const routeSlice = createSlice({
     },
     setSelectedRoute(state, action: PayloadAction<{ route: Result }>) {
       console.log("selectedRoute:", action.payload.route);
-      
+
       return { ...state, selectedRoute: action.payload.route };
     },
     setRouteProcess(state, action: PayloadAction<{ isRouteProcess: boolean }>) {
@@ -36,8 +38,11 @@ export const routeSlice = createSlice({
     ) {
       return { ...state, isRoutesFetched: action.payload.isRouteFetched };
     },
-    setError(state, action: PayloadAction<{ isError: boolean }>){
+    setError(state, action: PayloadAction<{ isError: boolean }>) {
       return { ...state, isError: action.payload.isError };
+    },
+    setExchangeMode(state, action: PayloadAction<{ isExchangeButtonClicked: boolean }>) {
+      return { ...state, isExchangeButtonClicked: action.payload.isExchangeButtonClicked };
     },
     resetRoute(_) {
       return initialRouteState;
@@ -45,5 +50,5 @@ export const routeSlice = createSlice({
   },
 });
 
-export const { resetRoute, getRoutes, updateRouteFetched, setSelectedRoute, setRouteProcess, setError } =
+export const { resetRoute, getRoutes, updateRouteFetched, setSelectedRoute, setExchangeMode, setRouteProcess, setError } =
   routeSlice.actions;

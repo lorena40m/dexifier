@@ -1,8 +1,10 @@
 import { useAppSelector } from "@/redux_slice/provider";
 import ExchangeCard from "./ExchangeCard";
 import { useAccount } from "wagmi";
+import { FlexExchangeCardProps } from "@/app/types/interface";
 
-const FlexExchangeCard = () => {
+
+const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }) => {
   const account = useAccount();
   const { isSwapMade, isInProcess } = useAppSelector((state) => state.swap);
   const { isRoutesFetched } = useAppSelector((state) => state.routes);
@@ -13,11 +15,11 @@ const FlexExchangeCard = () => {
         `${isSwapMade || isInProcess
           ? "w-full max-w-[480px]"
           : isRoutesFetched && !isRouteProcess
-          ? "w-full max-w-[480px]"
-          : "min-w-[650px]"} 
+            ? "w-full max-w-[480px]"
+            : "min-w-[650px]"} 
           `}
     >
-      <ExchangeCard />
+      <ExchangeCard isWalletConnected={isWalletConnected} />
     </div>
   );
 };
