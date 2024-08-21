@@ -24,12 +24,14 @@ interface Props {
   label: string;
   blockchains: Blockchain[];
   isFromToken?: boolean;
+  isWalletConnected?: boolean;
 }
 
 const CustomCryptoField: React.FC<Props> = ({
   label,
   blockchains,
   isFromToken = false,
+  isWalletConnected
 }) => {
   const account = useAccount();
 
@@ -43,7 +45,7 @@ const CustomCryptoField: React.FC<Props> = ({
   );
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
   const savedRouteData = useAppSelector((state) => state.quoteData);
-  const { isRouteProcess, isRoutesFetched } = useAppSelector(
+  const { isRouteProcess, isRoutesFetched, isExchangeButtonClicked } = useAppSelector(
     (state) => state.routes
   );
 
@@ -67,7 +69,7 @@ const CustomCryptoField: React.FC<Props> = ({
   const refetchRoutes = () => {
     const routeData: RouteData = {
       ...savedRouteData,
-      amount: selectedToken.value,
+      amount: selectedTokenData.fromToken.value,
       from: {
         blockchain: selectedTokenData.fromToken.blockchain,
         symbol: selectedTokenData.fromToken.symbol,
@@ -80,13 +82,17 @@ const CustomCryptoField: React.FC<Props> = ({
       },
     };
     if (
+      !isFromToken ||
       routeData.from.blockchain == "" ||
       routeData.to.blockchain == "" ||
       routeData.amount == "" ||
       routeData.amount == 0 ||
       routeData.amount == undefined ||
-      !account.isConnected
+      !account.isConnected ||
+      !isWalletConnected ||
+      isExchangeButtonClicked
     ) {
+      console.log("fetch failed because of data", routeData, isExchangeButtonClicked);
       return;
     }
     console.log("newRouteFromInput:", routeData);
@@ -160,15 +166,15 @@ const CustomCryptoField: React.FC<Props> = ({
   };
 
   const calculateUSDPrice = (selectedToken: Token, isFromToken: boolean, selectedRoute: Result | undefined) => {
-    if(selectedRoute === undefined || selectedToken.value === undefined || selectedToken.usdPrice === null){
+    if (selectedRoute === undefined || selectedToken.value === undefined || selectedToken.usdPrice === null) {
       return 0;
     }
-    if(isFromToken){
-      if(selectedToken.value === "" || selectedToken.value === 0){
+    if (isFromToken) {
+      if (selectedToken.value === "" || selectedToken.value === 0) {
         return 0;
       }
-    }else if(isRouteProcess || !isRoutesFetched){
-return 0;
+    } else if (isRouteProcess || !isRoutesFetched) {
+      return 0;
     }
 
     const usdValue = isFromToken
@@ -194,12 +200,12 @@ return 0;
             type="number"
             value={
               isFromToken
-                ? selectedToken.value || ""
+                ? isWalletConnected ? selectedToken.value || "" : ""
                 : selectedRoute != undefined &&
                   !isRouteProcess &&
                   isRoutesFetched
-                ? Number.parseFloat(selectedRoute.outputAmount).toFixed(3)
-                : 0
+                  ? Number.parseFloat(selectedRoute.outputAmount).toFixed(3)
+                  : 0
             }
             min={1}
             max={42000000}
@@ -207,7 +213,7 @@ return 0;
             placeholder="Please enter 1-42000000"
             className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
             style={{ outline: "none" }}
-            disabled={!isFromToken || isInProcess || isSwapMade}
+            disabled={!isFromToken || isInProcess || isSwapMade || !isWalletConnected}
           />
           <span className="text-xs px-3 opacity-50">
             ~

@@ -61,11 +61,10 @@ const RoutesCard = () => {
   // single components
   const optionsButton = (text: string, id: number) => (
     <button
-      className={`px-3.5 py-1.5 border border-primary rounded-full text-xs font-medium leading-[.9rem] transition-colors duration-300 ${
-        selectedOption === id
-          ? "bg-primary text-black cursor-default"
-          : "bg-transparent text-white hover:bg-white/10 "
-      } disabled:cursor-not-allowed `}
+      className={`px-3.5 py-1.5 border border-primary rounded-full text-xs font-medium leading-[.9rem] transition-colors duration-300 ${selectedOption === id
+        ? "bg-primary text-black cursor-default"
+        : "bg-transparent text-white hover:bg-white/10 "
+        } disabled:cursor-not-allowed `}
       onClick={() => {
         const changedStrategy = customStrategy(text as NewPreferenceType);
         const sortedResult = sortQuotesBy(
@@ -123,9 +122,8 @@ const RoutesCard = () => {
                 className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px] justify-center"
               >
                 <span
-                  className={`${
-                    tag.label == "High Impact" ? "text-rose-500" : ""
-                  } text-center`}
+                  className={`${tag.label == "High Impact" ? "text-rose-500" : ""
+                    } text-center`}
                 >
                   {tag.label}
                 </span>
@@ -141,15 +139,14 @@ const RoutesCard = () => {
     const calculatedInfo = catchDataFromQuote(route, tokens);
     return (
       <button
-        className={`relative w-full mb-3.5 flex max-w-full overflow-x-auto pt-6 pb-1.5 ps-3 bg-[#111815] border rounded-xl ${
-          routes.selectedRoute?.requestId !== route.requestId
-            ? "border-seperator"
-            : "border-primary"
-        } disabled:opacity-40 disabled:cursor-not-allowed`}
+        className={`relative w-full mb-3.5 flex max-w-full overflow-x-auto pt-6 pb-1.5 ps-3 bg-[#111815] border rounded-xl ${routes.selectedRoute?.requestId !== route.requestId
+          ? "border-seperator"
+          : "border-primary"
+          } disabled:opacity-40 disabled:cursor-not-allowed`}
         onClick={() => dispatch(setSelectedRoute({ route: route }))}
         key={route.requestId}
         disabled={isInProcess || isSwapMade}
-        style={{clipPath: "border-box"}}
+        style={{ clipPath: "border-box" }}
       >
         {route.swaps.map((singleNode: Swap, index: number) => {
           const isEven = index % 2 == 0;
@@ -159,9 +156,8 @@ const RoutesCard = () => {
           return (
             <div key={index} className="flex items-start">
               <div
-                className={`relative ${!isEven && "mt-[3.125rem] ml-[24px]"} ${
-                  index != 0 && isEven ? "ml-[40px]" : ""
-                } ${containerClasses}`}
+                className={`relative ${!isEven && "mt-[3.125rem] ml-[24px]"} ${index != 0 && isEven ? "ml-[40px]" : ""
+                  } ${containerClasses}`}
               >
                 {singleNodeTemplate(
                   singleNode.from.logo as string,
@@ -177,9 +173,8 @@ const RoutesCard = () => {
                       width={59}
                       height={21}
                       alt="Arrow down"
-                      className={`absolute ${
-                        index != 0 ? "-right-[3.5625rem]" : "-right-[3.0625rem]"
-                      } top-6`}
+                      className={`absolute ${index != 0 ? "-right-[3.5625rem]" : "-right-[3.0625rem]"
+                        } top-6`}
                     />
                     <TooltipTemplate content={`${singleNode.swapperId}`}>
                       <Image
@@ -187,9 +182,8 @@ const RoutesCard = () => {
                         width={20}
                         height={20}
                         alt={`${singleNode.swapperId}`}
-                        className={`absolute ${
-                          index != 0 ? "-right-[2.425rem]" : "-right-[2.125rem]"
-                        } top-4`}
+                        className={`absolute ${index != 0 ? "-right-[2.425rem]" : "-right-[2.125rem]"
+                          } top-4`}
                       />
                     </TooltipTemplate>
                   </div>

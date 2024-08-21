@@ -456,3 +456,13 @@ export type UserWalletBlockchain = {
   blockchain: string;
   addresses: string[];
 };
+
+export interface FlexSwapCardProps {
+  isWalletConnected: boolean;
+}
+export interface FlexExchangeCardProps {
+  isWalletConnected: boolean;
+}
+export interface FlexRoutesCardProps {
+  isWalletConnected: boolean;
+}
