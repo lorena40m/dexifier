@@ -16,7 +16,7 @@ import { walletSlice } from "./slice/walletSlice";
 const persistConfig = {
   key: "root", // Key for the root reducer
   storage, // Storage method (localStorage for web)
-  blacklist: ["routes", "swap"], // These slices won't be persisted
+  blacklist: ["routes", "swap", "wallet"], // These slices won't be persisted
 };
 
 // Combine all slice reducers into a root reducer

@@ -6,7 +6,8 @@ import { useAppSelector } from "@/redux_slice/provider";
 import { useAccount } from "wagmi";
 
 const SwapDetailsCard = () => {
-  const account = useAccount();
+  // const account = useAccount();
+  const account = { isConnected: true }
   const { isInProcess, swapResponse } = useAppSelector((state) => state.swap);
 
   const propertiesContainer = (title: string, value: string) => (
@@ -80,8 +81,7 @@ const SwapDetailsCard = () => {
           <div>
             {propertiesContainer(
               "Input Amount",
-              `${swapResponse!.inputAmount ?? ""} ${
-                swapResponse?.route?.from?.blockchain ?? ""
+              `${swapResponse!.inputAmount ?? ""} ${swapResponse?.route?.from?.blockchain ?? ""
               }`
             )}
           </div>
@@ -89,8 +89,7 @@ const SwapDetailsCard = () => {
           <div>
             {propertiesContainer(
               "Output Amount",
-              `${swapResponse.route?.outputAmount ?? ""} ${
-                swapResponse.route?.to?.blockchain ?? ""
+              `${swapResponse.route?.outputAmount ?? ""} ${swapResponse.route?.to?.blockchain ?? ""
               }`
             )}
           </div>

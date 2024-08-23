@@ -33,7 +33,8 @@ interface Information {
 }
 
 const RoutesCard = () => {
-  const account = useAccount();
+  // const account = useAccount();
+  const account = { isConnected: true }
 
   // redux hooks
   const routes = useAppSelector((state) => state.routes);

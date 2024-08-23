@@ -5,7 +5,7 @@ import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { useAccount } from "wagmi";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { getBananceOfWallet, getBestRoutes } from "@/app/api/rango-api";
+import { getBananceOfToken, getBestRoutes } from "@/app/api/rango-api";
 import {
   getRoutes,
   resetRoute,
@@ -33,7 +33,8 @@ const CustomCryptoField: React.FC<Props> = ({
   isFromToken = false,
   isWalletConnected
 }) => {
-  const account = useAccount();
+  // const account = useAccount();
+  const account = { isConnected: true }
 
   // redux hook
   const dispatch = useAppDispatch();
@@ -135,9 +136,8 @@ const CustomCryptoField: React.FC<Props> = ({
     const walletAddress = "0x9639D6bD17073c2dC6209eecE12e2b714B0388aC";
     // account.address;
 
-    getBananceOfWallet(walletAddress, blockchain, symbol, address)
+    getBananceOfToken(walletAddress, blockchain, symbol, address)
       .then((result) => {
-        console.log("wallet token data", result);
         if (result.balance == null) {
           setTokenBalance("0");
           return;

@@ -5,10 +5,11 @@ import { FlexExchangeCardProps } from "@/app/types/interface";
 
 
 const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }) => {
-  const account = useAccount();
   const { isSwapMade, isInProcess } = useAppSelector((state) => state.swap);
-  const { isRoutesFetched } = useAppSelector((state) => state.routes);
-  const { isRouteProcess } = useAppSelector((state) => state.routes);
+  const { isRoutesFetched, isRouteProcess } = useAppSelector((state) => state.routes);
+  const { connectedWallets } = useAppSelector((state) => state.wallet);
+  console.log("connectedWallets", connectedWallets);
+
   return (
     <div
       className={

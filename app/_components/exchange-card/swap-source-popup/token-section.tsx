@@ -52,7 +52,7 @@ const TokenSection: React.FC<{
         if (!a.isPopular && b.isPopular) {
           return 1;
         }
-        if(a.supportedSwappers === undefined || b.supportedSwappers === undefined){
+        if (a.supportedSwappers === undefined || b.supportedSwappers === undefined) {
           return 0;
         }
         return b.supportedSwappers?.length - a.supportedSwappers?.length; // keep original order if both conditions are the same
@@ -69,8 +69,7 @@ const TokenSection: React.FC<{
       getBlockchainTokens(selectedBlockchain!.name)
         .then((tokens) => {
           const sortedTokens = filteredTokens(tokens);
-          console.log("sortedTokens", sortedTokens);
-          
+
           setTokenData(sortedTokens);
           setFilteredData(sortedTokens);
           setDisplayData(sortedTokens.slice(0, itemsToShow));
@@ -128,7 +127,7 @@ const TokenSection: React.FC<{
   };
 
   console.log(selectedBlockchain?.color);
-  
+
   const tokenTemplate = (
     blockchainName: string,
     id: string | null,
@@ -140,9 +139,8 @@ const TokenSection: React.FC<{
     index: number
   ) => (
     <DialogClose
-      className={`mb-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${
-        status ? "border-primary" : "border-seperator"
-      }`}
+      className={`mb-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
+        }`}
       onClick={() => {
         if (!status) {
           const tempSelectedToken = tokenData.filter(
@@ -185,7 +183,7 @@ const TokenSection: React.FC<{
               <div>
                 <span className="text-base px-1">{symbol}</span>
                 {/* <div></div> */}
-                <span className={`text-[14px] font-bold opacity-70`} style={{color: selectedBlockchain?.color, textShadow: "1px 0px 1px #ffffff"}}>
+                <span className={`text-[14px] font-bold opacity-70`} style={{ color: selectedBlockchain?.color, textShadow: "1px 0px 1px #ffffff" }}>
                   ({selectedBlockchain?.displayName})
                 </span>
               </div>
