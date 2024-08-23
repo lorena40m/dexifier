@@ -10,12 +10,13 @@ import { quoteDataSlice } from "./slice/quoteDataSlice";
 import { routeSlice } from "./slice/routeSlice";
 import { settingsSlice } from "./slice/settingsSlice";
 import { swapSlice } from "./slice/swapSlice";
+import { walletSlice } from "./slice/walletSlice";
 
 // Configuration for redux-persist
 const persistConfig = {
   key: "root", // Key for the root reducer
   storage, // Storage method (localStorage for web)
-  blacklist: ["routes", "swap"], // These slices won't be persisted
+  blacklist: ["routes", "swap", "wallet"], // These slices won't be persisted
 };
 
 // Combine all slice reducers into a root reducer
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   swap: swapSlice.reducer,
   allToken: alltokenSlice.reducer,
   quoteData: quoteDataSlice.reducer,
+  wallet: walletSlice.reducer
 });
 
 // Persist the root reducer

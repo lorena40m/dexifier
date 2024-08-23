@@ -1,3 +1,5 @@
+import { WalletType } from "@rango-dev/wallets-shared";
+
 export interface RootState {
   tokens: { fromToken: Token; toToken: Token };
   blockchains: { fromBlockchain: Blockchain; toBlockchain: Blockchain };
@@ -123,6 +125,24 @@ export interface TokenBalance {
   error: string | null;
   errorCode: number | null;
   traceId: number | null;
+}
+
+export interface walletAssetsBalance {
+  blockChain: string,
+  address: string,
+  failed: boolean,
+  explorerUrl: string,
+  balances: {
+    asset: {
+      blockchain: string,
+      symbol: string,
+      address: string | null
+    },
+    amount: {
+      amount: string,
+      decimals: number
+    }
+  }[]
 }
 
 export interface Settings {
@@ -456,3 +476,38 @@ export type UserWalletBlockchain = {
   blockchain: string;
   addresses: string[];
 };
+
+export interface FlexSwapCardProps {
+  isWalletConnected: boolean;
+}
+export interface FlexExchangeCardProps {
+  isWalletConnected: boolean;
+}
+export interface FlexRoutesCardProps {
+  isWalletConnected: boolean;
+}
+
+export type WalletTokenBalance = {
+  chain: string;
+  symbol: string;
+  ticker: string;
+  address: string | null;
+  rawAmount: string;
+  decimal: number | null;
+  amount: string;
+  logo: string | null;
+  usdPrice: number | null;
+};
+export interface ConnectedWallet extends WalletData {
+  balances: WalletTokenBalance[] | null;
+  explorerUrl: string | null;
+  selected: boolean;
+  loading: boolean;
+  error: boolean;
+}
+
+export interface WalletData {
+  chain: string;
+  address: string;
+  walletType: WalletType;
+}

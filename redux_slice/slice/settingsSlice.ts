@@ -7,7 +7,6 @@ const initialSettingsState: Settings = {
   bridges: [],
   selectedBridgesCounter: 0,
   totalBridges: 0,
-
   exchanges: [],
   selectedExchangesCounter: 0,
   totalExchanges: 0,

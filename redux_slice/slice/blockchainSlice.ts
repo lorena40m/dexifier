@@ -1,10 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Blockchain } from "@/app/types/interface";
+import { BlockchainMeta } from "rango-types";
 
 const initialBlockchainState: {
+  blockchains: BlockchainMeta[]
   fromBlockchain: Blockchain;
   toBlockchain: Blockchain;
 } = {
+  blockchains: [],
   fromBlockchain: {
     name: "",
     type: "",
@@ -58,6 +61,12 @@ export const blockchainSlice = createSlice({
   name: "blockchains",
   initialState: initialBlockchainState,
   reducers: {
+    setBlockchains(
+      state,
+      action: PayloadAction<{ blockchain: BlockchainMeta[] }>
+    ) {
+      return { ...state, blockchains: action.payload.blockchain };
+    },
     updateFromBlockchain(
       state,
       action: PayloadAction<{ blockchain: Blockchain }>
@@ -83,5 +92,5 @@ export const blockchainSlice = createSlice({
   },
 });
 
-export const { resetBlockchain, updateFromBlockchain, updateToBlockchain } =
+export const { resetBlockchain, updateFromBlockchain, updateToBlockchain, setBlockchains } =
   blockchainSlice.actions;

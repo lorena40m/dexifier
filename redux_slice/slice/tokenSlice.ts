@@ -58,9 +58,8 @@ export const tokenSlice = createSlice({
     updateToken(
       state,
       action: PayloadAction<{ token: Token; isFromToken: boolean }>
-    ) {   
+    ) {
       const { isFromToken, token } = action.payload;
-      console.log("updateToken", token);
       if (isFromToken) {
         return { ...state, fromToken: token };
       } else {

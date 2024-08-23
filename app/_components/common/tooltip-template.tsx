@@ -11,7 +11,7 @@ const TooltipTemplate = ({
   className,
   children,
 }: {
-  content: string;
+  content: string | ReactNode;
   className?: string;
   children: ReactNode;
 }) => {

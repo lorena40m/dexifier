@@ -10,6 +10,7 @@ import {
   TxSwapRequest,
   TxSwapResponse,
   TokenBalance,
+  walletAssetsBalance,
 } from "../types/interface";
 import axios, { AxiosResponse } from "axios";
 
@@ -23,7 +24,7 @@ export async function getBlockchains() {
 export async function getBlockchainTokens(blockchainName: string) {
   const data: AxiosResponse = await axiosClient.get(
     `/meta?blockchains=${blockchainName}&apiKey=` +
-      process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
+    process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
   const tokens = data.data.tokens as Token[];
   return tokens;
@@ -57,7 +58,7 @@ export async function getExchanges(): Promise<Exchange[]> {
   return exchanges;
 }
 
-export async function getBananceOfWallet(
+export async function getBananceOfToken(
   address: string,
   blockchain: string,
   symbol: string,
@@ -65,13 +66,33 @@ export async function getBananceOfWallet(
 ): Promise<TokenBalance> {
   console.log(address, "|", blockchain, "|", symbol, "|", tokenAddress);
   const response: AxiosResponse = await axiosClient.get(
-    `wallets/token-balance?walletAddress=${address}&blockchain=${blockchain}&symbol=${symbol}${
-      tokenAddress === null ? "" : "&address=" + tokenAddress
+    `wallets/token-balance?walletAddress=${address}&blockchain=${blockchain}&symbol=${symbol}${tokenAddress === null ? "" : "&address=" + tokenAddress
     }&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`
   );
   const tokenBalanceData = response.data;
   console.log("tokenBalanceData", tokenBalanceData);
   return tokenBalanceData;
+}
+
+export async function getBananceOfWallet(
+  addressWithBlockchian: string[],
+): Promise<walletAssetsBalance[]> {
+  let requestQuery;
+  if (addressWithBlockchian.length !== 0) {
+    requestQuery = addressWithBlockchian.map((address, index) => {
+      if (index === 0) {
+        return `address=${address}`
+      } else {
+        return `&address=${address}`
+      }
+    }).join('');
+  }
+  const response: AxiosResponse = await axiosClient.get(
+    `wallets/details?${requestQuery}&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`
+  );
+  const walletBalanceData = response.data.wallets;
+  console.log("tokenBalanceData", walletBalanceData);
+  return walletBalanceData;
 }
 
 export async function getBestRoutes(

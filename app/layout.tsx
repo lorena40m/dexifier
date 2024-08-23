@@ -1,12 +1,11 @@
+import React from "react";
 import MainNavbar from "./_components/MainNavbar";
-import Web3ModalProvider from "./providers/Web3ModalProvider";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import { StateProvider } from "@/redux_slice/provider";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
-import React from "react";
 
 const inter = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -23,9 +22,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <MainNavbar />
-        <StateProvider>{children}</StateProvider>
+      <body id="root" className={inter.className}>
+        <StateProvider>
+          <MainNavbar />
+          {children}
+        </StateProvider>
         <ToastContainer />
       </body>
     </html>
