@@ -1,9 +1,9 @@
 // import type { WalletInfo } from "@/embedded/ui";
 import type { InstallObjects, Namespace, NamespaceData, Network, WalletType } from "@rango-dev/wallets-shared";
 import { isCosmosBlockchain, isEvmBlockchain, TransactionType, type BlockchainMeta } from "rango-types";
-
 import { WalletState, WalletState as WalletStatus } from "./ui";
 import { EventHandler, Events, readAccountAddress, useWallets } from "@rango-dev/wallets-react";
+
 import {
   detectInstallLink,
   detectMobileScreens,
@@ -487,3 +487,4 @@ export const getOnUpdateState = (
   };
   return onUpdateState
 }
+

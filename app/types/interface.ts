@@ -486,7 +486,6 @@ export interface FlexExchangeCardProps {
 export interface FlexRoutesCardProps {
   isWalletConnected: boolean;
 }
-
 export type WalletTokenBalance = {
   chain: string;
   symbol: string;
@@ -511,3 +510,4 @@ export interface WalletData {
   address: string;
   walletType: WalletType;
 }
+

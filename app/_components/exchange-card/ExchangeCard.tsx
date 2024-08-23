@@ -39,7 +39,11 @@ import { resetToken, updateToken, updateTokenValue } from "@/redux_slice/slice/t
 import { setQuotedata } from "@/redux_slice/slice/quoteDataSlice";
 import { sortQuotesBy } from "@/app/utils/catch-data";
 import WalletSourcePopup from "./wallet-popup";
+
 import { setButtonRef } from "@/redux_slice/slice/walletSlice";
+
+import { useWalletList } from "@/app/wallet/useWalletList";
+
 
 enum WALLET {
   NONE,
@@ -115,6 +119,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   useEffect(() => {
     initializeBlockchains();
   }, []);
+
 
   useEffect(() => {
     if (walletSourcePopupRef.current) {
