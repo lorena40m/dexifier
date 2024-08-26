@@ -10,7 +10,6 @@ import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useWallets } from "@rango-dev/wallets-react";
 import { toastError } from "@/lib/utils";
 
-
 enum BgColorSet {
   'not_installed' = "#97979763",
   'disconnected' = "#639cff6e",

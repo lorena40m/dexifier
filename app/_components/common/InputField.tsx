@@ -136,6 +136,7 @@ const CustomCryptoField: React.FC<Props> = ({
     const walletAddress = "0x9639D6bD17073c2dC6209eecE12e2b714B0388aC";
     // account.address;
 
+
     getBananceOfToken(walletAddress, blockchain, symbol, address)
       .then((result) => {
         if (result.balance == null) {
