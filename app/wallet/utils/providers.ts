@@ -19,7 +19,7 @@ export function matchAndGenerateProviders(
 ): ProviderInterface[] {
   const all = allProviders({
     walletconnect2: {
-      WC_PROJECT_ID: options?.walletConnectProjectId || "1810ec8721bc30ad15dcbf39facc2939",
+      WC_PROJECT_ID: options?.walletConnectProjectId || "489c5034628c45947388bc9a0ef2ea03",
     },
     selectedProviders: providers,
   });

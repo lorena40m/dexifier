@@ -9,12 +9,13 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "./store";
 import { getBlockchains, getCompactBlockchainTokens } from "@/app/api/rango-api";
 import { setAllToken } from "./slice/allToken";
-import { matchAndGenerateProviders } from "@/app/wallet/utils/providers";
+import { matchAndGenerateProviders, ProvidersOptions } from "@/app/wallet/utils/providers";
 import { Provider as WalletProvider } from "@rango-dev/wallets-react"
 import { BlockchainMeta } from "rango-types";
 import { getOnUpdateState, OnWalletConnectionChange } from "@/app/wallet/useWalletList";
 import { setBlockchains } from "./slice/blockchainSlice";
 import { useWalletProviders } from "@/app/wallet/useWalletProviders";
+import { WidgetConfig } from "@/app/wallet/types";
 
 type ProviderProps = {
   children: ReactNode;
@@ -32,8 +33,22 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
     });
   }, [dispatch]);
 
-  const walletOptions = { walletConnectProjectId: "1810ec8721bc30ad15dcbf39facc2939" }
-  const { providers } = useWalletProviders(undefined, walletOptions);
+  const config: WidgetConfig = {
+    apiKey: "30a7dc74-0886-4c5d-bc18-dc04e6280a96",
+    title: "Dexifier_alpha",
+    allowedDomains: [
+      "http://localhost:3000"
+    ],
+    walletConnectProjectId: "489c5034628c45947388bc9a0ef2ea03",
+    enableCentralizedSwappers: true,
+    externalWallets: false,
+  };
+
+  const walletOptions: ProvidersOptions = {
+    walletConnectProjectId: config?.walletConnectProjectId,
+  };
+  // "489c5034628c45947388bc9a0ef2ea03"
+  const { providers } = useWalletProviders(config.wallets, walletOptions);
 
   useEffect(() => {
     getBlockchains().then((result) => { dispatch(setBlockchains({ blockchain: result })) }).catch((err) => {

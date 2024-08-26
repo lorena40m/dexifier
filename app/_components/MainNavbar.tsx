@@ -18,11 +18,11 @@ const customStyles = {
     zIndex: '30'
   },
   content: {
-    width: '40vw',
+    width: '450px',
     height: '100%',
     top: '0',
     right: '0',
-    transform: 'translate(60vw, 0)',
+    transform: `translate(calc(100vw - 450px), 0)`,
   },
 };
 
@@ -38,6 +38,7 @@ const MainNavbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const { connectedWallets, refOfConnectButton } = useAppSelector((state) => state.wallet)
+  const { tokens } = useAppSelector((state) => state.allToken);
 
   const [modalIsOpen, setIsModalOpen] = React.useState(false);
 
@@ -133,33 +134,56 @@ const MainNavbar = () => {
     return address.slice(0, 4) + "..." + address.slice(-4)
   }
 
-  const getIcon = (blockchain: string, address: string) => {
+  const getWalletIcon = (blockchain: string, address: string) => {
     const walletType = connectedWallets.find(connectdWallet => connectdWallet.chain === blockchain && connectdWallet.address === address)?.walletType || "";
     return list.find(detail => detail.type === walletType)?.image;
+  }
+
+  const getTokeData = (blockchian: string, address: string) => {
+    console.log("tokens ==>", tokens);
+
+    const tokenData = tokens.find(token => token.blockchain === blockchian && token.address === address);
+    if (tokenData) {
+      return { usedPrice: tokenData.usdPrice || 0, image: tokenData.image }
+    } else {
+      return { usedPrice: 0, image: "/assets/tokens/default.png" }
+    }
   }
 
   const SubWallet: React.FC<any> = ({ walletBalance }) => {
     console.log("walletBalance==>", walletBalance);
     return (
       <div className="pr-2">
-        <button className="flex justify-between text-sm border border-[#13f187] p-3 rounded-lg mt-2 w-full"
+        <button className="flex justify-between items-center text-sm border border-[#13f187] p-3 rounded-lg mt-2 w-full bg-[#13f18712] hover:opacity-80"
         >
-          <div className="flex" >
-            <Image src={getIcon(walletBalance.blockChain, walletBalance.address) || ""} width={22} height={22} alt={walletBalance.blockChain} className="mr-2" />
+          <div className="flex text-lg font-bold" >
+            <Image src={getWalletIcon(walletBalance.blockChain, walletBalance.address) || "/assets/wallet/default"} width={28} height={28} alt={walletBalance.blockChain} className="mr-2" />
             {walletBalance.blockChain}
           </div>
           <span>{getAbbrAddress(walletBalance.address)}</span>
         </button>
         <div className="p-2 text-[#e5e7ebc9]">
-          {walletBalance && walletBalance.balances && (walletBalance.balances.length === 0 ? <div className="text-sm"> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => (
-            <div key={index} className="flex justify-between items-center">
-              <div className="flex flex-col">
-                <span className="text-lg">{balance?.asset.symbol}</span>
-                <span className="text-xs">{balance?.asset.blockchain}</span>
+          {walletBalance && walletBalance.balances && (walletBalance.balances.length === 0 ? <div className="text-sm"> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => {
+            const { usedPrice, image } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
+            const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
+            return (
+              <div key={index} className="flex justify-between items-center border-b border-b-[#13f18738] py-2">
+                <div className="flex items-center">
+                  <div className="p-3">
+                    <Image src={image || "/assets/tokens/default.png"} width={34} height={34} alt={"token Icon"} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-md text-[#FFFFFF]">{balance?.asset.symbol}</span>
+                    <span className="text-xs  text-[#717171] font-bold">{balance?.asset.blockchain}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col mr-3">
+                  <span>{amount}</span>
+                  <span className="text-xs">{(parseFloat(amount) * usedPrice).toFixed(3)} $</span>
+                </div>
               </div>
-              <span>{getAmountFromString(balance?.amount.amount, balance?.amount.decimals)}</span>
-            </div>
-          )))}
+            )
+          }))}
         </div>
       </div>)
   }
@@ -329,7 +353,7 @@ const MainNavbar = () => {
           </button>
         </div>
         <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2">Your wallet</div>
-        <div className="overflow-auto h-full pb-[100px]">
+        <div className="overflow-auto h-full pb-[100px] pt-[20px]">
           {walletBalance && walletBalance.map((walletBalance, index) => (
             <SubWallet key={index} walletBalance={walletBalance} />
           ))}

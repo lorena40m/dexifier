@@ -76,8 +76,9 @@ const TokenSection: React.FC<{
         })
         .catch((err) => {
           console.log(err);
+        }).finally(() => {
+          setLoading(false);
         });
-      setLoading(false);
     }
     setItemsToShow(INITIALNUMBER);
   }, [selectedBlockchain]);
@@ -216,7 +217,7 @@ const TokenSection: React.FC<{
             ref={scrollContainerRef}
             className="pe-2.5 max-h-[35vh] overflow-y-auto"
           >
-            {displayData.map((token, index) =>
+            {loading ? <CustomLoader /> : displayData && displayData.map((token, index) =>
               tokenTemplate(
                 token.blockchain,
                 token.address,
