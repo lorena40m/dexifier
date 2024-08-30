@@ -7,6 +7,8 @@ import {
   Token,
 } from "../types/interface";
 import BigNumber from "bignumber.js";
+import { PendingSwap, PendingSwapNetworkStatus, PendingSwapStep } from "rango-types";
+import { StepDetailsProps } from "../wallet/interface";
 
 const ZERO = new BigNumber(0);
 const GAS_FEE_MIN_DECIMALS = 2;
@@ -148,6 +150,32 @@ function numberToString(
   }
 }
 
+export const getAmountFromString = (amount: string, decimals: number) => {
+  if (amount == null) {
+    return "0";
+  } else {
+    if (amount === "0") {
+      return amount;
+    }
+    const num = BigInt(amount);
+    const divisor = BigInt(10 ** decimals);
+    const integerPart = num / divisor;
+    const remainder = num % divisor;
+    let fractionalPart = remainder.toString().padStart(decimals, "0");
+    fractionalPart = fractionalPart.slice(0, 3);
+    let tokenPrice = integerPart.toString() + "." + fractionalPart;
+    tokenPrice = tokenPrice.replace(/\.?0+$/, "");
+    return tokenPrice;
+  }
+}
+
+export const getAbbrAddress = (address: string) => {
+  if (address == null) {
+    return "null"
+  }
+  return address.slice(0, 4) + "..." + address.slice(-4)
+}
+
 export const catchDataFromQuote = (quote: Result, tokens: Token[]) => {
   const totalTime = roundedSecondsToString(totalArrivalTime(quote?.swaps));
   const totalFee = getTotalFeeInUsd(quote?.swaps ?? [], tokens);
@@ -212,3 +240,114 @@ export const customStrategy = (strategy: NewPreferenceType): PreferenceType => {
       return "PRICE";
   }
 };
+
+const daysOfWeek = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+export function timeSince(millisecond: number) {
+  const date = new Date(millisecond);
+  const day = date.getDate();
+  const month = date.toLocaleString("default", { month: "long" });
+  const year = date.getFullYear();
+  const isToday = date.getDay() === new Date().getDay();
+  const formattedDate = isToday
+    ? "Today"
+    : `${daysOfWeek[date.getDay()]} ${day} ${month} ${year}`;
+
+  return `${formattedDate}, ${new Date(millisecond).toLocaleTimeString()}`;
+}
+
+export function getSwapDate(pendingSwap: PendingSwap) {
+  const time = pendingSwap.finishTime
+    ? timeSince(parseInt(pendingSwap.finishTime))
+    : timeSince(parseInt(pendingSwap.creationTime));
+  return time;
+}
+
+export function isNetworkStatusInWarningState(
+  pendingSwapStep: PendingSwapStep | null,
+): boolean {
+  return (
+    !!pendingSwapStep &&
+    pendingSwapStep.networkStatus !== null &&
+    pendingSwapStep.networkStatus !== PendingSwapNetworkStatus.NetworkChanged
+  );
+}
+
+export function getStepState(step: PendingSwapStep): StepDetailsProps["state"] {
+  if (
+    isNetworkStatusInWarningState(step) &&
+    step.status !== "failed" &&
+    step.status !== "success"
+  ) {
+    return "warning";
+  }
+
+  switch (step.status) {
+    case "created":
+      return "default";
+    case "approved":
+    case "waitingForApproval":
+    case "running":
+      return "in-progress";
+    case "failed":
+      return "error";
+    case "success":
+      return "completed";
+  }
+}
+
+export function getSwapMessages(
+  pendingSwap: PendingSwap,
+  currentStep: PendingSwapStep | null,
+): {
+  shortMessage: string;
+  detailedMessage: { content: string; long: boolean };
+} {
+  const textForRemove = "bellow button or";
+  let message = pendingSwap.extraMessage;
+  let detailedMessage = pendingSwap.extraMessageDetail;
+
+  if (pendingSwap.networkStatusExtraMessageDetail?.includes(textForRemove)) {
+    pendingSwap.networkStatusExtraMessageDetail =
+      pendingSwap.networkStatusExtraMessageDetail.replace(textForRemove, "");
+  }
+
+  const networkWarningState = isNetworkStatusInWarningState(currentStep);
+
+  if (networkWarningState) {
+    message = pendingSwap.networkStatusExtraMessage || "";
+    detailedMessage = pendingSwap.networkStatusExtraMessageDetail || "";
+
+    switch (currentStep?.networkStatus) {
+      case PendingSwapNetworkStatus.WaitingForConnectingWallet:
+        message = message || "Waiting for connecting wallet";
+        break;
+      case PendingSwapNetworkStatus.WaitingForQueue:
+        message = message || "Waiting for other running tasks to be finished";
+        break;
+      case PendingSwapNetworkStatus.WaitingForNetworkChange:
+        message = message || "Waiting for changing wallet network";
+        break;
+      default:
+        message = message || "";
+        break;
+    }
+  }
+  detailedMessage = detailedMessage || "";
+  message = message || "";
+  const isRpc =
+    message?.indexOf("code") !== -1 && message?.indexOf("reason") !== -1;
+
+  return {
+    shortMessage: message,
+    detailedMessage: { content: detailedMessage, long: isRpc },
+  };
+}

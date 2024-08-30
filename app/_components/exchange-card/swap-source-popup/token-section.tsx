@@ -127,8 +127,6 @@ const TokenSection: React.FC<{
     }, 500);
   };
 
-  console.log(selectedBlockchain?.color);
-
   const tokenTemplate = (
     blockchainName: string,
     id: string | null,

@@ -55,7 +55,6 @@ const RoutesCard = () => {
       changedStrategy,
       routes.routes as Result[]
     );
-    console.log("sorted routes", sortedResult);
     setSortedRoutes(sortedResult);
   }, []);
 

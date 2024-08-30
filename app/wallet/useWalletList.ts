@@ -1,8 +1,9 @@
 // import type { WalletInfo } from "@/embedded/ui";
-import type { InstallObjects, Namespace, NamespaceData, Network, WalletType } from "@rango-dev/wallets-shared";
+import type { InstallObjects, Namespace, Network, WalletType } from "@rango-dev/wallets-shared";
 import { isCosmosBlockchain, isEvmBlockchain, TransactionType, type BlockchainMeta } from "rango-types";
 
 import { WalletState, WalletState as WalletStatus } from "./ui";
+import { WalletState as ModalWalletState } from "@/app/wallet/types"
 import { EventHandler, Events, readAccountAddress, useWallets } from "@rango-dev/wallets-react";
 import {
   detectInstallLink,
@@ -25,6 +26,18 @@ import { disconnectedWallet, updateConnectedWallet } from "@/redux_slice/slice/w
 export type OnWalletConnectionChange = (key: string) => void;
 
 const ALL_SUPPORTED_WALLETS = Object.values(WalletTypes);
+
+
+export type ModalWalletInfo = {
+  state: ModalWalletState;
+  link: InstallObjects | string;
+  title: string;
+  image: string;
+  type: string;
+  showOnMobile?: boolean;
+  blockchainTypes: TransactionType[];
+};
+
 type WalletState = {
   connected: boolean;
   connecting: boolean;
@@ -48,7 +61,7 @@ type WalletInfo = {
 };
 
 type WalletsInfo = {
-  state: WalletState;
+  state: ModalWalletState;
   link: InstallObjects | string;
   title: string;
   image: string;
@@ -67,7 +80,7 @@ function removeDuplicateFrom<T>(array: T[]): T[] {
   return Array.from(new Set(array));
 }
 
-function hashWalletsState(walletsInfo: WalletsInfo[]) {
+function hashWalletsState(walletsInfo: ModalWalletInfo[]) {
   return walletsInfo.map((w) => w.state).join("-");
 }
 
@@ -88,8 +101,9 @@ export const isExperimentalChain = (
   blockchains: BlockchainMeta[],
   wallet: string,
 ): boolean => {
+
   const cosmosExperimentalChainInfo = getCosmosExperimentalChainInfo(
-    Object.entries(blockchains)
+    Object.entries(blockchains || [])
       .map(([, blockchainMeta]) => blockchainMeta)
       .filter(isCosmosBlockchain),
   );
@@ -195,7 +209,6 @@ export function useWalletList(params: Params) {
     listAvailableWalletTypes,
     chain,
   );
-  console.log("wallets, listAvailableWallet, Chain", wallets, listAvailableWalletTypes, chain);
 
   wallets = detectMobileScreens()
     ? wallets.filter(
@@ -213,7 +226,7 @@ export function useWalletList(params: Params) {
         connectedWallet.chain === chain,
     );
 
-  const handleClick = async (type: WalletType, namespaces?: NamespaceData[]) => {
+  const handleClick = async (type: WalletType, namespaces?: Namespace[]) => {
     const wallet = state(type);
     try {
       if (error) {
@@ -244,7 +257,7 @@ export function useWalletList(params: Params) {
     for (const wallet of connectingWallets) {
       void disconnect(wallet.type);
     }
-  }, [hashWalletsState(wallets as unknown as WalletsInfo[])]);
+  }, [hashWalletsState(wallets)]);
 
   const disconnectWallet = async (type: WalletType) => {
     const wallet = state(type);
@@ -300,7 +313,7 @@ export function useWalletList(params: Params) {
         isExperimentalChainNotAdded(walletType) &&
         !KEPLR_COMPATIBLE_WALLETS.includes(walletType)) ||
       (walletType == WalletTypes.DEFAULT &&
-        !shouldShowDefaultInjectedWallet(wallets as unknown as WalletsInfo[]))
+        !shouldShowDefaultInjectedWallet(wallets))
     );
   };
 
