@@ -2,7 +2,7 @@
 import type { InstallObjects, Namespace, Network, WalletType } from "@rango-dev/wallets-shared";
 import { isCosmosBlockchain, isEvmBlockchain, TransactionType, type BlockchainMeta } from "rango-types";
 
-import { WalletState, WalletState as WalletStatus } from "./ui";
+// import { WalletState, WalletState as WalletStatus } from "./ui";
 import { WalletState as ModalWalletState } from "@/app/wallet/types"
 import { EventHandler, Events, readAccountAddress, useWallets } from "@rango-dev/wallets-react";
 import {
@@ -27,6 +27,12 @@ export type OnWalletConnectionChange = (key: string) => void;
 
 const ALL_SUPPORTED_WALLETS = Object.values(WalletTypes);
 
+const WalletStatus = {
+  NOT_INSTALLED: "not_installed",
+  DISCONNECTED: "disconnected",
+  CONNECTING: "connecting",
+  CONNECTED: "connected",
+};
 
 export type ModalWalletInfo = {
   state: ModalWalletState;
@@ -236,7 +242,7 @@ export function useWalletList(params: Params) {
         await disconnect(type);
       } else {
         const atLeastOneWalletIsConnected = !!wallets.find(
-          (w) => w.state === WalletState.CONNECTED,
+          (w) => w.state === WalletStatus.CONNECTED,
         );
         if (config?.multiWallets === false && atLeastOneWalletIsConnected) {
           return;
@@ -252,7 +258,7 @@ export function useWalletList(params: Params) {
 
   const disconnectConnectingWallets = useCallback(() => {
     const connectingWallets =
-      wallets?.filter((wallet) => wallet.state === WalletState.CONNECTING) ||
+      wallets?.filter((wallet) => wallet.state === WalletStatus.CONNECTING) ||
       [];
     for (const wallet of connectingWallets) {
       void disconnect(wallet.type);
@@ -282,7 +288,7 @@ export function useWalletList(params: Params) {
     const defaultWallet = wallets.find(
       (wallet) => wallet.type === WalletTypes.DEFAULT,
     );
-    if (!defaultWallet || defaultWallet.state === WalletState.NOT_INSTALLED) {
+    if (!defaultWallet || defaultWallet.state === WalletStatus.NOT_INSTALLED) {
       return false;
     }
 
@@ -292,7 +298,7 @@ export function useWalletList(params: Params) {
      */
     const isEvmWalletInstalledExceptDefault = wallets.filter(
       (wallet) =>
-        wallet.state != WalletState.NOT_INSTALLED &&
+        wallet.state != WalletStatus.NOT_INSTALLED &&
         ![WalletTypes.DEFAULT, WalletTypes.WALLET_CONNECT_2].includes(
           wallet.type as WalletTypes,
         ) &&

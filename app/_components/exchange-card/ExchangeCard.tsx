@@ -169,7 +169,6 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       );
     }
 
-
     // const createResponse = await createMultiStepTransaction(swapRequest);
     // console.log("create swap response", createResponse);
     // if (createResponse.transaction && createResponse.transaction.type === TransactionType.EVM && !createResponse.transaction.isApprovalTx) {
@@ -186,9 +185,6 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
     // }
     // const checkStatusResponse = await checkStatus(checkRequest);
     // console.log("check status response", checkStatusResponse);
-
-    dispatch(updateSwapMade({ isSwapMade: true }));
-    dispatch(updateSwapStatus({ isInProcess: false }))
 
     // .finally(() =>
     //   dispatch(updateSwapStatus({ isInProcess: false }))

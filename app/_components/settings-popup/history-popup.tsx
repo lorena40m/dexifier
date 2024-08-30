@@ -3,74 +3,90 @@ import Image from "next/image";
 import PopupTemplate from "../common/popup-template";
 import Search from "../common/search";
 import TooltipTemplate from "../common/tooltip-template";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector } from "@/redux_slice/provider";
+import { PendingSwap, SwapStatus } from "rango-types";
+import { getPendingSwaps } from "@/app/utils/queue";
+import { useManager } from "@rango-dev/queue-manager-react";
+import { getSwapDate } from "@/app/utils/catch-data";
 
 interface TokenData {
-  name: string;
-  amount: number;
+  symbol: string;
+  blockchain: string;
+  amount: string;
   imageSrc: string;
 }
 
-const dummyData = [
-  {
-    date: "July 3, 2024",
-    status: "completed",
-    fromToken: {
-      name: "USDT",
-      amount: 850,
-      imageSrc: "/assets/settings/history/usdt.png",
-    },
-    toToken: {
-      name: "USDT",
-      amount: 848.109164,
-      imageSrc: "/assets/settings/history/usdt.png",
-    },
-  },
-  {
-    date: "June 3, 2024",
-    status: "completed",
-    fromToken: {
-      name: "Eth",
-      amount: 0.02999,
-      imageSrc: "/assets/settings/history/eth.png",
-    },
-    toToken: {
-      name: "bnb",
-      amount: 0.14639,
-      imageSrc: "/assets/settings/history/bnb.png",
-    },
-  },
-];
-
-// Get current month and year
-const currentMonth = new Date().getMonth();
-const currentYear = new Date().getFullYear();
-
-// Split data into this month and this year
-const thisMonthData = dummyData.filter((item) => {
-  const itemDate = new Date(item.date);
-  return (
-    itemDate.getMonth() === currentMonth &&
-    itemDate.getFullYear() === currentYear
-  );
-});
-
-const thisYearData = dummyData.filter((item) => {
-  const itemDate = new Date(item.date);
-  return (
-    itemDate.getFullYear() === currentYear &&
-    itemDate.getMonth() !== currentMonth
-  );
-});
+interface HistoryDataType {
+  date: string;
+  status: SwapStatus;
+  fromToken: TokenData;
+  toToken: TokenData;
+}
 
 const HistoryPopup = () => {
+  const { manager } = useManager();
+  const list: PendingSwap[] = getPendingSwaps(manager).map(({ swap }) => swap);
+
+  const createDummyData = (list: PendingSwap[]) => {
+    return list.map((historyData) => {
+      const date = getSwapDate(historyData);
+      const lastIndex = historyData.steps.length - 1;
+      const status = historyData.status;
+      const fromToken: TokenData = {
+        symbol: `${historyData.steps[0].fromSymbol}`,
+        blockchain: `${historyData.steps[0].fromBlockchain}`,
+        amount: parseFloat(historyData.inputAmount).toFixed(3),
+        imageSrc: historyData.steps[0].fromLogo,
+      };
+      const toToken: TokenData = {
+        symbol: `${historyData.steps[lastIndex].toSymbol}`,
+        blockchain: `${historyData.steps[lastIndex].toBlockchain}`,
+        amount: parseFloat(historyData.simulationResult.outputAmount).toFixed(3),
+        imageSrc: historyData.steps[lastIndex].toLogo,
+      };
+
+      return { date, status, fromToken, toToken };
+    });
+  };
+
+  const dummyData = useMemo(() => createDummyData(list), [list]);
+
   const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
 
   const [search, setSearch] = useState<string>("");
-  const [filteredMonthData, setFilteredMonthData] = useState(dummyData);
-  const [filteredYearData, setFilteredYearData] = useState(dummyData);
+  const [filteredData, setFilteredData] = useState(dummyData);
+
+  useEffect(() => {
+
+    const filterData = (data: HistoryDataType[]) =>
+      data.filter(
+        (transaction) =>
+          transaction.date.toLowerCase().includes(search.toLowerCase()) ||
+          transaction.fromToken.symbol
+            .toLowerCase()
+            .includes(search.toLowerCase()) ||
+          transaction.toToken.symbol
+            .toLowerCase()
+            .includes(search.toLowerCase()) ||
+          transaction.fromToken.blockchain
+            .toLowerCase()
+            .includes(search.toLowerCase()) ||
+          transaction.toToken.blockchain
+            .toLowerCase()
+            .includes(search.toLowerCase())
+      );
+
+    if (search === "") {
+      setFilteredData(dummyData);
+    } else {
+      setFilteredData(filterData(dummyData));
+    }
+  }, [search]);
+
+  console.log("dummyData=>", dummyData);
+
 
   const triggerButton = (
     <Button
@@ -88,38 +104,38 @@ const HistoryPopup = () => {
     </Button>
   );
 
-  const tokenContainer = (name: string, imageSrc: string) => (
-    <div className="flex items-center justify-between">
-      <div className="p-3 border border-seperator rounded-[.9375rem]">
-        <Image src={imageSrc} width={57} height={57} alt={`${name}'s icon`} />
-        <h3 className="pt-[.3125rem] text-sm uppercase text-center">{name}</h3>
+  const tokenContainer = (symbol: string, blockchain: string, imageSrc: string) => (
+    <div className="w-[100px]">
+      <div className="p-3 flex flex-col items-center justify-center border border-seperator rounded-[.9375rem]">
+        <Image src={imageSrc} width={57} height={57} alt={`${symbol}'s icon`} />
+        <h3 className="pt-[.3125rem] text-sm uppercase text-center">{symbol}</h3>
+        <h3 className="pt-[.3125rem] text-sm uppercase text-center">{blockchain}</h3>
       </div>
     </div>
   );
 
   const transactionContainer = (
     date: string,
-    status: string,
+    status: SwapStatus,
     fromToken: TokenData,
     toToken: TokenData
   ) => (
-    <div className="mb-6 p-4 border border-seperator rounded-3xl bg-transparent text-sm max-h-[10.875rem]">
-      <div className="mb-4 flex items-center justify-between capitalize max-h-[1.0625rem]">
+    <div className="mb-6 p-4 border border-seperator rounded-3xl bg-transparent text-sm">
+      <div className="mb-4 flex items-center justify-between capitalize">
         <h3>{date}</h3>
         <h3
-          className={`${
-            status.toLowerCase() === "completed"
-              ? "text-primary"
-              : status.toLowerCase() === "rejected"
+          className={`${status.toLowerCase() === "success"
+            ? "text-primary"
+            : status.toLowerCase() === "failed"
               ? "text-red-700"
               : "text-white"
-          }`}
+            }`}
         >
           {status}
         </h3>
       </div>
-      <div className="flex items-center justify-between max-h-[6.75rem]">
-        {tokenContainer(fromToken.name, fromToken.imageSrc)}
+      <div className="flex items-center justify-between">
+        {tokenContainer(fromToken.symbol, fromToken.blockchain, fromToken.imageSrc)}
         <div className="flex flex-col items-center ">
           <h3>{fromToken.amount}</h3>
           <div className="my-3.5 border border-seperator rounded-full w-[2.8975rem] h-[2.8975rem] flex items-center justify-center">
@@ -132,78 +148,39 @@ const HistoryPopup = () => {
           </div>
           <h3>{toToken.amount}</h3>
         </div>
-        {tokenContainer(toToken.name, toToken.imageSrc)}
+        {tokenContainer(toToken.symbol, toToken.blockchain, toToken.imageSrc)}
       </div>
     </div>
   );
-
-  useEffect(() => {
-    if (search === "") {
-      setFilteredMonthData(thisMonthData);
-      setFilteredYearData(thisYearData);
-    } else {
-      setFilteredMonthData(
-        thisMonthData.filter(
-          (transaction) =>
-            transaction.date.toLowerCase().includes(search.toLowerCase()) ||
-            transaction.fromToken.name
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            transaction.toToken.name
-              .toLowerCase()
-              .includes(search.toLowerCase())
-        )
-      );
-      setFilteredYearData(
-        thisYearData.filter(
-          (transaction) =>
-            transaction.date.toLowerCase().includes(search.toLowerCase()) ||
-            transaction.fromToken.name
-              .toLowerCase()
-              .includes(search.toLowerCase()) ||
-            transaction.toToken.name
-              .toLowerCase()
-              .includes(search.toLowerCase())
-        )
-      );
-    }
-  }, [search, thisMonthData, thisYearData]);
 
   return (
     <PopupTemplate title={"History"} triggerButton={triggerButton}>
       <>
         <Search search={search} setSearch={setSearch} />
         <div className="max-h-[55vh] overflow-y-auto pe-3">
-          {filteredMonthData.length > 0 && (
-            <>
-              <h2 className="text-sm mb-6">This Month</h2>
-              {filteredMonthData.map((transaction, index) => (
-                <React.Fragment key={index}>
-                  {transactionContainer(
-                    transaction.date,
-                    transaction.status,
-                    transaction.fromToken,
-                    transaction.toToken
-                  )}
-                </React.Fragment>
-              ))}
-            </>
-          )}
-          {filteredYearData.length > 0 && (
-            <>
-              <h2 className="text-sm mb-6">This Year</h2>
-              {filteredYearData.map((transaction, index) => (
-                <React.Fragment key={index}>
-                  {transactionContainer(
-                    transaction.date,
-                    transaction.status,
-                    transaction.fromToken,
-                    transaction.toToken
-                  )}
-                </React.Fragment>
-              ))}
-            </>
-          )}
+
+          {filteredData.length !== 0 && filteredData.map((transaction, index) => (
+            <React.Fragment key={index}>
+              {transactionContainer(
+                transaction.date,
+                transaction.status,
+                transaction.fromToken,
+                transaction.toToken
+              )}
+            </React.Fragment>
+          ))}
+
+          {dummyData.length !== 0 && filteredData.length === 0 && dummyData.map((transaction, index) => (
+            <React.Fragment key={index}>
+              {transactionContainer(
+                transaction.date,
+                transaction.status,
+                transaction.fromToken,
+                transaction.toToken
+              )}
+            </React.Fragment>
+          ))}
+
         </div>
       </>
     </PopupTemplate>
