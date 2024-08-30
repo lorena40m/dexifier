@@ -10,6 +10,10 @@ import { PendingSwap } from "rango-types";
 import { getPendingSwaps } from "@/app/utils/queue";
 import { useManager } from "@rango-dev/queue-manager-react";
 import { getStepState, getSwapDate, getSwapMessages } from "@/app/utils/catch-data";
+import { resetSwap, updateSwapMade, updateSwapStatus } from "@/redux_slice/slice/swapSlice";
+import { useDispatch } from "react-redux";
+import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
+import { resetRoute } from "@/redux_slice/slice/routeSlice";
 
 interface SwapTokenProps {
   swapData: Swap,
@@ -25,8 +29,9 @@ const SwapDetailsCard = () => {
   // const account = useAccount();
   const account = { isConnected: true }
   const { manager, state } = useManager();
+  const dispatch = useDispatch();
 
-  const { isInProcess, swapResponse, confirmResponse } = useAppSelector((state) => state.swap);
+  const { isInProcess, isSwapMade, swapResponse, confirmResponse } = useAppSelector((state) => state.swap);
   const { selectedRoute } = useAppSelector((state) => state.routes);
   const swaps = selectedRoute?.swaps;
   const pendingSwaps = getPendingSwaps(manager);
@@ -34,7 +39,6 @@ const SwapDetailsCard = () => {
   const list: PendingSwap[] = getPendingSwaps(manager).map(({ swap }) => swap);
 
   console.log("state=>", state);
-
 
   const selectedSwap = confirmResponse?.result?.requestId
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmResponse?.result?.requestId)
@@ -53,6 +57,10 @@ const SwapDetailsCard = () => {
     if (selectedSwap?.id) {
       try {
         manager?.deleteQueue(selectedSwap.id);
+        dispatch(updateTokenValue({ isFromToken: true, value: "0" }))
+        dispatch(updateSwapStatus({ isInProcess: false }))
+        dispatch(resetRoute());
+        dispatch(resetSwap());
       } catch (e) {
         console.log(e);
       }
@@ -72,6 +80,13 @@ const SwapDetailsCard = () => {
       stepMessage.detailedMessage.content || stepMessage.shortMessage;
     return stepDetailMessage
   }
+
+  useEffect(() => {
+    if (selectedSwap?.swap.status === "success" || selectedSwap?.swap.status === "failed") {
+      dispatch(updateSwapMade({ isSwapMade: true }));
+      dispatch(updateSwapStatus({ isInProcess: false }));
+    }
+  }, [selectedSwap?.swap.status])
 
   const StepMessage: FC<StepStateProps> = ({ swap, currentStop }) => {
     const [message, setMessage] = useState<string>();
@@ -190,8 +205,15 @@ const SwapDetailsCard = () => {
     account.isConnected && selectedRoute && (
       <div className="relative lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
         <div className="z-0">
-          <h1 className="text-2xl mb-5">Swap Details</h1>
-          <div className="overflow-auto h-[435px] px-3">
+          <div className="flex justify-between">
+            <h1 className="text-2xl mb-5">Swap Details</h1>
+            <button
+              className="text-red-700 hover:opacity-80 font-bold"
+              onClick={onDelete}
+              disabled={selectedSwap?.id === undefined}>
+              delete
+            </button></div>
+          <div className="overflow-auto h-[410px] px-3">
             <div className="mb-8 text-xs">
               {pendingSwap && <div className="flex justify-between">
                 <span className="text-lg font-semibold">
@@ -242,6 +264,14 @@ const SwapDetailsCard = () => {
             </div>
             }
 
+          </div>
+          <div className="flex">
+            <button
+              className={`m-auto border border-[#13f187] rounded-xl p-6 py-2 ${isSwapMade ? "opacity-80" : "hover:opacity-80"}`}
+              onClick={onCancel}
+              disabled={isSwapMade}>
+              Cancel
+            </button>
           </div>
         </div>
         <div className="absolute lg:max-h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-transparent to-[#050F0F] z-10" />
