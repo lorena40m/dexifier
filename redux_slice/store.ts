@@ -39,10 +39,11 @@ export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['persist/PERSIST'], // Ignore specific redux-persist actions
-        ignoredPaths: ['register', 'rehydrate'], // Ignore paths that may contain non-serializable values
-      },
+      serializableCheck: false,
+      // serializableCheck: {
+      //   ignoredActions: ['persist/PERSIST'], // Ignore specific redux-persist actions
+      //   ignoredPaths: ['register', 'rehydrate'], // Ignore paths that may contain non-serializable values
+      // },
     }),
 });
 

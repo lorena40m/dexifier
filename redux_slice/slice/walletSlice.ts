@@ -1,9 +1,21 @@
-import { TokenBalance, WalletData } from "@/app/types/interface";
+import { WalletData } from "@/app/types/interface";
 import { Wallet, WidgetConfig } from "@/app/wallet/types";
 import { ProviderInterface } from "@rango-dev/wallets-react";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface ConnectedWallet extends Wallet {
+export type TokenBalance = {
+  chain: string;
+  symbol: string;
+  ticker: string;
+  address: string | null;
+  rawAmount: string;
+  decimal: number | null;
+  amount: string;
+  logo: string | null;
+  usdPrice: number | null;
+};
+
+export interface ConnectedWallet extends Wallet {
   balances: TokenBalance[] | null;
   explorerUrl: string | null;
   selected: boolean;
@@ -13,6 +25,7 @@ interface ConnectedWallet extends Wallet {
 
 const initialWalletList: {
   connectedWallets: ConnectedWallet[]
+  selectedWallets: Wallet[]
   refOfConnectButton: HTMLButtonElement | null
   config: WidgetConfig
   providers: ProviderInterface[]
@@ -20,7 +33,8 @@ const initialWalletList: {
   connectedWallets: [],
   config: { apiKey: "" },
   providers: [],
-  refOfConnectButton: null
+  refOfConnectButton: null,
+  selectedWallets: []
 }
 
 export const walletSlice = createSlice({
@@ -55,6 +69,7 @@ export const walletSlice = createSlice({
         )
       return { ...state, connectedWallets: newState };
     },
+
     setButtonRef(
       state,
       action: PayloadAction<{ refButton: HTMLButtonElement }>
@@ -71,6 +86,7 @@ export const walletSlice = createSlice({
       return {
         ...state,
         connectedWallets: [],
+        selectedWallets: []
       };
     },
     disconnectedWallet(
@@ -104,6 +120,13 @@ export const walletSlice = createSlice({
       return { ...state, connectedWallets: connectedWallets };
     },
 
+    updateSelectedWallets(
+      state,
+      action: PayloadAction<{ selectedWallets: Wallet[] }>
+    ) {
+      return { ...state, selectedWallets: action.payload.selectedWallets };
+    },
+
     updateWalletProvider(
       state,
       action: PayloadAction<{ providers: ProviderInterface[] }>
@@ -113,5 +136,5 @@ export const walletSlice = createSlice({
   }
 });
 
-export const { updateConnectedWallet, updateWalletProvider, disconnectedWallet, clearConnectedWallet, setButtonRef } =
+export const { updateConnectedWallet, updateWalletProvider, disconnectedWallet, clearConnectedWallet, setButtonRef, updateSelectedWallets } =
   walletSlice.actions;

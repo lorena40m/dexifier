@@ -25,8 +25,6 @@ export const routeSlice = createSlice({
       return { ...state, routes: action.payload.routes };
     },
     setSelectedRoute(state, action: PayloadAction<{ route: Result }>) {
-      console.log("selectedRoute:", action.payload.route);
-
       return { ...state, selectedRoute: action.payload.route };
     },
     setRouteProcess(state, action: PayloadAction<{ isRouteProcess: boolean }>) {

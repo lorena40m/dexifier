@@ -10,6 +10,7 @@ import Modal from 'react-modal';
 import { Divide, X } from "lucide-react";
 import { getBananceOfWallet } from "../api/rango-api";
 import CustomLoader from "./common/loader";
+import { getAbbrAddress } from "../utils/catch-data";
 // import logo from "@/public/assets/logo.png";
 
 const customStyles = {
@@ -127,12 +128,6 @@ const MainNavbar = () => {
       refOfConnectButton.click()
     }
   }
-  const getAbbrAddress = (address: string) => {
-    if (address == null) {
-      return "null"
-    }
-    return address.slice(0, 4) + "..." + address.slice(-4)
-  }
 
   const getWalletIcon = (blockchain: string, address: string) => {
     const walletType = connectedWallets.find(connectdWallet => connectdWallet.chain === blockchain && connectdWallet.address === address)?.walletType || "";
@@ -140,7 +135,6 @@ const MainNavbar = () => {
   }
 
   const getTokeData = (blockchian: string, address: string) => {
-    console.log("tokens ==>", tokens);
 
     const tokenData = tokens.find(token => token.blockchain === blockchian && token.address === address);
     if (tokenData) {
@@ -151,7 +145,6 @@ const MainNavbar = () => {
   }
 
   const SubWallet: React.FC<any> = ({ walletBalance }) => {
-    console.log("walletBalance==>", walletBalance);
     return (
       <div className="pr-2">
         <button className="flex justify-between items-center text-sm border border-[#13f187] p-3 rounded-lg mt-2 w-full bg-[#13f18712] hover:opacity-80"

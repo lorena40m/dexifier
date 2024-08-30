@@ -19,7 +19,7 @@ export type NewPreferenceType =
   | "Fastest"
   | "Cheapest";
 
-type TokenAmountType = number | string;
+export type TokenAmountType = number | string;
 export interface CryptoCurrency {
   code: string;
   name: string;
@@ -351,7 +351,7 @@ export interface TxSwapResponse {
   errorCode?: number;
   traceId?: number;
   route?: TxRoute;
-  tx: TxTransaction;
+  tx: TxTransaction | null;
 }
 
 export interface TxTransaction {

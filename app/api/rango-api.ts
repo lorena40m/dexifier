@@ -13,6 +13,8 @@ import {
   walletAssetsBalance,
 } from "../types/interface";
 import axios, { AxiosResponse } from "axios";
+import { BestRouteResponse, CheckApprovalResponse, CheckTxStatusRequest, ConfirmRouteRequest, ConfirmRouteResponse, CreateTransactionRequest, CreateTransactionResponse, ReportTransactionRequest, TransactionStatusResponse } from "rango-types/mainApi";
+import { RequestOptions } from "rango-sdk/lib/types";
 
 export async function getBlockchains() {
   const data: AxiosResponse = await axiosClient.get(
@@ -91,7 +93,7 @@ export async function getBananceOfWallet(
     `wallets/details?${requestQuery}&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`
   );
   const walletBalanceData = response.data.wallets;
-  console.log("tokenBalanceData", walletBalanceData);
+  console.log("walletBalanceData", walletBalanceData);
   return walletBalanceData;
 }
 
@@ -112,7 +114,7 @@ export async function getBestRoutes(
     ) {
       throw new Error("No routes found");
     }
-
+    console.log("bestRoutesResponse", bestRoutesResponse);
     return bestRoutesResponse;
   } catch (error: unknown) {
     let diagnosticMessage: DiagnosticMessage = {
@@ -172,5 +174,164 @@ export async function createTransaction(
 
     console.error("Error creating swap transaction:", diagnosticMessage);
     throw diagnosticMessage;
+  }
+}
+
+export async function createMultiStepTransaction(
+  requestBody: CreateTransactionRequest,
+  options?: RequestOptions
+): Promise<CreateTransactionResponse> {
+  try {
+    const response: AxiosResponse = await axiosClient.post(
+      `https://api.rango.exchange/tx/create?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
+      requestBody,
+      { ...options }
+    );
+
+    const swapResponse = response.data as CreateTransactionResponse;
+
+    if (!swapResponse.ok) {
+      console.log(swapResponse);
+
+      throw new Error(swapResponse.error || "Unknown error occurred");
+    }
+    return swapResponse;
+  } catch (error: unknown) {
+    let diagnosticMessage: DiagnosticMessage = {
+      status: "error",
+      message: "An unknown error occurred",
+    };
+
+    if (error instanceof Error) {
+      diagnosticMessage.message = error.message;
+
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        diagnosticMessage.message = error.response.data.message;
+        if (error.response.data.actionUrl) {
+          diagnosticMessage.actionUrl = error.response.data.actionUrl;
+        }
+      }
+    }
+
+    console.error("Error creating swap transaction:", diagnosticMessage);
+    throw diagnosticMessage;
+  }
+}
+
+export async function checkApproval(
+  requestId: string,
+  txId?: string,
+  options?: RequestOptions
+): Promise<CheckApprovalResponse> {
+  try {
+    const response: AxiosResponse = await axiosClient.get(
+      `https://api.rango.exchange/tx/${requestId}/check-approval?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
+      { params: { txId }, ...options },
+    );
+
+    const approvalResponse = response.data as CheckApprovalResponse;
+
+    return approvalResponse;
+  } catch (error: unknown) {
+    let diagnosticMessage: DiagnosticMessage = {
+      status: "error",
+      message: "An unknown error occurred",
+    };
+
+    if (error instanceof Error) {
+      diagnosticMessage.message = error.message;
+
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        diagnosticMessage.message = error.response.data.message;
+        if (error.response.data.actionUrl) {
+          diagnosticMessage.actionUrl = error.response.data.actionUrl;
+        }
+      }
+    }
+
+    console.error("Error creating swap transaction:", diagnosticMessage);
+    throw diagnosticMessage;
+  }
+}
+
+export async function checkStatus(
+  requestBody: CheckTxStatusRequest,
+  options?: RequestOptions
+): Promise<TransactionStatusResponse> {
+  try {
+    const response: AxiosResponse = await axiosClient.post(
+      `https://api.rango.exchange/tx/check-status?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
+      requestBody,
+      { ...options }
+    );
+
+    const checkStatusResponse = response.data as TransactionStatusResponse;
+
+    if (checkStatusResponse.status === null) {
+      console.log(checkStatusResponse);
+
+      throw new Error("Unknown error occurred");
+    }
+    return checkStatusResponse;
+  } catch (error: unknown) {
+    let diagnosticMessage: DiagnosticMessage = {
+      status: "error",
+      message: "An unknown error occurred",
+    };
+
+    if (error instanceof Error) {
+      diagnosticMessage.message = error.message;
+
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        diagnosticMessage.message = error.response.data.message;
+        if (error.response.data.actionUrl) {
+          diagnosticMessage.actionUrl = error.response.data.actionUrl;
+        }
+      }
+    }
+
+    console.error("Error creating swap transaction:", diagnosticMessage);
+    throw diagnosticMessage;
+  }
+}
+
+export async function reportFailure(
+  requestBody: ReportTransactionRequest,
+  options?: RequestOptions
+): Promise<void> {
+  try {
+    await axiosClient.post(
+      `https://api.rango.exchange/tx/report-tx?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
+      requestBody,
+      { ...options }
+    );
+  } catch (err: unknown) {
+    console.log("err", err);
+  }
+}
+
+export async function confirmRoute(
+  data: ConfirmRouteRequest
+): Promise<ConfirmRouteResponse> {
+  try {
+    const response: AxiosResponse = await axiosClient.post(
+      `https://api.rango.exchange/routing/confirm?apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
+      data
+    );
+    const confirmRouteResponse = response.data as ConfirmRouteResponse;
+    if (confirmRouteResponse.ok === false) {
+      throw new Error(confirmRouteResponse.error || "Error while confirm wallet");
+    }
+    console.log("confirmRouteResponse", confirmRouteResponse);
+    return confirmRouteResponse;
+  } catch (err: unknown) {
+    console.log("err", err);
+    return {
+      ok: false,
+      result: null,
+      error: err instanceof Error ? err.message : 'Unknown error',
+      errorCode: null,
+      traceId: null,
+    };
   }
 }

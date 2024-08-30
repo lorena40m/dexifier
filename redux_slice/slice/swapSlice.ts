@@ -1,10 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Result, TxSwapResponse } from "@/app/types/interface";
+import { ConfirmRouteResponse } from "rango-types/mainApi";
 
 const initialSwapState: {
   isSwapMade: boolean;
   isInProcess: boolean;
   swapResponse: TxSwapResponse;
+  confirmResponse: ConfirmRouteResponse | undefined;
 } = {
   isSwapMade: false,
   isInProcess: false,
@@ -45,6 +47,7 @@ const initialSwapState: {
       },
     },
   },
+  confirmResponse: undefined
 };
 
 export const swapSlice = createSlice({
@@ -72,6 +75,14 @@ export const swapSlice = createSlice({
         isSwapMade: action.payload.isSwapMade,
       };
     },
+
+    updateConfirmResponse(state, action: PayloadAction<{ confirmResponse: ConfirmRouteResponse }>) {
+      return {
+        ...state,
+        confirmResponse: action.payload.confirmResponse,
+      };
+    },
+
     resetSwap(_) {
       return initialSwapState;
     },
@@ -83,4 +94,5 @@ export const {
   updateSwapStatus,
   updateSwapMade,
   updateSwapResponse,
+  updateConfirmResponse,
 } = swapSlice.actions;

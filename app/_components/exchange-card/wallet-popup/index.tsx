@@ -6,9 +6,13 @@ import { useWalletList } from "@/app/wallet/useWalletList";
 import { WalletInfoWithNamespaces, WalletState } from "@/app/wallet/types";
 import Search from "../../common/search";
 import { useSearchParams } from "next/navigation";
-import { forwardRef, useEffect, useMemo, useState } from "react";
+import { forwardRef, useActionState, useEffect, useMemo, useState } from "react";
 import { useWallets } from "@rango-dev/wallets-react";
 import { toastError } from "@/lib/utils";
+import { TokenAmountType } from "@/app/types/interface"
+import { useDispatch } from "react-redux";
+import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
+import { useAppSelector } from "@/redux_slice/provider";
 
 enum BgColorSet {
   'not_installed' = "#97979763",
@@ -23,11 +27,15 @@ enum TextColorSet {
   'connected' = "#58ff66d6",
 }
 
+
+
 const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
   const [search, setSearch] = useState<string>("")
   const [filteredData, setFilteredData] = useState<WalletInfoWithNamespaces[]>();
   const { list, handleClick, error, disconnectConnectingWallets } = useWalletList({})
   const { state } = useWallets();
+  const dispatch = useDispatch();
+  const fromTokneValue = useAppSelector((state) => state.tokens.fromToken.value);
 
   // Memoize the filtered list
   const filteredWalletList = useMemo(() => {
@@ -47,12 +55,19 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
     (wallet) => wallet.state === "connected",
   );
 
-  const walletClick = (walletData: WalletInfoWithNamespaces) => {
+  const walletClick = async (walletData: WalletInfoWithNamespaces) => {
     if (walletData.state === "not_installed") {
       window.open(walletData.link as string, "_blank");
       return
     }
-    handleClick(walletData.type);
+    if (walletData.state === "connecting") {
+      disconnectConnectingWallets();
+    } else {
+      await handleClick(walletData.type);
+    }
+    if (fromTokneValue !== undefined) {
+      dispatch(updateTokenValue({ isFromToken: true, value: fromTokneValue.toString() }));
+    }
     // error && toastError(error)
     console.log("error from wailet", error);
 
