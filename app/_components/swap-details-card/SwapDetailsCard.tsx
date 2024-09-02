@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Swap, TxSwapResponse } from "@/app/types/interface";
 import { cancelSwap, getCurrentStep } from "@rango-dev/queue-manager-rango-preset";
 import { useAppSelector } from "@/redux_slice/provider";
-import { useAccount } from "wagmi";
 import { FC, useEffect, useState } from "react";
 import { PendingSwap } from "rango-types";
 import { getPendingSwaps } from "@/app/utils/queue";
@@ -25,9 +24,7 @@ interface StepStateProps {
   currentStop: number
 }
 
-const SwapDetailsCard = () => {
-  // const account = useAccount();
-  const account = { isConnected: true }
+const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
   const { manager, state } = useManager();
   const dispatch = useDispatch();
 
@@ -62,7 +59,7 @@ const SwapDetailsCard = () => {
         dispatch(resetRoute());
         dispatch(resetSwap());
       } catch (e) {
-        console.log(e);
+        console.log("delete Error", e);
       }
     }
   };
@@ -119,7 +116,7 @@ const SwapDetailsCard = () => {
     }
     const state = getStepState(swap.steps[currentStop]);
     return (
-      state && <div>{
+      state && <div className="flex justify-center items-center">{
         state === "in-progress" ?
           <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
             <div className="flex items-center justify-center gap-x-2.5">
@@ -202,7 +199,7 @@ const SwapDetailsCard = () => {
   }
 
   return (
-    account.isConnected && selectedRoute && (
+    isWalletConnected && selectedRoute && (
       <div className="relative lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
         <div className="z-0">
           <div className="flex justify-between">
@@ -213,7 +210,7 @@ const SwapDetailsCard = () => {
               disabled={selectedSwap?.id === undefined}>
               delete
             </button></div>
-          <div className="overflow-auto h-[410px] px-3">
+          <div className="overflow-auto h-[380px] px-3">
             <div className="mb-8 text-xs">
               {pendingSwap && <div className="flex justify-between">
                 <span className="text-lg font-semibold">
@@ -265,12 +262,12 @@ const SwapDetailsCard = () => {
             }
 
           </div>
-          <div className="flex">
+          <div className="flex my-2">
             <button
-              className={`m-auto border border-[#13f187] rounded-xl p-6 py-2 ${isSwapMade ? "opacity-80" : "hover:opacity-80"}`}
+              className={`m-auto border border-primary rounded-xl p-6 py-2 ${isSwapMade ? "opacity-80" : "hover:opacity-80"}`}
               onClick={onCancel}
               disabled={isSwapMade}>
-              Cancel
+              <span className="text-lg">Cancel</span>
             </button>
           </div>
         </div>

@@ -2,10 +2,10 @@ import Image from 'next/image';
 import { Swap } from '@/app/types/interface';
 import { useWalletList } from '@/app/wallet/useWalletList';
 import { useAppSelector } from '@/redux_slice/provider';
-import { updateConfirmResponse, updateSwapResponse, updateSwapStatus } from '@/redux_slice/slice/swapSlice';
+import { updateConfirmResponse, updateCustomAddress, updateSwapResponse, updateSwapStatus } from '@/redux_slice/slice/swapSlice';
 import { ConnectedWallet, updateSelectedWallets } from '@/redux_slice/slice/walletSlice';
 import { X } from 'lucide-react';
-import { FC, useEffect, useState } from 'react';
+import { ChangeEvent, ChangeEventHandler, FC, useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { useDispatch } from 'react-redux';
 import { getAbbrAddress, getAmountFromString } from '@/app/utils/catch-data';
@@ -14,6 +14,7 @@ import { confirmRoute } from '@/app/api/rango-api';
 import { BlockchainValidationStatus, ConfirmRouteRequest, ConfirmRouteResponse, WalletRequiredAssets } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 const customStyles = {
   overlay: {
     backgroundColor: '#000000cc',
@@ -49,6 +50,7 @@ export interface SelectedWalletListProps {
 }
 const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmModal, closeModalAndContinue }) => {
   Modal.setAppElement('#root');
+  const [isChecked, setIsChecked] = useState<boolean>(false);
   const { list } = useWalletList({})
   const dispatch = useDispatch();
   const [requiredChain, setRequitedChain] = useState<string[]>([]);
@@ -58,6 +60,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
   const [selectedWalletsList, setSelectedWalletsList] = useState<SelectedWalletListProps[]>([]);
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
   const { connectedWallets } = useAppSelector((state) => state.wallet);
+  const { customAddress } = useAppSelector((state) => state.swap);
   const lastNumber = selectedRoute?.swaps.length;
 
   console.log("selectedWalletsList", selectedWalletsList);
@@ -77,6 +80,10 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       }
     }
     return isValid;
+  }
+
+  const setCustomAddress = (event: ChangeEvent<HTMLInputElement>) => {
+    dispatch(updateCustomAddress({ customAddress: event.target.value }))
   }
 
   const confirmWallet = async () => {
@@ -102,7 +109,8 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
 
       const requestData: ConfirmRouteRequest = {
         requestId: selectedRoute?.requestId,
-        selectedWallets: selectedWallets
+        selectedWallets: selectedWallets,
+        destination: customAddress || undefined
       };
 
       const selectedWalletObject = selectedWalletsList.map(obj => {
@@ -163,7 +171,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
     if (selectedWalletsList.length > 0) {
       confirmWallet();
     }
-  }, [selectedWalletsList]);
+  }, [selectedWalletsList, customAddress]);
 
   const SingleConfirmWallet: FC<singleConfirmWalletProps> = ({ chain, index }) => {
     const [validDatas, setValidDatas] = useState<WalletRequiredAssets[]>();
@@ -183,7 +191,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           <div className="rounded-full w-[24px] h-[24px] bg-[#13f187] opacity-80 text-center align-center items-center p-auto">{index + 1}</div>
           <span> Your {chain} wallet</span>
         </div>
-        <div className="flex p-3 mb-4">
+        <div className="flex p-3 mb-4 overflow-auto">
           {
             validWallet.length === 0 ? <div className="text-[#f44336]"><span className="font-bold">ERROR:</span> You should connect a {chain} supported wallet</div> :
               validWallet.map((connectedWallet) => {
@@ -265,8 +273,18 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       }
       {loading ? <div className="flex items-center justify-center min-h-[30vh]"><CustomLoader /></div> : <div className="overflow-auto "
         style={{ height: `calc(70vh - 200px)` }}>
-        {requiredChain && requiredChain.map((chain, index) => <SingleConfirmWallet key={index} chain={chain} index={index} />)}
-      </div>}
+        {requiredChain && requiredChain.map((chain, index, array) => {
+          const isLast = index === array.length - 1;
+          return (<SingleConfirmWallet key={index} chain={chain} index={index} />)
+        })}
+
+        <div className="flex gap-3 items-center justify-center mb-4">
+          <input className="peer w-5 h-5 checked:color-primary color-primary" size={50} type="checkbox" onChange={() => setIsChecked(!isChecked)} />
+          <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-60 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-90"
+            type="text" placeholder={`Choose a custom ${requiredChain[requiredChain.length - 1]} address`} disabled={!isChecked}></input>
+        </div>
+      </div>
+      }
       <div className="flex">
         {!loading && <button className={`border border-[#13f187] w-[150px] h-[50px] rounded-full py-3 px-6 m-auto mt-3 ${error ? "opacity-70" : "hover:opacity-80"}`}
           style={{ backgroundColor: loading ? "" : "#13f187" }}

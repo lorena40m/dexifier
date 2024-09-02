@@ -1,6 +1,5 @@
 import { useAppSelector } from "@/redux_slice/provider";
 import ExchangeCard from "./ExchangeCard";
-import { useAccount } from "wagmi";
 import { FlexExchangeCardProps } from "@/app/types/interface";
 
 

@@ -147,7 +147,7 @@ const MainNavbar = () => {
   const SubWallet: React.FC<any> = ({ walletBalance }) => {
     return (
       <div className="pr-2">
-        <button className="flex justify-between items-center text-sm border border-[#13f187] p-3 rounded-lg mt-2 w-full bg-[#13f18712] hover:opacity-80"
+        <button className="flex justify-between items-center text-sm border border-primary p-3 rounded-lg mt-2 w-full bg-[primary12] hover:opacity-80"
         >
           <div className="flex text-lg font-bold" >
             <Image src={getWalletIcon(walletBalance.blockChain, walletBalance.address) || "/assets/wallet/default"} width={28} height={28} alt={walletBalance.blockChain} className="mr-2" />
@@ -160,7 +160,7 @@ const MainNavbar = () => {
             const { usedPrice, image } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
             const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
             return (
-              <div key={index} className="flex justify-between items-center border-b border-b-[#13f18738] py-2">
+              <div key={index} className="flex justify-between items-center border-b border-b-[primary38] py-2">
                 <div className="flex items-center">
                   <div className="p-3">
                     <Image src={image || "/assets/tokens/default.png"} width={34} height={34} alt={"token Icon"} />
@@ -269,7 +269,7 @@ const MainNavbar = () => {
                 </Link>
               ))}
               {!connectedWallets.length ?
-                <button className="flex text-[1.075rem] bg-[#13f187] rounded-full p-2 pr-3 items-center justify-center hover:opacity-80"
+                <button className="flex text-[1.075rem] bg-primary rounded-full p-2 pr-3 items-center justify-center hover:opacity-80"
                   onClick={onClickWalletButton}>
                   <div className="mx-2">
                     <Image
@@ -282,7 +282,7 @@ const MainNavbar = () => {
                   <span>connect wallet</span>
                 </button>
                 : <div className="flex">
-                  <button className="flex relative text-[1.075rem] min-h-[35px] border border-[#13f187] rounded-l-full rounded p-2 items-center justify-center hover:opacity-80"
+                  <button className="flex relative text-[1.075rem] min-h-[35px] border border-primary rounded-l-full rounded p-2 items-center justify-center hover:opacity-80"
                     style={{ backgroundColor: `${loading ? "" : "#13f187"}` }}
                     onClick={openModal}>
                     {loading ? <div className="w-[35px] absolute left-[8px] z-1"><CustomLoader /></div> : mappedWallets && mappedWallets.map((walletData, index) => (
@@ -301,7 +301,7 @@ const MainNavbar = () => {
                       style={{ paddingLeft: `${(1 + 0.6 * mappedWallets.length) * 25}px` }}></span>
                   </button>
                   <button
-                    className="rounded-r-full color-[#141414] bg-[#13f187] p-2 pr-3 border-l hover:opacity-80" onClick={onClickWalletButton}> more wallet</button>
+                    className="rounded-r-full color-[#141414] bg-primary p-2 pr-3 border-l hover:opacity-80" onClick={onClickWalletButton}> more wallet</button>
                 </div>
               }
             </div>

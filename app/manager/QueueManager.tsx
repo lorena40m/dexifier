@@ -87,7 +87,7 @@ function QueueManager(props: PropsWithChildren<{ apiKey?: string }>) {
     !!getWalletInfo(walletType).mobileWallet;
 
   // TODO: this code copy & pasted from rango, should be refactored.
-  const allBlockchains = blockchains
+  const allBlockchains = (blockchains || [])
     .filter((blockchain) => blockchain.enabled)
     .reduce(
       (blockchainsObj: any, blockchain) => (

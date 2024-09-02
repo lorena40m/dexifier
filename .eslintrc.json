@@ -1,6 +1,8 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
+    // "unicorn/no-array-callback-reference": "warn",
+    // "unicorn/no-useless-undefined": "error"
     // "no-undef": "error",
     // "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     // "import/no-unresolved": "error",

@@ -7,6 +7,7 @@ const initialSwapState: {
   isInProcess: boolean;
   swapResponse: TxSwapResponse;
   confirmResponse: ConfirmRouteResponse | undefined;
+  customAddress: string | null;
 } = {
   isSwapMade: false,
   isInProcess: false,
@@ -47,7 +48,8 @@ const initialSwapState: {
       },
     },
   },
-  confirmResponse: undefined
+  confirmResponse: undefined,
+  customAddress: null
 };
 
 export const swapSlice = createSlice({
@@ -75,6 +77,12 @@ export const swapSlice = createSlice({
         isSwapMade: action.payload.isSwapMade,
       };
     },
+    updateCustomAddress(state, action: PayloadAction<{ customAddress: string | null }>) {
+      return {
+        ...state,
+        customAddress: action.payload.customAddress,
+      };
+    },
 
     updateConfirmResponse(state, action: PayloadAction<{ confirmResponse: ConfirmRouteResponse }>) {
       return {
@@ -95,4 +103,5 @@ export const {
   updateSwapMade,
   updateSwapResponse,
   updateConfirmResponse,
+  updateCustomAddress,
 } = swapSlice.actions;
