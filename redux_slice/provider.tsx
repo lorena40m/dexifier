@@ -78,7 +78,7 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
   return (
     <WalletProvider
       providers={providers}
-      allBlockChains={blockchains}
+      allBlockChains={blockchains || []}
       onUpdateState={onUpdateState}
       autoConnect={false}>
       <QueueManager apiKey={config.apiKey}>
