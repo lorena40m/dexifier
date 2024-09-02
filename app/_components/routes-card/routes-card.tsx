@@ -11,7 +11,6 @@ import {
   NewPreferenceType,
   Token,
 } from "@/app/types/interface";
-import { useAccount } from "wagmi";
 import {
   catchDataFromQuote,
   customStrategy,
@@ -32,9 +31,7 @@ interface Information {
   fee: string | undefined;
 }
 
-const RoutesCard = () => {
-  // const account = useAccount();
-  const account = { isConnected: true }
+const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
 
   // redux hooks
   const routes = useAppSelector((state) => state.routes);
@@ -240,7 +237,7 @@ const RoutesCard = () => {
   // render part
 
   return (
-    account.isConnected && (
+    isWalletConnected && (
       <div className="relative w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
 
         <div className="z-0 w-full">

@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Blockchain, Result, RouteData, Token } from "@/app/types/interface";
 import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
-import { useAccount } from "wagmi";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { getBananceOfToken, getBestRoutes } from "@/app/api/rango-api";
 import {
@@ -33,8 +32,6 @@ const CustomCryptoField: React.FC<Props> = ({
   isFromToken = false,
   isWalletConnected
 }) => {
-  // const account = useAccount();
-  const account = { isConnected: true }
 
   // redux hook
   const dispatch = useAppDispatch();
@@ -89,7 +86,6 @@ const CustomCryptoField: React.FC<Props> = ({
       routeData.amount == "" ||
       routeData.amount == 0 ||
       routeData.amount == undefined ||
-      !account.isConnected ||
       !isWalletConnected ||
       isExchangeButtonClicked
     ) {
@@ -134,7 +130,6 @@ const CustomCryptoField: React.FC<Props> = ({
       return;
     }
     const walletAddress = "0x9639D6bD17073c2dC6209eecE12e2b714B0388aC";
-    // account.address;
 
 
     getBananceOfToken(walletAddress, blockchain, symbol, address)
@@ -189,7 +184,7 @@ const CustomCryptoField: React.FC<Props> = ({
       <div className="flex justify-between items-center">
         <label className="text-lg mb-1">{label}</label>
 
-        {account.isConnected && isFromToken && (
+        {isWalletConnected && isFromToken && (
           <label>
             Balance: {tokenBalance} &nbsp; {selectedTokenData.fromToken.symbol}
           </label>

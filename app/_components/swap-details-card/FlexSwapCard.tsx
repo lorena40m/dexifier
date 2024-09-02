@@ -7,7 +7,7 @@ const FlexSwapCard: React.FC<FlexSwapCardProps> = ({ isWalletConnected }) => {
   return (
     ((isSwapMade || isInProcess) && isWalletConnected) && (
       <div className="w-full max-w-[550px]">
-        <SwapDetailsCard />
+        <SwapDetailsCard isWalletConnected={isWalletConnected} />
       </div>
     )
   );

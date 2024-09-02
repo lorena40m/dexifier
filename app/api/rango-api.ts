@@ -13,14 +13,14 @@ import {
   walletAssetsBalance,
 } from "../types/interface";
 import axios, { AxiosResponse } from "axios";
-import { BestRouteResponse, CheckApprovalResponse, CheckTxStatusRequest, ConfirmRouteRequest, ConfirmRouteResponse, CreateTransactionRequest, CreateTransactionResponse, ReportTransactionRequest, TransactionStatusResponse } from "rango-types/mainApi";
+import { BestRouteResponse, BlockchainMeta, CheckApprovalResponse, CheckTxStatusRequest, ConfirmRouteRequest, ConfirmRouteResponse, CreateTransactionRequest, CreateTransactionResponse, ReportTransactionRequest, TransactionStatusResponse } from "rango-types/mainApi";
 import { RequestOptions } from "rango-sdk/lib/types";
 
-export async function getBlockchains() {
+export async function getBlockchains(): Promise<BlockchainMeta[]> {
   const data: AxiosResponse = await axiosClient.get(
     "/meta/blockchains?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
-  const blockchains = data.data;
+  const blockchains = data.data as BlockchainMeta[];
   return blockchains;
 }
 export async function getBlockchainTokens(blockchainName: string) {

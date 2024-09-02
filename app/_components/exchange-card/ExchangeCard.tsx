@@ -20,7 +20,6 @@ import {
 import { useWeb3Modal, useWeb3ModalEvents } from "@web3modal/wagmi/react";
 import { RiZzzFill } from "react-icons/ri";
 import { toastError, toastSuccess } from "@/lib/utils";
-import { useAccount } from "wagmi";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import {
   getRoutes,
@@ -65,12 +64,6 @@ interface ExchangeCardProps {
 const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   const walletSourcePopupRef = useRef<HTMLButtonElement>(null);
   const { manager } = useManager();
-  // const events = useWeb3ModalEvents();
-  // const account = useAccount();
-  const account = { isConnected: true }
-  // const { open } = useWeb3Modal();
-  // const { address } = useAccount();
-  const address = "0x123243456787"
 
   // redux hook
   const dispatch = useAppDispatch();
@@ -108,7 +101,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   console.log("selectedRoute", selectedRoute);
 
   async function initializeBlockchains() {
-    const meta = await getBlockchains();
+    const meta = await getBlockchains() as Blockchain[];
     setBlockChains(meta);
   }
 
@@ -239,7 +232,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       routeData.amount == "" ||
       routeData.amount == 0 ||
       routeData.amount == undefined ||
-      !account.isConnected
+      !isWalletConnected
     ) {
       return;
     }
