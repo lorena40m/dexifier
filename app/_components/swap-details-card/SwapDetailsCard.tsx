@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Swap, TxSwapResponse } from "@/app/types/interface";
-import { cancelSwap, getCurrentStep } from "@rango-dev/queue-manager-rango-preset";
+import { Swap } from "@/app/types/interface";
+import { cancelSwap } from "@rango-dev/queue-manager-rango-preset";
 import { useAppSelector } from "@/redux_slice/provider";
 import { FC, useEffect, useState } from "react";
 import { PendingSwap } from "rango-types";
@@ -21,21 +21,20 @@ interface SwapTokenProps {
 
 interface StepStateProps {
   swap: PendingSwap | undefined,
-  currentStop: number
+  currentStep: number
 }
 
 const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
   const { manager, state } = useManager();
   const dispatch = useDispatch();
 
-  const { isInProcess, isSwapMade, swapResponse, confirmResponse } = useAppSelector((state) => state.swap);
+  const { isSwapMade, confirmResponse } = useAppSelector((state) => state.swap);
   const { selectedRoute } = useAppSelector((state) => state.routes);
   const swaps = selectedRoute?.swaps;
   const pendingSwaps = getPendingSwaps(manager);
-  const currentStop: number = 1;
   const list: PendingSwap[] = getPendingSwaps(manager).map(({ swap }) => swap);
 
-  console.log("state=>", state);
+  console.log("state=>", state, confirmResponse);
 
   const selectedSwap = confirmResponse?.result?.requestId
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmResponse?.result?.requestId)
@@ -85,18 +84,18 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     }
   }, [selectedSwap?.swap.status])
 
-  const StepMessage: FC<StepStateProps> = ({ swap, currentStop }) => {
+  const StepMessage: FC<StepStateProps> = ({ swap, currentStep }) => {
     const [message, setMessage] = useState<string>();
 
     // Move useEffect out of the conditional
     useEffect(() => {
       if (swap !== undefined) {
-        const state = getStepState(swap.steps[currentStop]);
+        const state = getStepState(swap.steps[currentStep]);
         if (state !== "default") {
-          setMessage(getMessage(currentStop));
+          setMessage(getMessage(currentStep));
         }
       }
-    }, [swap, currentStop]);
+    }, [swap, currentStep]);
 
     if (swap === undefined || !message) {
       return null;
@@ -109,12 +108,11 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     );
   };
 
-  const StepState: FC<StepStateProps> = ({ swap, currentStop }) => {
-
+  const StepState: FC<StepStateProps> = ({ swap, currentStep }) => {
     if (swap === undefined) {
       return
     }
-    const state = getStepState(swap.steps[currentStop]);
+    const state = getStepState(swap.steps[currentStep]);
     return (
       state && <div className="flex justify-center items-center">{
         state === "in-progress" ?
@@ -130,17 +128,20 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
               <span>Running</span>
             </div>
           </div> :
-          (state !== "default" && <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
-            <div className="flex items-center justify-center gap-x-2.5">
-              {state === "completed" && <Image
-                src={"/assets/icons/check-filled.png"}
-                width={11}
-                height={11}
-                alt="checked icon"
-              />}
-              <span>{state}</span>
+          (
+            state !== "default" &&
+            <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
+              <div className="flex items-center justify-center gap-x-2.5">
+                {state === "completed" &&
+                  <Image
+                    src={"/assets/icons/check-filled.png"}
+                    width={11}
+                    height={11}
+                    alt="checked icon"
+                  />}
+                <span>{state}</span>
+              </div>
             </div>
-          </div>
           )
       }
       </div>
@@ -148,15 +149,6 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
   }
 
   console.log("list==>", list);
-
-  const propertiesContainer = (title: string, value: string) => (
-    <div className="mb-7 flex items-center text-xs">
-      <div className="w-5/12 font-semibold">{title}</div>
-      <div className="w-7/12 text-white/50 ">
-        {value.length > 28 ? <>{value.slice(0, 28)}...</> : value}
-      </div>
-    </div>
-  );
 
   const SwapToken: FC<SwapTokenProps> = ({ swapData, isFrom }) => {
     return (
@@ -173,8 +165,12 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
             />
           </div>
         </div>
-        <span className="text-xs">{parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(3)}</span>
-        <span className="text-sm">{swapData[isFrom ? "from" : "to"].symbol}</span>
+        <span className="text-xs">
+          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(3)}
+        </span>
+        <span className="text-sm">
+          {swapData[isFrom ? "from" : "to"].symbol}
+        </span>
       </div>
     )
   }
@@ -183,7 +179,11 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     return (
       <div className="flex justify-between items-center">
         <div className="relative">
-          <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={25} height={25} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
+          <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
+            width={25}
+            height={25}
+            alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`}
+          />
           <Image
             className="absolute bottom-[-6px] left-[15px]"
             src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
@@ -192,8 +192,12 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
             alt={`${swapData[isFrom ? "from" : "to"].blockchain}'s blockchainIcon`}
           />
         </div>
-        <span className="text-xs">{parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(3)}</span>
-        <span className="text-xs">{swapData[isFrom ? "from" : "to"].symbol}</span>
+        <span className="text-xs">
+          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(3)}
+        </span>
+        <span className="text-xs">
+          {swapData[isFrom ? "from" : "to"].symbol}
+        </span>
       </div>
     )
   }
@@ -209,7 +213,8 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
               onClick={onDelete}
               disabled={selectedSwap?.id === undefined}>
               delete
-            </button></div>
+            </button>
+          </div>
           <div className="overflow-auto h-[380px] px-3">
             <div className="mb-8 text-xs">
               {pendingSwap && <div className="flex justify-between">
@@ -239,7 +244,9 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                 <div className="border-t border-dashed w-[100px] mt-[30px] mx-2" />
                 <SwapToken swapData={swaps[swaps.length - 1]} isFrom={false} />
               </div>
-              <div className="w-full mt-4"><span className="text-lg font-semibold">Swap Steps:</span></div>
+              <div className="w-full mt-4">
+                <span className="text-lg font-semibold">Swap Steps:</span>
+              </div>
               <div>
                 {swaps && swaps.map((swap, index) => {
                   return (
@@ -250,10 +257,10 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                         <SwapSteps swapData={swap} isFrom={false} />
 
                         <div className="text-white/50 ml-2">
-                          {swap && <StepState swap={pendingSwap} currentStop={index} />}
+                          {swap && <StepState swap={pendingSwap} currentStep={index} />}
                         </div>
                       </div>
-                      {swap && <StepMessage swap={pendingSwap} currentStop={index} />}
+                      {swap && <StepMessage swap={pendingSwap} currentStep={index} />}
                     </div>
                   )
                 })}

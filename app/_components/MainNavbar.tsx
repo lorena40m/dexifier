@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAppSelector } from "@/redux_slice/provider";
 import { useWalletList } from "../wallet/useWalletList";
-import { ConnectedWallet, walletAssetsBalance } from "../types/interface";
+import { walletAssetsBalance } from "../types/interface";
 import Modal from 'react-modal';
 import { Divide, X } from "lucide-react";
 import { getBananceOfWallet } from "../api/rango-api";

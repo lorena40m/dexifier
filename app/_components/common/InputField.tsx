@@ -46,15 +46,16 @@ const CustomCryptoField: React.FC<Props> = ({
   const { isRouteProcess, isRoutesFetched, isExchangeButtonClicked } = useAppSelector(
     (state) => state.routes
   );
+  const { connectedWallets } = useAppSelector((state) => state.wallet);
 
   //react State
-  const [tokenBalance, setTokenBalance] = useState("0");
+  const [tokenBalance, setTokenBalance] = useState<string>("_");
 
   //use Memo
   const { blockchain, symbol } = selectedTokenData.fromToken;
   const selectedFromTokenDataMemo = useMemo(
-    () => ({ blockchain, symbol }),
-    [blockchain, symbol]
+    () => ({ blockchain, symbol, connectedWallets }),
+    [blockchain, symbol, connectedWallets]
   );
 
   const { fromToken, toToken } = selectedTokenData;
@@ -123,36 +124,47 @@ const CustomCryptoField: React.FC<Props> = ({
   }, [selectedTokenDataMemo]);
 
   useEffect(() => {
-    const { blockchain, symbol, address, decimals } =
-      selectedTokenData.fromToken;
-    if (!isFromToken || blockchain == "" || symbol == "") {
-      setTokenBalance("0");
+    const { blockchain, symbol, address, decimals } = selectedTokenData.fromToken;
+
+    if (!isFromToken || blockchain === "" || symbol === "") {
+      setTokenBalance("_");
       return;
     }
-    const walletAddress = "0x9639D6bD17073c2dC6209eecE12e2b714B0388aC";
 
+    const allChainAddresses = connectedWallets
+      .filter(wallet => wallet.chain === blockchain)
+      .map(wallet => wallet.address);
 
-    getBananceOfToken(walletAddress, blockchain, symbol, address)
-      .then((result) => {
-        if (result.balance == null) {
-          setTokenBalance("0");
-          return;
-        } else {
-          if (result.balance === "0") {
-            setTokenBalance(result.balance);
-          }
-          const num = BigInt(result.balance);
-          const divisor = BigInt(10 ** decimals);
-          const integerPart = num / divisor;
-          const remainder = num % divisor;
-          let fractionalPart = remainder.toString().padStart(decimals, "0");
-          fractionalPart = fractionalPart.slice(0, 3);
-          let tokenPrice = integerPart.toString() + "." + fractionalPart;
-          tokenPrice = tokenPrice.replace(/\.?0+$/, "");
-          setTokenBalance(tokenPrice);
-        }
-      })
-      .catch((err) => console.log("Error from walletBalance", err));
+    const fetchBalances = async () => {
+      try {
+        const balances = await Promise.all(
+          allChainAddresses.map(async (walletAddress) => {
+            const result = await getBananceOfToken(walletAddress, blockchain, symbol, address);
+            if (result.balance === null || result.balance === "0") {
+              return 0;
+            } else {
+              const num = BigInt(result.balance);
+              const divisor = BigInt(10 ** decimals);
+              const integerPart = num / divisor;
+              const remainder = num % divisor;
+              let fractionalPart = remainder.toString().padStart(decimals, "0");
+              fractionalPart = fractionalPart.slice(0, 3);
+              let tokenPrice = integerPart.toString() + "." + fractionalPart;
+              tokenPrice = tokenPrice.replace(/\.?0+$/, "");
+              return parseFloat(tokenPrice);
+            }
+          })
+        );
+
+        const tokenTotalPrice = balances.reduce((total, balance) => total + balance, 0);
+        setTokenBalance(tokenTotalPrice.toString());
+      } catch (err) {
+        console.log("Error from walletBalance", err);
+        setTokenBalance("_");
+      }
+    };
+
+    fetchBalances();
   }, [selectedFromTokenDataMemo]);
 
   //Event Function

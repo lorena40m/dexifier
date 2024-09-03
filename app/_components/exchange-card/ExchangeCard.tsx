@@ -4,22 +4,16 @@ import Image from "next/image";
 import CustomCryptoField from "../common/InputField";
 import SettingsPopup from "../settings-popup/settings-popup";
 import HistoryPopup from "../settings-popup/history-popup";
-import TooltipTemplate from "../common/tooltip-template";
 import CustomLoader from "../common/loader";
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Blockchain, TxSwapRequest, RouteData, Token, Result } from "@/app/types/interface";
+import { Blockchain, RouteData, Token, Result } from "@/app/types/interface";
 import {
-  checkApproval,
-  checkStatus,
-  createMultiStepTransaction,
-  createTransaction,
   getBestRoutes,
   getBlockchains,
 } from "@/app/api/rango-api";
-import { useWeb3Modal, useWeb3ModalEvents } from "@web3modal/wagmi/react";
 import { RiZzzFill } from "react-icons/ri";
-import { toastError, toastSuccess } from "@/lib/utils";
+import { toastError } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import {
   getRoutes,
@@ -32,22 +26,21 @@ import {
 } from "@/redux_slice/slice/routeSlice";
 import {
   resetSwap,
-  updateSwapMade,
-  updateSwapResponse,
   updateSwapStatus,
 } from "@/redux_slice/slice/swapSlice";
-import { resetBlockchain, updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/blockchainSlice";
-import { resetToken, updateToken, updateTokenValue } from "@/redux_slice/slice/tokenSlice";
-import { setQuotedata } from "@/redux_slice/slice/quoteDataSlice";
+import { updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/blockchainSlice";
+import { updateToken, updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { sortQuotesBy } from "@/app/utils/catch-data";
 import WalletSourcePopup from "./wallet-popup";
 import { setButtonRef } from "@/redux_slice/slice/walletSlice";
 import ConfirmModal from "./ConfirmModal";
-import { BestRouteResponse, CheckTxStatusRequest, CreateTransactionRequest, CreateTransactionValidation, TransactionType, UserSettings } from "rango-types/mainApi";
-import { RequestOptions } from "rango-sdk/lib/types";
-import { getPendingSwaps } from "@/app/utils/queue";
+import {
+  BestRouteResponse,
+  CreateTransactionRequest,
+  CreateTransactionValidation,
+  UserSettings
+} from "rango-types/mainApi";
 import { useManager } from "@rango-dev/queue-manager-react";
-import { PendingSwap } from "rango-types";
 import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from "@/app/manager/QueueManager";
 import { PendingSwapSettings } from "@/app/wallet/types/swap";
@@ -69,17 +62,11 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   const dispatch = useAppDispatch();
   const settings = useAppSelector((state) => state.settings);
   const selectedBlockchains = useAppSelector((state) => state.blockchains);
-  const selectedTokens = useAppSelector((state) => state.tokens);
   const { toToken, fromToken } = useAppSelector((state) => state?.tokens);
   const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
   const { confirmResponse } = useAppSelector((state) => state.swap);
-  // use Memo
-  // const eventMemo = useMemo(() => {
-  //   events;
-  // }, [events]);
 
   // react state
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [wallet, setWallet] = useState<WALLET>(WALLET.BROWSE);
   const [blockchains, setBlockChains] = useState<Blockchain[]>([]);
   const [isSelectionsComplete, setIsSelectionsComplete] =
@@ -87,15 +74,14 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false)
 
   const { isError } = useAppSelector((state) => state.routes);
-  const selectedTokenData = useAppSelector((state) => state?.tokens);
   const selectedToken = useAppSelector((state) => state?.tokens?.fromToken
   );
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
   const savedRouteData = useAppSelector((state) => state.quoteData);
-  const { isRouteProcess, isRoutesFetched, isExchangeButtonClicked } = useAppSelector(
+  const { isRouteProcess, isRoutesFetched } = useAppSelector(
     (state) => state.routes
   );
-  const { connectedWallets, selectedWallets } = useAppSelector((state) => state.wallet)
+  const { selectedWallets } = useAppSelector((state) => state.wallet)
   const { tokens } = useAppSelector((state) => state.allToken);
 
   console.log("selectedRoute", selectedRoute);
@@ -117,10 +103,10 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       return
     }
 
-    const userSettings: UserSettings = {
-      slippage: settings.slippage.toString(),
-      infiniteApprove: false
-    }
+    // const userSettings: UserSettings = {
+    //   slippage: settings.slippage.toString(),
+    //   infiniteApprove: false
+    // }
 
     const swapSettings: PendingSwapSettings = {
       slippage: settings.slippage.toString(),
@@ -129,18 +115,18 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
     const proceedAnyway = true;
 
-    const validations: CreateTransactionValidation = {
-      balance: false,
-      fee: false,
-      approve: false
-    }
+    // const validations: CreateTransactionValidation = {
+    //   balance: false,
+    //   fee: false,
+    //   approve: false
+    // }
 
-    const swapRequest: CreateTransactionRequest = {
-      requestId: selectedRoute?.requestId,
-      step: 1,
-      userSettings: userSettings,
-      validations: validations,
-    };
+    // const swapRequest: CreateTransactionRequest = {
+    //   requestId: selectedRoute?.requestId,
+    //   step: 1,
+    //   userSettings: userSettings,
+    //   validations: validations,
+    // };
 
     const inputAmount = fromToken.value;
 
@@ -196,12 +182,6 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       setIsSelectionsComplete(true);
     else setIsSelectionsComplete(false);
   }, [toToken, fromToken]);
-
-  // useEffect(() => {
-  //   if (events.data.event == "CONNECT_SUCCESS") {
-  //     toastSuccess("Wallet connected! ");
-  //   }
-  // }, [eventMemo]);
 
   useEffect(() => {
     initializeBlockchains();
@@ -432,10 +412,6 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                   "",
                   false,
                   () => {
-                    // dispatch(resetBlockchain({ isFromBlockchain: true }));
-                    // dispatch(resetBlockchain({ isFromBlockchain: false }));
-                    // dispatch(resetToken({ isFromToken: true }));
-                    // dispatch(resetToken({ isFromToken: false }));
                     dispatch(updateTokenValue({ isFromToken: true, value: "0" }))
                     dispatch(updateSwapStatus({ isInProcess: false }))
                     dispatch(resetRoute());

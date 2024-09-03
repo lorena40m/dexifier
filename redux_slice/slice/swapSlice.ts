@@ -84,7 +84,7 @@ export const swapSlice = createSlice({
       };
     },
 
-    updateConfirmResponse(state, action: PayloadAction<{ confirmResponse: ConfirmRouteResponse }>) {
+    updateConfirmResponse(state, action: PayloadAction<{ confirmResponse: ConfirmRouteResponse | undefined }>) {
       return {
         ...state,
         confirmResponse: action.payload.confirmResponse,

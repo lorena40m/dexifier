@@ -107,9 +107,17 @@ const HistoryPopup = () => {
   const tokenContainer = (symbol: string, blockchain: string, imageSrc: string) => (
     <div className="w-[100px]">
       <div className="p-3 flex flex-col items-center justify-center border border-seperator rounded-[.9375rem]">
-        <Image src={imageSrc} width={57} height={57} alt={`${symbol}'s icon`} />
-        <h3 className="pt-[.3125rem] text-sm uppercase text-center">{symbol}</h3>
-        <h3 className="pt-[.3125rem] text-sm uppercase text-center">{blockchain}</h3>
+        <Image
+          src={imageSrc}
+          width={57}
+          height={57}
+          alt={`${symbol}'s icon`} />
+        <h3 className="pt-[.3125rem] text-sm uppercase text-center">
+          {symbol}
+        </h3>
+        <h3 className="pt-[.3125rem] text-sm uppercase text-center">
+          {blockchain}
+        </h3>
       </div>
     </div>
   );
@@ -137,8 +145,11 @@ const HistoryPopup = () => {
       <div className="flex items-center justify-between">
         {tokenContainer(fromToken.symbol, fromToken.blockchain, fromToken.imageSrc)}
         <div className="flex flex-col items-center ">
-          <h3>{fromToken.amount}</h3>
-          <div className="my-3.5 border border-seperator rounded-full w-[2.8975rem] h-[2.8975rem] flex items-center justify-center">
+          <h3>
+            {fromToken.amount}
+          </h3>
+          <div
+            className="my-3.5 border border-seperator rounded-full w-[2.8975rem] h-[2.8975rem] flex items-center justify-center">
             <Image
               src={"/assets/icons/arrow-right.png"}
               alt="swap icon"
