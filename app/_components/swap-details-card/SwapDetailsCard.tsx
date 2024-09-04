@@ -154,7 +154,6 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
   console.log("list==>", list);
 
   const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
-
     return (
       <div className={`${className} flex flex-col items-center`}>
         <div className="w-[60px] h-[60px] p-3 border border-white border-dashed rounded-full">
