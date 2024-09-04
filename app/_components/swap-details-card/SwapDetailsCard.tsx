@@ -230,7 +230,6 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                     {getSwapDate(pendingSwap)}
                   </span>
                 </div>}
-
                 <h2>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-semibold">Requested ID:</span>
