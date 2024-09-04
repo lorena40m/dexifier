@@ -154,7 +154,6 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
   console.log("list==>", list);
 
   const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
-
     return (
       <div className={`${className} flex flex-col items-center`}>
         <div className="w-[60px] h-[60px] p-3 border border-white border-dashed rounded-full">
@@ -231,6 +230,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                     {getSwapDate(pendingSwap)}
                   </span>
                 </div>}
+
                 <h2>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-semibold">Requested ID:</span>
