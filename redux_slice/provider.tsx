@@ -51,9 +51,6 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
   const config: WidgetConfig = {
     apiKey: "30a7dc74-0886-4c5d-bc18-dc04e6280a96",
     title: "Dexifier_alpha",
-    allowedDomains: [
-      "http://localhost:3000"
-    ],
     walletConnectProjectId: "489c5034628c45947388bc9a0ef2ea03",
     enableCentralizedSwappers: true,
     externalWallets: false,
@@ -62,7 +59,6 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
   const walletOptions: ProvidersOptions = {
     walletConnectProjectId: config?.walletConnectProjectId,
   };
-  // "489c5034628c45947388bc9a0ef2ea03"
   const { providers } = useWalletProviders(config.wallets, walletOptions);
 
   useEffect(() => {
@@ -73,7 +69,6 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
   const onConnectWalletHandler = useRef<OnWalletConnectionChange>();
   const onDisconnectWalletHandler = useRef<OnWalletConnectionChange>();
   const onUpdateState = blockchains && getOnUpdateState(blockchains, onConnectWalletHandler, onDisconnectWalletHandler, dispatch);
-  console.log("blockchains", blockchains);
 
   return (
     <WalletProvider

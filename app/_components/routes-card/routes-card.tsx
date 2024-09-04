@@ -1,13 +1,12 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { setSelectedRoute } from "@/redux_slice/slice/routeSlice";
 import {
   Result,
   Swap,
   Tag,
-  PreferenceType,
   NewPreferenceType,
   Token,
 } from "@/app/types/interface";
@@ -16,19 +15,12 @@ import {
   customStrategy,
   sortQuotesBy,
 } from "@/app/utils/catch-data";
-import { setAllToken } from "@/redux_slice/slice/allToken";
-import { getCompactBlockchainTokens } from "@/app/api/rango-api";
 import TooltipTemplate from "../common/tooltip-template";
 
 interface TagPanelProps {
   tags: Tag[];
   className: string;
   info: { totalTime: string; fee: string | undefined };
-}
-
-interface Information {
-  totalTime: string;
-  fee: string | undefined;
 }
 
 const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
@@ -107,9 +99,13 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
     return (
       <div className={className}>
         <div className="flex flex-row justify-center text-sm mx-3 min-w-[107px] mb-1 text-primary">
-          <div>{info.fee}$</div>
+          <div>
+            {info.fee}$
+          </div>
           <span className="mx-1"> | </span>
-          <div>{info.totalTime}</div>
+          <div>
+            {info.totalTime}
+          </div>
         </div>
         {tags.map((tag: Tag, index: number) => {
           return (
@@ -119,8 +115,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
                 className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px] justify-center"
               >
                 <span
-                  className={`${tag.label == "High Impact" ? "text-rose-500" : ""
-                    } text-center`}
+                  className={`${tag.label == "High Impact" ? "text-rose-500" : ""} text-center`}
                 >
                   {tag.label}
                 </span>
