@@ -16,6 +16,7 @@ import {
   sortQuotesBy,
 } from "@/app/utils/catch-data";
 import TooltipTemplate from "../common/tooltip-template";
+import ShadowDecoration from "../common/shadowDecoration";
 
 interface TagPanelProps {
   tags: Tag[];
@@ -233,7 +234,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
 
   return (
     isWalletConnected && (
-      <div className="relative w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+      <div className="relative bg-[#0b4b2f26] w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
 
         <div className="z-0 w-full">
           <h1 className="text-2xl mb-4">Routes</h1>
@@ -244,9 +245,11 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
             {optionsButton("Cheapest", 2)}
             {optionsButton("Smart", 3)}
           </div>
-
-          <div className="overflow-y-auto lg:max-h-[25rem] pe-2">
-            {sortedRoutes.map((item) => singleRouteContainer(item, tokens))}
+          <div className="relative">
+            <ShadowDecoration />
+            <div className="overflow-y-auto lg:max-h-[25rem] pe-2">
+              {sortedRoutes.map((item) => singleRouteContainer(item, tokens))}
+            </div>
           </div>
         </div>
         <div className="absolute lg:max-h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-black/0 to-[#050F0F] z-10" />

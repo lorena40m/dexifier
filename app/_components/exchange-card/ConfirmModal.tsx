@@ -13,6 +13,7 @@ import { confirmRoute } from '@/app/api/rango-api';
 import { BlockchainValidationStatus, ConfirmRouteRequest } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';
+import ShadowDecoration from '../common/shadowDecoration';
 
 const customStyles = {
   overlay: {
@@ -229,7 +230,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
     return (
       <div key={`confirm ${index}`}>
         <div className="text-sm flex gap-2 mb-2">
-          <div className="rounded-full w-[24px] h-[24px] bg-[#13f187] opacity-80 text-center align-center items-center p-auto">
+          <div className="rounded-full w-[24px] h-[24px] bg-[#13f187] text-black font-bold text-center align-center items-center p-auto">
             {index + 1}
           </div>
           <span> Your {chain} wallet</span>
@@ -269,7 +270,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           return (
             <div
               key={index}
-              className={`${validData.ok ? "text-[#13f187]" : "text-[#f44336]"} text-xs flex flex-col items-center tracking-wide mb-2`}
+              className={`${validData.ok ? "text-[#13f187]" : "text-[#f44336]"} text-xs font-bold flex flex-col items-center tracking-wide mb-2`}
             >
               <span>Needed ~{getAmountFromString(validData.requiredAmount.amount, validData.requiredAmount.decimals)} {validData.asset.symbol} for &quot;{validData.reason}&quot; and You have {getAmountFromString(validData.currentAmount.amount, validData.currentAmount.decimals)} {validData.asset.symbol} </span>
             </div>)
@@ -325,7 +326,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       onRequestClose={closeConfirmModalHandler}
       contentLabel="Example Modal"
       style={customStyles}
-      className="bg-gradient-to-b from-black to-[#042214] border rounded-3xl border-seperator z-30 p-6"
+      className="bg-gradient-to-b from-[#001109] to-[#072919] border rounded-3xl border-seperator z-30 p-6"
     >
       <div className="flex justify-between border-b border-[#5f5f5f] p-2 pt-0">
         <div className="text-2xl font-bold p-2 ">
@@ -346,46 +347,49 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           {selectedRoute.swaps[lastNumber - 1].to.symbol} [{selectedRoute.swaps[lastNumber - 1].to.blockchain}]
         </div>
       }
-      <div className="overflow-auto "
-        style={{ height: `calc(72vh - 200px)` }}>
-        {
-          loading ?
-            <div className="flex items-center justify-center min-h-[30vh]">
-              <CustomLoader />
-            </div> :
-            (requiredChain && requiredChain.map((chain, index, array) => {
-              const isLast = index === array.length - 1;
-              const isRequired = selectedRoute?.swaps.find((swap) => swap.from.blockchain === chain) !== undefined;
-              const isDisable = (isLast && isChecked && !isRequired);
-              return (
-                <SingleConfirmWallet
-                  key={index}
-                  chain={chain}
-                  index={index}
-                  isDisable={isDisable}
-                />
-              )
-            }))
-        }
-        <div className="flex flex-col" style={{ visibility: loading ? "hidden" : "visible" }}>
+      <div className="relative">
+        {!loading && <ShadowDecoration />}
+        <div className="overflow-auto bg-[#0625175c] pl-2 py-2"
+          style={{ height: `calc(72vh - 200px)` }}>
           {
-            confirmResponse?.error &&
-            <span className="text-[#f44336] text-xs flex flex-col items-center tracking-wide mb-2">
-              {confirmResponse.error}
-            </span>
+            loading ?
+              <div className="flex items-center justify-center min-h-[30vh]">
+                <CustomLoader />
+              </div> :
+              (requiredChain && requiredChain.map((chain, index, array) => {
+                const isLast = index === array.length - 1;
+                const isRequired = selectedRoute?.swaps.find((swap) => swap.from.blockchain === chain) !== undefined;
+                const isDisable = (isLast && isChecked && !isRequired);
+                return (
+                  <SingleConfirmWallet
+                    key={index}
+                    chain={chain}
+                    index={index}
+                    isDisable={isDisable}
+                  />
+                )
+              }))
           }
-          <div className="flex gap-3 items-center justify-center mb-4">
-            <input className="peer w-5 h-5 checked:color-primary color-primary"
-              size={50}
-              type="checkbox"
-              checked={isChecked}
-              onChange={onCheckBox} />
-            <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-60 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-90"
-              type="text"
-              placeholder={`Choose a custom ${requiredChain[requiredChain.length - 1]} address`}
-              disabled={!isChecked}
-              onChange={(e) => setCustomAddress(e)}>
-            </input>
+          <div className="flex flex-col" style={{ visibility: loading ? "hidden" : "visible" }}>
+            {
+              confirmResponse?.error &&
+              <span className="text-[#f44336] font-bold text-xs flex flex-col items-center tracking-wide mb-2">
+                {confirmResponse.error}
+              </span>
+            }
+            <div className="flex gap-3 items-center justify-center mb-4">
+              <input className="peer w-5 h-5 checked:color-primary color-primary"
+                size={50}
+                type="checkbox"
+                checked={isChecked}
+                onChange={onCheckBox} />
+              <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-60 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-90"
+                type="text"
+                placeholder={`Choose a custom ${requiredChain[requiredChain.length - 1]} address`}
+                disabled={!isChecked}
+                onChange={(e) => setCustomAddress(e)}>
+              </input>
+            </div>
           </div>
         </div>
       </div>
@@ -394,12 +398,12 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       <div className="flex">
         {!loading &&
           <button
-            className={`border border-[#13f187] w-[150px] h-[50px] rounded-full py-3 px-6 m-auto mt-3 ${error ? "opacity-70" : "hover:opacity-80"}`}
+            className={`border border-[#13f187] w-[150px] h-[50px] rounded-lg m-auto mt-3 ${error ? "opacity-70" : "hover:opacity-80"}`}
             style={{ backgroundColor: loading ? "" : "#13f187" }}
             disabled={error}
             onClick={closeModalAndContinueHandler}
           >
-            <span>continue</span></button>}
+            <span className="text-xl text-black font-bold">Continue</span></button>}
       </div>
     </Modal>
   )
