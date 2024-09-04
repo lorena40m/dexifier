@@ -117,6 +117,19 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
   }
   // confirm function ______________________________________________________________________________________________
 
+  const closeConfirmModalHandler = () => {
+    setIsChecked(false);
+    setError(false);
+    dispatch(updateCustomAddress({ customAddress: null }));
+    dispatch(
+      updateConfirmResponse({
+        confirmResponse: undefined
+      })
+    );
+    closeConfirmModal();
+  }
+  // confirm function ______________________________________________________________________________________________
+
   const confirmWallet = async (customAddress?: string) => {
     if (!isConfirmModalOpen) {
       return
