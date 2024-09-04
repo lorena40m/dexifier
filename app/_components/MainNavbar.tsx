@@ -5,12 +5,15 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAppSelector } from "@/redux_slice/provider";
 import { useWalletList } from "../wallet/useWalletList";
-import { ConnectedWallet, walletAssetsBalance } from "../types/interface";
+import { walletAssetsBalance } from "../types/interface";
 import Modal from 'react-modal';
 import { Divide, X } from "lucide-react";
 import { getBananceOfWallet } from "../api/rango-api";
 import CustomLoader from "./common/loader";
 import { getAbbrAddress } from "../utils/catch-data";
+import TooltipTemplate from "./common/tooltip-template";
+import ButtonCopyIcon from "./common/coypButtonIcon";
+import ShadowDecoration from "./common/shadowDecoration";
 // import logo from "@/public/assets/logo.png";
 
 const customStyles = {
@@ -145,22 +148,32 @@ const MainNavbar = () => {
   }
 
   const SubWallet: React.FC<any> = ({ walletBalance }) => {
+    console.log("walletBalance", walletBalance);
+
     return (
       <div className="pr-2">
-        <button className="flex justify-between items-center text-sm border border-primary p-3 rounded-lg mt-2 w-full bg-[primary12] hover:opacity-80"
+        <button className="flex justify-between items-center text-sm border border-primary p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
         >
           <div className="flex text-lg font-bold" >
             <Image src={getWalletIcon(walletBalance.blockChain, walletBalance.address) || "/assets/wallet/default"} width={28} height={28} alt={walletBalance.blockChain} className="mr-2" />
             {walletBalance.blockChain}
           </div>
-          <span>{getAbbrAddress(walletBalance.address)}</span>
+          <div className="flex items-center gap-1">
+            <span>{getAbbrAddress(walletBalance.address)}</span>
+            <ButtonCopyIcon text={walletBalance.address} />
+            <TooltipTemplate content={"link to wallet"} className="px-2 py-1">
+              <Link href={walletBalance.explorerUrl} target="_black">
+                <Image src={"/assets/icons/link.png"} width={18} height={18} alt="link" />
+              </Link>
+            </TooltipTemplate>
+          </div>
         </button>
         <div className="p-2 text-[#e5e7ebc9]">
-          {walletBalance && walletBalance.balances && (walletBalance.balances.length === 0 ? <div className="text-sm"> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => {
+          {walletBalance && walletBalance.balances && (walletBalance.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => {
             const { usedPrice, image } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
             const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
             return (
-              <div key={index} className="flex justify-between items-center border-b border-b-[primary38] py-2">
+              <div key={index} className="flex justify-between items-center border-b border-b-[#13F18738] py-2">
                 <div className="flex items-center">
                   <div className="p-3">
                     <Image src={image || "/assets/tokens/default.png"} width={34} height={34} alt={"token Icon"} />
@@ -338,7 +351,7 @@ const MainNavbar = () => {
         onRequestClose={closeModal}
         contentLabel="Example Modal"
         style={customStyles}
-        className="bg-gradient-to-b from-black to-[#042214] border-l border-seperator z-30 p-4"
+        className="bg-gradient-to-b to-[#002f19] from-[#01150c] border-l border-seperator z-30 p-4"
       >
         <div className="flex justify-end p-2">
           <button onClick={closeModal}>
@@ -346,10 +359,13 @@ const MainNavbar = () => {
           </button>
         </div>
         <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2">Your wallet</div>
-        <div className="overflow-auto h-full pb-[100px] pt-[20px]">
-          {walletBalance && walletBalance.map((walletBalance, index) => (
-            <SubWallet key={index} walletBalance={walletBalance} />
-          ))}
+        <div className="relative h-full">
+          <ShadowDecoration />
+          <div className="overflow-auto h-full pb-[100px] pt-[20px]">
+            {walletBalance && walletBalance.map((walletBalance, index) => (
+              <SubWallet key={index} walletBalance={walletBalance} />
+            ))}
+          </div>
         </div>
       </Modal>
     </nav >

@@ -13,6 +13,7 @@ import { TokenAmountType } from "@/app/types/interface"
 import { useDispatch } from "react-redux";
 import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { useAppSelector } from "@/redux_slice/provider";
+import ShadowDecoration from "../../common/shadowDecoration";
 
 enum BgColorSet {
   'not_installed' = "#97979763",
@@ -123,9 +124,12 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
   return (
     <PopupTemplate title={"Connect Wallets"} triggerButton={triggerButton}>
       <Search search={search} setSearch={setSearch} />
-      <div className="max-h-[60vh] flex flex-wrap justify-center overflow-auto gap-2 pr-1">
-        {filteredData && filteredData.map((walletData, index) => (
-          singleWalletButton(walletData, index)))}
+      <div className="relative w-full">
+        <ShadowDecoration />
+        <div className="max-h-[60vh] flex flex-wrap justify-center overflow-auto gap-2 pr-1">
+          {filteredData && filteredData.map((walletData, index) => (
+            singleWalletButton(walletData, index)))}
+        </div>
       </div>
     </PopupTemplate>
   )
