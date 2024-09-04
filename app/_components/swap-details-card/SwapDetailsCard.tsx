@@ -13,10 +13,13 @@ import { resetSwap, updateSwapMade, updateSwapStatus } from "@/redux_slice/slice
 import { useDispatch } from "react-redux";
 import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { resetRoute } from "@/redux_slice/slice/routeSlice";
+import ButtonCopyIcon from "../common/coypButtonIcon";
+import ShadowDecoration from "../common/shadowDecoration";
 
 interface SwapTokenProps {
   swapData: Swap,
-  isFrom: boolean
+  isFrom: boolean,
+  className?: string
 }
 
 interface StepStateProps {
@@ -150,9 +153,10 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
 
   console.log("list==>", list);
 
-  const SwapToken: FC<SwapTokenProps> = ({ swapData, isFrom }) => {
+  const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
+
     return (
-      <div className="flex flex-col items-center">
+      <div className={`${className} flex flex-col items-center`}>
         <div className="w-[60px] h-[60px] p-3 border border-white border-dashed rounded-full">
           <div className="relative">
             <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={35} height={35} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
@@ -175,9 +179,9 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     )
   }
 
-  const SwapSteps: FC<SwapTokenProps> = ({ swapData, isFrom }) => {
+  const SwapSteps: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
     return (
-      <div className="flex justify-between items-center">
+      <div className={`${className} flex justify-center gap-2  items-center`}>
         <div className="relative">
           <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
             width={25}
@@ -204,70 +208,95 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
 
   return (
     isWalletConnected && selectedRoute && (
-      <div className="relative lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+      <div className="relative bg-[#0b4b2f26] lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
         <div className="z-0">
           <div className="flex justify-between">
             <h1 className="text-2xl mb-5">Swap Details</h1>
             <button
-              className="text-red-700 hover:opacity-80 font-bold"
+              className="text-red-700 hover:opacity-80 mx-[20px] text-lg font-bold"
               onClick={onDelete}
               disabled={selectedSwap?.id === undefined}>
               delete
             </button>
           </div>
-          <div className="overflow-auto h-[380px] px-3">
-            <div className="mb-8 text-xs">
-              {pendingSwap && <div className="flex justify-between">
-                <span className="text-lg font-semibold">
-                  {`${pendingSwap.finishTime ? "Finished at" : "Created at"}:`}
-                </span>
-                <span className="text-sm text-white/50 px-2">
-                  {getSwapDate(pendingSwap)}
-                </span>
-              </div>}
-
-              <h2>
-                <span className="text-lg font-semibold">Requested ID:</span>
-                <span className="text-sm text-white/50 px-2">
-                  {selectedRoute?.requestId?.length > 33 ? (
-                    <>{selectedRoute?.requestId?.slice(0, 33)}...</>
-                  ) : (
-                    selectedRoute?.requestId
-                  )}
-                </span>
-              </h2>
-            </div>
-
-            {confirmResponse?.result && swaps && <div className="mb-7 flex flex-col items-center text-xs">
-              <div className="flex">
-                <SwapToken swapData={swaps[0]} isFrom={true} />
-                <div className="border-t border-dashed w-[100px] mt-[30px] mx-2" />
-                <SwapToken swapData={swaps[swaps.length - 1]} isFrom={false} />
-              </div>
-              <div className="w-full mt-4">
-                <span className="text-lg font-semibold">Swap Steps:</span>
-              </div>
-              <div>
-                {swaps && swaps.map((swap, index) => {
-                  return (
-                    <div key={index} className="mt-4">
-                      <div className="grid grid-cols-4 gap-2">
-                        <SwapSteps swapData={swap} isFrom={true} />
-                        <div className="border-t border-dashed w-[100px] mt-[12px] mx-2" />
-                        <SwapSteps swapData={swap} isFrom={false} />
-
-                        <div className="text-white/50 ml-2">
-                          {swap && <StepState swap={pendingSwap} currentStep={index} />}
-                        </div>
-                      </div>
-                      {swap && <StepMessage swap={pendingSwap} currentStep={index} />}
+          <div className="relative">
+            {/* <ShadowDecoration /> */}
+            <div className="overflow-auto h-[380px] px-3">
+              <div className="mb-8 text-xs">
+                {pendingSwap && <div className="flex justify-between">
+                  <span className="text-lg font-semibold">
+                    {`${pendingSwap.finishTime ? "Finished at" : "Created at"}:`}
+                  </span>
+                  <span className="text-sm text-white/50 px-2">
+                    {getSwapDate(pendingSwap)}
+                  </span>
+                </div>}
+                <h2>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-semibold">Requested ID:</span>
+                    <span className="text-sm text-white/50 px-2">
+                      {selectedRoute?.requestId?.length > 40 ? (
+                        <>{selectedRoute?.requestId?.slice(0, 40)}...</>
+                      ) : (
+                        selectedRoute?.requestId
+                      )}
+                    </span>
+                    <div className="pr-2">
+                      <ButtonCopyIcon text={selectedRoute?.requestId} />
                     </div>
-                  )
-                })}
+                  </div>
+                </h2>
               </div>
-            </div>
-            }
 
+              {confirmResponse?.result && swaps && <div className="mb-7 flex flex-col items-center text-xs">
+                <div className="flex">
+                  <SwapToken swapData={swaps[0]} isFrom={true} />
+                  <div className="relative border-t border-dashed w-[100px] mt-[30px] mx-2">
+                    {swaps && swaps.map((swap, index) => {
+                      const percentage = ((index + 1) / (swaps.length + 1)) * 100; // Calculate percentage for left
+                      return (
+                        <div
+                          key={index}
+                          className="absolute top-[-9px]"
+                          style={{
+                            left: `${percentage}%`,
+                            transform: 'translateX(-50%)', // Center each element on its left position
+                          }}
+                        >
+                          <Image src={swap.swapperLogo} width={18} height={18} alt="swapLogo" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <SwapToken swapData={swaps[swaps.length - 1]} isFrom={false} />
+                </div>
+                <div className="w-full mt-4">
+                  <span className="text-lg font-semibold">Swap Steps:</span>
+                </div>
+                <div>
+                  {swaps && swaps.map((swap, index) => {
+                    return (
+                      <div key={index} className="mt-4">
+                        <div className="grid grid-cols-11">
+                          <SwapSteps className={"col-span-3"} swapData={swap} isFrom={true} />
+
+                          <div className="relative col-span-3 border-t border-dashed w-full mt-[12px]" >
+                            <div className="absolute top-[-9px] right-[45%]"><Image src={swap.swapperLogo} width={18} height={18} alt="swapLogo" /></div>
+                          </div>
+                          <SwapSteps className={"col-span-3"} swapData={swap} isFrom={false} />
+
+                          <div className="text-white/50 ml-2 col-span-2">
+                            {swap && <StepState swap={pendingSwap} currentStep={index} />}
+                          </div>
+                        </div>
+                        {swap && <StepMessage swap={pendingSwap} currentStep={index} />}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              }
+            </div>
           </div>
           <div className="flex my-2">
             <button

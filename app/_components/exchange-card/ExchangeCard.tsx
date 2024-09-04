@@ -385,7 +385,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                       : isError
                         ? "Routes not found"
                         : "Please Select tokens"
-                    : "swap",
+                    : "Swap",
                   <>
                     <span className="pe-2.5">
                       {isRouteProcess || !isRoutesFetched ? "" : "Swaping"}

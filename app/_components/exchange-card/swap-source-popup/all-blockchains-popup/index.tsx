@@ -20,6 +20,7 @@ import {
 } from "@/redux_slice/slice/routeSlice";
 import { resetSwap } from "@/redux_slice/slice/swapSlice";
 import { resetQutoteData } from "@/redux_slice/slice/quoteDataSlice";
+import ShadowDecoration from "@/app/_components/common/shadowDecoration";
 
 const AllBlockchainsPopup = ({
   data,
@@ -31,7 +32,7 @@ const AllBlockchainsPopup = ({
   isFromBlockchain: boolean;
 }) => {
   const dispatch = useAppDispatch();
-  const {isRoutesFetched } = useAppSelector(
+  const { isRoutesFetched } = useAppSelector(
     (state) => state.routes
   );
 
@@ -76,47 +77,48 @@ const AllBlockchainsPopup = ({
     >
       <>
         <Search search={search} setSearch={setSearch} />
+        <div className="relative w-full">
+          <ShadowDecoration />
+          <DialogClose className="ml-2 overflow-y-auto max-h-[50vh] w-full pe-6">
+            <div>
+              {filteredBlockchains.map((item) => {
+                const isSelected = selectedBlockchain?.chainId?.includes(
+                  item.chainId
+                );
 
-        <DialogClose className="sm:mx-[.5813rem] overflow-y-auto max-h-[50vh] pe-6">
-          <div>
-            {filteredBlockchains.map((item) => {
-              const isSelected = selectedBlockchain?.chainId?.includes(
-                item.chainId
-              );
-
-              return (
-                <div
-                  key={`${item.chainId}-${item.name}`}
-                  className="pb-[.875rem] mb-6 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
-                  onClick={() => handleItemClick(item)}
-                >
-                  <div className="flex gap-[.875rem]">
-                    <Image
-                      src={item.logo}
-                      alt={`${item.name}'s icon`}
-                      width={26}
-                      height={26}
-                      className="!w-[26px] !h-[26px]"
-                      loading="lazy"
-                    />
-
-                    <h2 className="text-base sm:text-lg">{item.displayName}</h2>
-                  </div>
-
+                return (
                   <div
-                    className={`w-5 h-5 ${
-                      isSelected
+                    key={`${item.chainId}-${item.name}`}
+                    className="pb-[.875rem] mb-6 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
+                    onClick={() => handleItemClick(item)}
+                  >
+                    <div className="flex gap-[.875rem]">
+                      <Image
+                        src={item.logo}
+                        alt={`${item.name}'s icon`}
+                        width={26}
+                        height={26}
+                        className="!w-[26px] !h-[26px]"
+                        loading="lazy"
+                      />
+
+                      <h2 className="text-base sm:text-lg">{item.displayName}</h2>
+                    </div>
+
+                    <div
+                      className={`w-5 h-5 ${isSelected
                         ? "bg-primary text-black"
                         : "bg-transparent border border-seperator"
-                    } rounded-full flex items-center justify-center  `}
-                  >
-                    {isSelected && <FaCheck size={12.5} />}
+                        } rounded-full flex items-center justify-center  `}
+                    >
+                      {isSelected && <FaCheck size={12.5} />}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </DialogClose>
+                );
+              })}
+            </div>
+          </DialogClose>
+        </div>
       </>
     </PopupTemplate>
   );

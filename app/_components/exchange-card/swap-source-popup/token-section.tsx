@@ -12,6 +12,7 @@ import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { DialogClose } from "@/components/ui/dialog";
 import { resetSwap } from "@/redux_slice/slice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
+import ShadowDecoration from "../../common/shadowDecoration";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;
@@ -210,23 +211,24 @@ const TokenSection: React.FC<{
       ) : (
         <>
           <Search search={search} setSearch={setSearch} />
-
           <div
-            ref={scrollContainerRef}
-            className="pe-2.5 max-h-[35vh] overflow-y-auto"
+            className="relative"
           >
-            {loading ? <CustomLoader /> : displayData && displayData.map((token, index) =>
-              tokenTemplate(
-                token.blockchain,
-                token.address,
-                token.symbol,
-                token.name,
-                token.image,
-                token.address,
-                storedToken?.address === token.address,
-                index
-              )
-            )}
+            <div ref={scrollContainerRef} className="max-h-[35vh] pe-2.5 overflow-y-auto">
+              {loading ? <CustomLoader /> : displayData && displayData.map((token, index) =>
+                tokenTemplate(
+                  token.blockchain,
+                  token.address,
+                  token.symbol,
+                  token.name,
+                  token.image,
+                  token.address,
+                  storedToken?.address === token.address,
+                  index
+                )
+              )}
+            </div>
+            {!loading && <ShadowDecoration />}
           </div>
         </>
       )}

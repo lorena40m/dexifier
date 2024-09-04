@@ -132,7 +132,7 @@ const HistoryPopup = () => {
       <div className="mb-4 flex items-center justify-between capitalize">
         <h3>{date}</h3>
         <h3
-          className={`${status.toLowerCase() === "success"
+          className={`font-bold ${status.toLowerCase() === "success"
             ? "text-primary"
             : status.toLowerCase() === "failed"
               ? "text-red-700"
