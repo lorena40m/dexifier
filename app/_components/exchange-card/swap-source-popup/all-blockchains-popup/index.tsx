@@ -3,7 +3,7 @@
 import Image from "next/image";
 import PopupTemplate from "@/app/_components/common/popup-template";
 import Search from "@/app/_components/common/search";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Blockchain } from "@/app/types/interface";
@@ -79,7 +79,7 @@ const AllBlockchainsPopup = ({
         <Search search={search} setSearch={setSearch} />
         <div className="relative w-full">
           <ShadowDecoration />
-          <DialogClose className="ml-2 overflow-y-auto max-h-[50vh] w-full pe-6">
+          <DialogClose className="ml-2 overflow-y-auto max-h-[50vh] w-full pe-3">
             <div>
               {filteredBlockchains.map((item) => {
                 const isSelected = selectedBlockchain?.chainId?.includes(
@@ -89,7 +89,7 @@ const AllBlockchainsPopup = ({
                 return (
                   <div
                     key={`${item.chainId}-${item.name}`}
-                    className="pb-[.875rem] mb-6 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
+                    className="pb-[.875rem] mt-4 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
                     onClick={() => handleItemClick(item)}
                   >
                     <div className="flex gap-[.875rem]">

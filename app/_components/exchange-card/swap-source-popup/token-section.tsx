@@ -13,6 +13,8 @@ import { DialogClose } from "@/components/ui/dialog";
 import { resetSwap } from "@/redux_slice/slice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
 import ShadowDecoration from "../../common/shadowDecoration";
+import ImageWrapper from "../../common/imageWrapper";
+import { getAbbrAddress } from "@/app/utils/catch-data";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;
@@ -41,6 +43,12 @@ const TokenSection: React.FC<{
   function filteredTokens(tokens: Token[]): Token[] {
     try {
       return tokens.sort((a, b) => {
+        if (isSameToken(storedToken, a) && !isSameToken(storedToken, b)) {
+          return -1;
+        }
+        if (!isSameToken(storedToken, a) && isSameToken(storedToken, b)) {
+          return 1;
+        }
         if (a.address === null && b.address !== null) {
           return -1;
         }
@@ -63,9 +71,15 @@ const TokenSection: React.FC<{
     }
   }
 
+  function isSameToken(aToken: Token, bToken: Token): boolean {
+    return aToken?.address === bToken.address &&
+      aToken?.name === bToken.name &&
+      aToken?.symbol === bToken.symbol
+  }
+
   //  use Effect
   useEffect(() => {
-    if (selectedBlockchain != null) {
+    if (selectedBlockchain && selectedBlockchain !== null) {
       setLoading(true);
       getBlockchainTokens(selectedBlockchain!.name)
         .then((tokens) => {
@@ -130,6 +144,7 @@ const TokenSection: React.FC<{
 
   const tokenTemplate = (
     blockchainName: string,
+    isPopular: boolean,
     id: string | null,
     symbol: string,
     name: string,
@@ -139,12 +154,12 @@ const TokenSection: React.FC<{
     index: number
   ) => (
     <DialogClose
-      className={`mb-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
+      className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
         }`}
       onClick={() => {
         if (!status) {
           const tempSelectedToken = tokenData.filter(
-            (tok) => tok.address == id
+            (tok) => tok.address === id && tok.symbol === symbol && tok.name === name
           )[0];
 
           dispatch(
@@ -165,14 +180,16 @@ const TokenSection: React.FC<{
     >
       <div className="flex justify-between items-center">
         <div className="flex items-center justify-center gap-6 capitalize">
-          <Image
-            src={imageSrc}
-            height={37}
-            width={37}
-            alt="Token Icon"
-            className="text-sm"
-            loading="lazy"
-          />
+          <ImageWrapper>
+            <Image
+              src={imageSrc}
+              height={37}
+              width={37}
+              alt="Token Icon"
+              className="text-sm"
+              loading="lazy"
+            />
+          </ImageWrapper>
 
           <div className="flex flex-col">
             <TooltipTemplate
@@ -188,18 +205,24 @@ const TokenSection: React.FC<{
                 </span>
               </div>
             </TooltipTemplate>
-            <span className="text-[12px] opacity-40">
-              {address === null
-                ? "null"
-                : address.slice(0, 4) + "...." + address.slice(-4)}
-            </span>
+            <TooltipTemplate
+              content={address || "null"}>
+              <span className="text-[12px] opacity-40">
+                {address === null
+                  ? "null"
+                  : getAbbrAddress(address)}
+              </span>
+            </TooltipTemplate>
           </div>
         </div>
-        {status ? (
-          <Check className="w-[1.075rem] h-[1.075rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-        ) : (
-          <div className="w-[1.075rem] h-[1.075rem] border rounded-full" />
-        )}
+        <div className="flex gap-4 items-center">
+          {isPopular && <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" />}
+          {status ? (
+            <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
+          ) : (
+            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
+          )}
+        </div>
       </div>
     </DialogClose>
   );
@@ -214,16 +237,17 @@ const TokenSection: React.FC<{
           <div
             className="relative"
           >
-            <div ref={scrollContainerRef} className="max-h-[35vh] pe-2.5 overflow-y-auto">
+            <div ref={scrollContainerRef} className="max-h-[35vh] pe-2.5 overflow-y-auto pb-2.5">
               {loading ? <CustomLoader /> : displayData && displayData.map((token, index) =>
                 tokenTemplate(
                   token.blockchain,
+                  token.isPopular,
                   token.address,
                   token.symbol,
                   token.name,
                   token.image,
                   token.address,
-                  storedToken?.address === token.address,
+                  isSameToken(storedToken, token),
                   index
                 )
               )}

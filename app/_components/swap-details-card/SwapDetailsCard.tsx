@@ -15,6 +15,9 @@ import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
 import { resetRoute } from "@/redux_slice/slice/routeSlice";
 import ButtonCopyIcon from "../common/coypButtonIcon";
 import ShadowDecoration from "../common/shadowDecoration";
+import ImageWrapper from "../common/imageWrapper";
+import TooltipTemplate from "../common/tooltip-template";
+import Link from "next/link";
 
 interface SwapTokenProps {
   swapData: Swap,
@@ -77,6 +80,8 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     const stepMessage = getSwapMessages(pendingSwap, currentStep);
     const stepDetailMessage =
       stepMessage.detailedMessage.content || stepMessage.shortMessage;
+    console.log("stepMessage.detailedMessage.content", stepMessage.detailedMessage.content, "stepMessage.shortMessage", stepMessage.shortMessage);
+
     return stepDetailMessage
   }
 
@@ -158,7 +163,9 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
       <div className={`${className} flex flex-col items-center`}>
         <div className="w-[60px] h-[60px] p-3 border border-white border-dashed rounded-full">
           <div className="relative">
-            <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={35} height={35} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
+            <ImageWrapper>
+              <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={35} height={35} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
+            </ImageWrapper>
             <Image
               className="absolute bottom-[-6px] left-[20px]"
               src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
@@ -182,11 +189,13 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     return (
       <div className={`${className} flex justify-center gap-2  items-center`}>
         <div className="relative">
-          <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
-            width={25}
-            height={25}
-            alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`}
-          />
+          <ImageWrapper>
+            <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
+              width={25}
+              height={25}
+              alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`}
+            />
+          </ImageWrapper>
           <Image
             className="absolute bottom-[-6px] left-[15px]"
             src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
@@ -207,7 +216,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
 
   return (
     isWalletConnected && selectedRoute && (
-      <div className="relative bg-[#0b4b2f26] lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+      <div className="relative !bg-[#0b4b2f26] lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
         <div className="z-0">
           <div className="flex justify-between">
             <h1 className="text-2xl mb-5">Swap Details</h1>
@@ -241,9 +250,10 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                         selectedRoute?.requestId
                       )}
                     </span>
-                    <div className="pr-2">
-                      <ButtonCopyIcon text={selectedRoute?.requestId} />
-                    </div>
+                    <ButtonCopyIcon text={selectedRoute?.requestId} />
+                    <Link href={`https://explorer.rango.exchange/swap/${selectedRoute?.requestId}`} target="_blank">
+                      <Image src={"/assets/icons/search-list.png"} width={22} height={22} alt="explorer" />
+                    </Link>
                   </div>
                 </h2>
               </div>
@@ -257,13 +267,15 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                       return (
                         <div
                           key={index}
-                          className="absolute top-[-9px]"
+                          className="absolute top-[-12px]"
                           style={{
                             left: `${percentage}%`,
                             transform: 'translateX(-50%)', // Center each element on its left position
                           }}
                         >
-                          <Image src={swap.swapperLogo} width={18} height={18} alt="swapLogo" />
+                          <TooltipTemplate content={swap.swapperId}>
+                            <Image src={swap.swapperLogo} width={25} height={25} alt="swapLogo" />
+                          </TooltipTemplate>
                         </div>
                       );
                     })}
@@ -281,7 +293,12 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                           <SwapSteps className={"col-span-3"} swapData={swap} isFrom={true} />
 
                           <div className="relative col-span-3 border-t border-dashed w-full mt-[12px]" >
-                            <div className="absolute top-[-9px] right-[45%]"><Image src={swap.swapperLogo} width={18} height={18} alt="swapLogo" /></div>
+                            <div className="absolute top-[-10px] right-[45%]">
+                              <TooltipTemplate content={swap.swapperId}>
+                                <Image src={swap.swapperLogo} width={21} height={21} alt="swapLogo" />
+                              </TooltipTemplate>
+                            </div>
+
                           </div>
                           <SwapSteps className={"col-span-3"} swapData={swap} isFrom={false} />
 

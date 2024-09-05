@@ -511,3 +511,9 @@ export interface WalletData {
   address: string;
   walletType: WalletType;
 }
+
+export enum ConfirmMessage {
+  'FEE' = "transaction fee",
+  'FEE_AND_INPUT_ASSET' = "transaction fee and swap amount",
+  'INPUT_ASSET' = "swap amount for transacion"
+}

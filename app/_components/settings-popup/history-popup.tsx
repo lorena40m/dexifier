@@ -10,6 +10,7 @@ import { PendingSwap, SwapStatus } from "rango-types";
 import { getPendingSwaps } from "@/app/utils/queue";
 import { useManager } from "@rango-dev/queue-manager-react";
 import { getSwapDate } from "@/app/utils/catch-data";
+import Link from "next/link";
 
 interface TokenData {
   symbol: string;
@@ -23,6 +24,7 @@ interface HistoryDataType {
   status: SwapStatus;
   fromToken: TokenData;
   toToken: TokenData;
+  requestId: string;
 }
 
 const HistoryPopup = () => {
@@ -46,8 +48,8 @@ const HistoryPopup = () => {
         amount: parseFloat(historyData.simulationResult.outputAmount).toFixed(3),
         imageSrc: historyData.steps[lastIndex].toLogo,
       };
-
-      return { date, status, fromToken, toToken };
+      const requestId = historyData.requestId;
+      return { date, status, fromToken, toToken, requestId };
     });
   };
 
@@ -126,42 +128,45 @@ const HistoryPopup = () => {
     date: string,
     status: SwapStatus,
     fromToken: TokenData,
-    toToken: TokenData
+    toToken: TokenData,
+    requestId: string,
   ) => (
-    <div className="mb-6 p-4 border border-seperator rounded-3xl bg-transparent text-sm">
-      <div className="mb-4 flex items-center justify-between capitalize">
-        <h3>{date}</h3>
-        <h3
-          className={`font-bold ${status.toLowerCase() === "success"
-            ? "text-primary"
-            : status.toLowerCase() === "failed"
-              ? "text-red-700"
-              : "text-white"
-            }`}
-        >
-          {status}
-        </h3>
-      </div>
-      <div className="flex items-center justify-between">
-        {tokenContainer(fromToken.symbol, fromToken.blockchain, fromToken.imageSrc)}
-        <div className="flex flex-col items-center ">
-          <h3>
-            {fromToken.amount}
+    <Link href={`https://explorer.rango.exchange/swap/${requestId}`} target="_blank">
+      <div className="mb-6 p-4 border border-seperator rounded-3xl hover:opacity-70 bg-[#1dc17317] text-sm">
+        <div className="mb-4 flex items-center justify-between capitalize">
+          <h3>{date}</h3>
+          <h3
+            className={`font-bold ${status.toLowerCase() === "success"
+              ? "text-primary"
+              : status.toLowerCase() === "failed"
+                ? "text-red-700"
+                : "text-white"
+              }`}
+          >
+            {status}
           </h3>
-          <div
-            className="my-3.5 border border-seperator rounded-full w-[2.8975rem] h-[2.8975rem] flex items-center justify-center">
-            <Image
-              src={"/assets/icons/arrow-right.png"}
-              alt="swap icon"
-              width={26}
-              height={19}
-            />
-          </div>
-          <h3>{toToken.amount}</h3>
         </div>
-        {tokenContainer(toToken.symbol, toToken.blockchain, toToken.imageSrc)}
+        <div className="flex items-center justify-between">
+          {tokenContainer(fromToken.symbol, fromToken.blockchain, fromToken.imageSrc)}
+          <div className="flex flex-col items-center ">
+            <h3>
+              {fromToken.amount}
+            </h3>
+            <div
+              className="my-3.5 border border-seperator rounded-full w-[2.8975rem] h-[2.8975rem] flex items-center justify-center">
+              <Image
+                src={"/assets/icons/arrow-right.png"}
+                alt="swap icon"
+                width={26}
+                height={19}
+              />
+            </div>
+            <h3>{toToken.amount}</h3>
+          </div>
+          {tokenContainer(toToken.symbol, toToken.blockchain, toToken.imageSrc)}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 
   return (
@@ -176,7 +181,8 @@ const HistoryPopup = () => {
                 transaction.date,
                 transaction.status,
                 transaction.fromToken,
-                transaction.toToken
+                transaction.toToken,
+                transaction.requestId
               )}
             </React.Fragment>
           ))}
@@ -187,7 +193,8 @@ const HistoryPopup = () => {
                 transaction.date,
                 transaction.status,
                 transaction.fromToken,
-                transaction.toToken
+                transaction.toToken,
+                transaction.requestId
               )}
             </React.Fragment>
           ))}

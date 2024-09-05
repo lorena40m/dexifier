@@ -41,9 +41,10 @@ import {
   UserSettings
 } from "rango-types/mainApi";
 import { useManager } from "@rango-dev/queue-manager-react";
-import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
+import { calculatePendingSwap, cancelSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from "@/app/manager/QueueManager";
 import { PendingSwapSettings } from "@/app/wallet/types/swap";
+import { getPendingSwaps } from "@/app/utils/queue";
 
 enum WALLET {
   NONE,
@@ -65,6 +66,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   const { toToken, fromToken } = useAppSelector((state) => state?.tokens);
   const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
   const { confirmResponse } = useAppSelector((state) => state.swap);
+  const pendingSwaps = getPendingSwaps(manager);
 
   // react state
   const [wallet, setWallet] = useState<WALLET>(WALLET.BROWSE);
@@ -95,6 +97,18 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
     setIsConfirmModalOpen(false);
     dispatch(updateSwapStatus({ isInProcess: false }));
   }
+
+  const onCancel = () => {
+    const selectedSwap = confirmResponse?.result?.requestId
+      ? pendingSwaps.find(({ swap }) => swap.requestId === confirmResponse?.result?.requestId)
+      : undefined;
+    if (selectedSwap?.id) {
+      const swap = manager?.get(selectedSwap.id);
+      if (swap) {
+        cancelSwap(swap);
+      }
+    }
+  };
 
   async function closeModalAndContinue() {
     setIsConfirmModalOpen(false);
@@ -412,6 +426,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                   "",
                   false,
                   () => {
+                    onCancel();
                     dispatch(updateTokenValue({ isFromToken: true, value: "0" }))
                     dispatch(updateSwapStatus({ isInProcess: false }))
                     dispatch(resetRoute());

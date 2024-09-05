@@ -17,6 +17,7 @@ import {
 } from "@/app/utils/catch-data";
 import TooltipTemplate from "../common/tooltip-template";
 import ShadowDecoration from "../common/shadowDecoration";
+import ImageWrapper from "../common/imageWrapper";
 
 interface TagPanelProps {
   tags: Tag[];
@@ -79,7 +80,9 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
     <>
       <div className="w-[3.125rem] h-[3.125rem] p-3 border border-white border-dashed rounded-full">
         <div className="relative">
-          <Image src={logo} width={26} height={26} alt={`${symbol}'s icon`} />
+          <ImageWrapper>
+            <Image src={logo} width={26} height={26} alt={`${symbol}'s icon`} />
+          </ImageWrapper>
           <Image
             className="absolute bottom-[-6px] left-[15px]"
             src={blockchainLogo || ""}
@@ -132,7 +135,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
     const calculatedInfo = catchDataFromQuote(route, tokens);
     return (
       <button
-        className={`relative w-full mb-3.5 flex max-w-full overflow-x-auto pt-6 pb-1.5 ps-3 bg-[#111815] border rounded-xl ${routes.selectedRoute?.requestId !== route.requestId
+        className={`relative w-full mb-3.5 flex max-w-full overflow-x-auto pt-6 pb-1.5 ps-3 bg-[#459b7612] border rounded-xl ${routes.selectedRoute?.requestId !== route.requestId
           ? "border-seperator"
           : "border-primary"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
@@ -247,12 +250,12 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
           </div>
           <div className="relative">
             <ShadowDecoration />
-            <div className="overflow-y-auto lg:max-h-[25rem] pe-2">
+            <div className="overflow-y-auto lg:h-[25rem] pe-2">
               {sortedRoutes.map((item) => singleRouteContainer(item, tokens))}
             </div>
           </div>
         </div>
-        <div className="absolute lg:max-h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-black/0 to-[#050F0F] z-10" />
+        <div className="absolute lg:h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-black/0 to-[#050F0F] z-10" />
       </div>
     )
   );
