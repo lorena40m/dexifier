@@ -11,15 +11,15 @@ import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import {
   updateFromBlockchain,
   updateToBlockchain,
-} from "@/redux_slice/slice/blockchainSlice";
+} from "@/redux_slice/slice/browserSlice/blockchainSlice";
 import { toastSuccess } from "@/lib/utils";
-import { resetToken } from "@/redux_slice/slice/tokenSlice";
+import { resetToken } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import {
   resetRoute,
   updateRouteFetched,
-} from "@/redux_slice/slice/routeSlice";
-import { resetSwap } from "@/redux_slice/slice/swapSlice";
-import { resetQutoteData } from "@/redux_slice/slice/quoteDataSlice";
+} from "@/redux_slice/slice/browserSlice/routeSlice";
+import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
+import { resetQutoteData } from "@/redux_slice/slice/browserSlice/quoteDataSlice";
 import ShadowDecoration from "@/app/_components/common/shadowDecoration";
 
 const AllBlockchainsPopup = ({
@@ -41,6 +41,7 @@ const AllBlockchainsPopup = ({
       ? state.blockchains.fromBlockchain
       : state.blockchains.toBlockchain
   );
+
   const [search, setSearch] = useState<string>("");
 
   const handleItemClick = (blockchain: Blockchain) => {
@@ -84,7 +85,7 @@ const AllBlockchainsPopup = ({
               {filteredBlockchains.map((item) => {
                 const isSelected = selectedBlockchain?.chainId?.includes(
                   item.chainId
-                );
+                ) && selectedBlockchain.displayName === item.displayName;
 
                 return (
                   <div

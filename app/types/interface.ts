@@ -517,3 +517,8 @@ export enum ConfirmMessage {
   'FEE_AND_INPUT_ASSET' = "transaction fee and swap amount",
   'INPUT_ASSET' = "swap amount for transacion"
 }
+
+export enum WALLET {
+  NONE,
+  BROWSE,
+}

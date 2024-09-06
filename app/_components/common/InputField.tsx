@@ -1,7 +1,7 @@
 import SwapSourcePopup from "../exchange-card/swap-source-popup";
 import { Input } from "@/components/ui/input";
 import { Blockchain, Result, RouteData, Token } from "@/app/types/interface";
-import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
+import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { getBananceOfToken, getBestRoutes } from "@/app/api/rango-api";
@@ -12,10 +12,10 @@ import {
   setRouteProcess,
   setSelectedRoute,
   updateRouteFetched,
-} from "@/redux_slice/slice/routeSlice";
+} from "@/redux_slice/slice/browserSlice/routeSlice";
 import { toastError } from "@/lib/utils";
 import useDebounce from "@/app/utils/debounce";
-import { updateSwapStatus } from "@/redux_slice/slice/swapSlice";
+import { updateSwapStatus } from "@/redux_slice/slice/browserSlice/swapSlice";
 import { setEngine } from "crypto";
 import { sortQuotesBy } from "@/app/utils/catch-data";
 
@@ -218,7 +218,7 @@ const CustomCryptoField: React.FC<Props> = ({
             min={1}
             max={42000000}
             onChange={(e) => fromInputChangeHandler(e)}
-            placeholder="Please enter 1-42000000"
+            placeholder={isFromToken ? "Please enter 1-42000000" : "0"}
             className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
             style={{ outline: "none" }}
             disabled={!isFromToken || isInProcess || isSwapMade || !isWalletConnected}

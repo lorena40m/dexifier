@@ -8,12 +8,12 @@ import type { TypedUseSelectorHook } from "react-redux";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "./store";
 import { getBlockchains, getCompactBlockchainTokens } from "@/app/api/rango-api";
-import { setAllToken } from "./slice/allToken";
+import { setAllToken } from "./slice/browserSlice/allToken";
 import { matchAndGenerateProviders, ProvidersOptions } from "@/app/wallet/utils/providers";
 import { Provider as WalletProvider } from "@rango-dev/wallets-react"
 import { BlockchainMeta } from "rango-types";
 import { getOnUpdateState, OnWalletConnectionChange } from "@/app/wallet/useWalletList";
-import { setBlockchains } from "./slice/blockchainSlice";
+import { setBlockchains } from "./slice/browserSlice/blockchainSlice";
 import { useWalletProviders } from "@/app/wallet/useWalletProviders";
 import { WidgetConfig } from "@/app/wallet/types";
 import QueueManager from "@/app/manager/QueueManager";

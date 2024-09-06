@@ -3,14 +3,16 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 
 // Import your slice reducers
-import { alltokenSlice } from "./slice/allToken";
-import { tokenSlice } from "./slice/tokenSlice";
-import { blockchainSlice } from "./slice/blockchainSlice";
-import { quoteDataSlice } from "./slice/quoteDataSlice";
-import { routeSlice } from "./slice/routeSlice";
+import { alltokenSlice } from "./slice/browserSlice/allToken";
+import { tokenSlice } from "./slice/browserSlice/tokenSlice";
+import { blockchainSlice } from "./slice/browserSlice/blockchainSlice";
+import { quoteDataSlice } from "./slice/browserSlice/quoteDataSlice";
+import { routeSlice } from "./slice/browserSlice/routeSlice";
 import { settingsSlice } from "./slice/settingsSlice";
-import { swapSlice } from "./slice/swapSlice";
-import { walletSlice } from "./slice/walletSlice";
+import { swapSlice } from "./slice/browserSlice/swapSlice";
+import { walletSlice } from "./slice/browserSlice/walletSlice";
+import { currencySlice } from "./slice/noWalletSlice/currencySlice";
+import { rateSlice } from "./slice/noWalletSlice/rateSlice";
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -28,7 +30,9 @@ const rootReducer = combineReducers({
   swap: swapSlice.reducer,
   allToken: alltokenSlice.reducer,
   quoteData: quoteDataSlice.reducer,
-  wallet: walletSlice.reducer
+  wallet: walletSlice.reducer,
+  currency: currencySlice.reducer,
+  rate: rateSlice.reducer
 });
 
 // Persist the root reducer

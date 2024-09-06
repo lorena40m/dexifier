@@ -23,6 +23,12 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "exolix.com",
+        port: "",
+        pathname: "/*/**",
+      },
+      {
+        protocol: "https",
         hostname: "raw.githubusercontent.com",
         port: "",
         pathname: "/*/**",

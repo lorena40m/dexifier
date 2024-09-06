@@ -7,12 +7,12 @@ import { useDispatch } from "react-redux";
 import {
   updateFromBlockchain,
   updateToBlockchain,
-} from "@/redux_slice/slice/blockchainSlice";
+} from "@/redux_slice/slice/browserSlice/blockchainSlice";
 import AllBlockchainsPopup from "./all-blockchains-popup";
-import { resetToken } from "@/redux_slice/slice/tokenSlice";
-import { resetRoute, updateRouteFetched } from "@/redux_slice/slice/routeSlice";
-import { resetSwap } from "@/redux_slice/slice/swapSlice";
-import { resetQutoteData } from "@/redux_slice/slice/quoteDataSlice";
+import { resetToken } from "@/redux_slice/slice/browserSlice/tokenSlice";
+import { resetRoute, updateRouteFetched } from "@/redux_slice/slice/browserSlice/routeSlice";
+import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
+import { resetQutoteData } from "@/redux_slice/slice/browserSlice/quoteDataSlice";
 import { useAppSelector } from "@/redux_slice/provider";
 
 const BlockchainSection: React.FC<{
@@ -45,11 +45,10 @@ const BlockchainSection: React.FC<{
     content: ReactNode
   ) => (
     <div
-      className={`px-1 py-2.5 flex items-center justify-center border rounded-3xl bg-transparent hover:bg-white/5 transition-colors duration-300 cursor-pointer ${
-        selectedBlockchain?.chainId === id
+      className={`px-1 py-2.5 flex items-center justify-center border rounded-3xl bg-transparent hover:bg-white/5 transition-colors duration-300 cursor-pointer ${selectedBlockchain?.chainId === id
           ? "border-primary"
           : "border-seperator"
-      }`}
+        }`}
       onClick={() => onClick()}
       key={`${id}-${name}`}
     >
@@ -60,11 +59,11 @@ const BlockchainSection: React.FC<{
   const sortedBlockchains =
     selectedBlockchain.name !== ""
       ? [
-          selectedBlockchain,
-          ...blockchains.filter(
-            (b) => b.chainId !== selectedBlockchain.chainId
-          ),
-        ]
+        selectedBlockchain,
+        ...blockchains.filter(
+          (b) => b.chainId !== selectedBlockchain.chainId
+        ),
+      ]
       : blockchains;
 
   const totalBlockchains = sortedBlockchains.length;
@@ -80,59 +79,59 @@ const BlockchainSection: React.FC<{
       <div className="grid grid-cols-4 gap-x-6 gap-y-5 px-6">
         {totalBlockchains <= 8
           ? allBlockchains.map((blockchain, index) => {
-              const { chainId, displayName, logo } = blockchain;
-              return (
-                <TooltipTemplate
-                  content={displayName}
-                  className="!-mb-3"
-                  key={`${chainId}-${displayName}`}
-                >
-                  {blockchainTemplate(
-                    chainId,
-                    displayName,
-                    () => updateBlockchain(blockchain),
-                    <Image
-                      key={index}
-                      src={logo}
-                      width={38}
-                      height={38}
-                      alt={`${displayName}'s icon`}
-                      className="!w-[2.625rem] !h-[2.625rem]"
-                    />
-                  )}
-                </TooltipTemplate>
-              );
-            })
+            const { chainId, displayName, logo } = blockchain;
+            return (
+              <TooltipTemplate
+                content={displayName}
+                className="!-mb-3"
+                key={`${chainId}-${displayName}`}
+              >
+                {blockchainTemplate(
+                  chainId,
+                  displayName,
+                  () => updateBlockchain(blockchain),
+                  <Image
+                    key={index}
+                    src={logo}
+                    width={38}
+                    height={38}
+                    alt={`${displayName}'s icon`}
+                    className="!w-[2.625rem] !h-[2.625rem]"
+                  />
+                )}
+              </TooltipTemplate>
+            );
+          })
           : firstSevenBlockchains.map((blockchain, index) => {
-              const { chainId, displayName, logo } = blockchain;
-              return (
-                <TooltipTemplate
-                  content={displayName}
-                  className="!-mb-3"
-                  key={`${chainId}-${displayName}`}
-                >
-                  {blockchainTemplate(
-                    chainId,
-                    displayName,
-                    () => {
-                      updateBlockchain(blockchain);
-                      toastSuccess(
-                        `${blockchain.displayName}'s selected as the blockchain`
-                      );
-                    },
+            const { chainId, displayName, logo } = blockchain;
+            return (
+              <TooltipTemplate
+                content={displayName}
+                className="!-mb-3"
+                key={`${chainId}-${displayName}`}
+              >
+                {blockchainTemplate(
+                  chainId,
+                  displayName,
+                  () => {
+                    updateBlockchain(blockchain);
+                    toastSuccess(
+                      `${blockchain.displayName}'s selected as the blockchain`
+                    );
+                  },
 
-                    <Image
-                      key={index}
-                      src={logo}
-                      width={38}
-                      height={38}
-                      alt={`${displayName}'s icon`}
-                      className="!w-[2.625rem] !h-[2.625rem]"
-                    />
-                  )}
-                </TooltipTemplate>
-              );
-            })}
+                  <Image
+                    key={index}
+                    src={logo}
+                    width={38}
+                    height={38}
+                    alt={`${displayName}'s icon`}
+                    className="!w-[2.625rem] !h-[2.625rem]"
+                  />
+                )}
+              </TooltipTemplate>
+            );
+          })}
 
         {totalBlockchains > 8 && (
           <AllBlockchainsPopup
@@ -142,7 +141,7 @@ const BlockchainSection: React.FC<{
             {blockchainTemplate(
               "",
               "",
-              () => {},
+              () => { },
               <h3 className="text-sm text-center">View More</h3>
             )}
           </AllBlockchainsPopup>

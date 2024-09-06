@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Bridge, Exchange, Settings } from "@/app/types/interface";
+import { Bridge, Exchange, Settings, WALLET } from "@/app/types/interface";
 
-const initialSettingsState: Settings = {
+const initialSettingsState: Settings & { wallet: WALLET } = {
   slippage: 1,
   infiniteApproval: false,
   bridges: [],
@@ -10,6 +10,7 @@ const initialSettingsState: Settings = {
   exchanges: [],
   selectedExchangesCounter: 0,
   totalExchanges: 0,
+  wallet: WALLET.BROWSE
 };
 
 export const settingsSlice = createSlice({
@@ -106,6 +107,15 @@ export const settingsSlice = createSlice({
         };
       }
     },
+    updateManner(
+      state,
+      action: PayloadAction<{ wallet: WALLET }>
+    ) {
+      return {
+        ...state,
+        wallet: action.payload.wallet
+      };
+    },
 
     resetSettings() {
       return initialSettingsState;
@@ -123,4 +133,5 @@ export const {
   updateExchanges,
   updateTotalExchanges,
   toggleSelectAllExchanges,
+  updateManner,
 } = settingsSlice.actions;
