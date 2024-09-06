@@ -6,6 +6,7 @@ import React, { Suspense } from "react";
 import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
 import CustomLoader from "../../common/loader";
+import ImageWrapper from "../../common/imageWrapper";
 
 const SwapSourcePopup: React.FC<{
   blockchains: Blockchain[];
@@ -30,13 +31,15 @@ const SwapSourcePopup: React.FC<{
     >
       {selectedToken?.image && (
         <div className="relative">
-          <Image
-            className="relative"
-            src={selectedToken?.image}
-            width={30}
-            height={30}
-            alt={`${selectedToken?.symbol}'s icon`}
-          />
+          <ImageWrapper>
+            <Image
+              className="relative"
+              src={selectedToken?.image}
+              width={30}
+              height={30}
+              alt={`${selectedToken?.symbol}'s icon`}
+            />
+          </ImageWrapper>
           <Image
             className="absolute bottom-[-6px] left-[18px]"
             src={selectedBlockchain?.logo}

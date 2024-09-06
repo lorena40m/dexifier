@@ -14,6 +14,7 @@ import { BlockchainValidationStatus, ConfirmRouteRequest } from 'rango-types/mai
 import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';
 import ShadowDecoration from '../common/shadowDecoration';
+import { ConfirmMessage } from '@/app/types/interface';
 
 const customStyles = {
   overlay: {
@@ -272,7 +273,9 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
               key={index}
               className={`${validData.ok ? "text-[#13f187]" : "text-[#f44336]"} text-xs font-bold flex flex-col items-center tracking-wide mb-2`}
             >
-              <span>Needed ~{getAmountFromString(validData.requiredAmount.amount, validData.requiredAmount.decimals)} {validData.asset.symbol} for &quot;{validData.reason}&quot; and You have {getAmountFromString(validData.currentAmount.amount, validData.currentAmount.decimals)} {validData.asset.symbol} </span>
+              <span>Needed &nbsp; &asymp; {getAmountFromString(validData.requiredAmount.amount, validData.requiredAmount.decimals)} {validData.asset.symbol} for &nbsp;
+                {ConfirmMessage[validData.reason]} &nbsp;
+                and You have {getAmountFromString(validData.currentAmount.amount, validData.currentAmount.decimals)} {validData.asset.symbol} </span>
             </div>)
         })}
       </div>
@@ -338,12 +341,12 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
         </button>
       </div>
       {
-        selectedRoute && lastNumber && <div className="text-sm font-bold text-center py-2">Confirm Swap
+        selectedRoute && lastNumber && <div className="text-sm font-bold text-center py-2">Confirm Swap &nbsp;
           <span className="text-[#bbbbbb] text-lg">
-            {parseFloat(selectedRoute.swaps[0].fromAmount).toFixed(3)}
+            {parseFloat(selectedRoute.swaps[0].fromAmount).toFixed(3)} &nbsp;
           </span>
-          {selectedRoute.swaps[0].from.symbol} [{selectedRoute.swaps[0].from.blockchain}]
-          to <span className="text-[#bbbbbb] text-lg"> {parseFloat(selectedRoute.swaps[lastNumber - 1].toAmount).toFixed(3)} </span>
+          {selectedRoute.swaps[0].from.symbol} [{selectedRoute.swaps[0].from.blockchain}] to &nbsp;
+          <span className="text-[#bbbbbb] text-lg"> {parseFloat(selectedRoute.swaps[lastNumber - 1].toAmount).toFixed(3)} &nbsp;</span>
           {selectedRoute.swaps[lastNumber - 1].to.symbol} [{selectedRoute.swaps[lastNumber - 1].to.blockchain}]
         </div>
       }
