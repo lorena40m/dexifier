@@ -29,12 +29,14 @@ const initialWalletList: {
   refOfConnectButton: HTMLButtonElement | null
   config: WidgetConfig
   providers: ProviderInterface[]
+  requiredChain: string
 } = {
   connectedWallets: [],
   config: { apiKey: "" },
   providers: [],
   refOfConnectButton: null,
-  selectedWallets: []
+  selectedWallets: [],
+  requiredChain: ""
 }
 
 export const walletSlice = createSlice({
@@ -126,6 +128,12 @@ export const walletSlice = createSlice({
     ) {
       return { ...state, selectedWallets: action.payload.selectedWallets };
     },
+    updateRequiredChain(
+      state,
+      action: PayloadAction<{ requiredChain: string }>
+    ) {
+      return { ...state, requiredChain: action.payload.requiredChain };
+    },
 
     updateWalletProvider(
       state,
@@ -136,5 +144,12 @@ export const walletSlice = createSlice({
   }
 });
 
-export const { updateConnectedWallet, updateWalletProvider, disconnectedWallet, clearConnectedWallet, setButtonRef, updateSelectedWallets } =
-  walletSlice.actions;
+export const {
+  updateConnectedWallet,
+  updateWalletProvider,
+  disconnectedWallet,
+  clearConnectedWallet,
+  setButtonRef,
+  updateSelectedWallets,
+  updateRequiredChain
+} = walletSlice.actions;

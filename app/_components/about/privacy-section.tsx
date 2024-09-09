@@ -28,12 +28,12 @@ const PrivacySection = () => {
 
       <div className="flex flex-col gap-7 text-xl sm:text-3xl md:text-[2.6688rem] font-bold lg:w-3/6">
         <div className="py-10 sm:py-16 md:py-[6.25rem] flex items-center justify-center bg-primary text-black rounded-3xl">
-          NO logins/ signups
+          NO LOGINS/ SIGNUPS
         </div>
 
         <div className="flex gap-5 w-full h-24 sm:h-[8.75rem] md:h-[10.6875rem]">
-          {smallBox("No cookies")}
-          {smallBox("NO kyc")}
+          {smallBox("NO COOKIES")}
+          {smallBox("NO KYC")}
         </div>
       </div>
     </section>

@@ -12,7 +12,7 @@ const CustomerSupportSection = () => {
           </h1>
 
           <p className="text-center md:text-start sm:leading-[1.5rem]">
-            Having trouble with a ap? Head to our Discord, open a ticket or ask
+            Having trouble with a swap? Head to our Discord, open a ticket or ask
             a question. Our international team & community are ready to help,
             around the clock.
           </p>

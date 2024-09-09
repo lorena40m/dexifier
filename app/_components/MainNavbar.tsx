@@ -14,6 +14,9 @@ import { getAbbrAddress } from "../utils/catch-data";
 import TooltipTemplate from "./common/tooltip-template";
 import ButtonCopyIcon from "./common/coypButtonIcon";
 import ShadowDecoration from "./common/shadowDecoration";
+import Search from "./common/search";
+import { updateRequiredChain } from "@/redux_slice/slice/browserSlice/walletSlice";
+import { useDispatch } from "react-redux";
 // import logo from "@/public/assets/logo.png";
 
 const customStyles = {
@@ -30,14 +33,24 @@ const customStyles = {
   },
 };
 
+// Example navigation links
+const navLinks = [
+  { text: "Support", path: "/support" },
+  { text: "Docs", path: "https://docs.dexifier.com/" },
+  { text: "About Us", path: "/about" },
+];
+
 const MainNavbar = () => {
 
   Modal.setAppElement('#root');
 
   const pathname = usePathname();
+  const dispatch = useDispatch();
 
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [activeLink, setActiveLink] = useState(false);
+  const [search, setSearch] = useState<string>("");
 
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -47,6 +60,7 @@ const MainNavbar = () => {
   const [modalIsOpen, setIsModalOpen] = React.useState(false);
 
   const [walletBalance, setWalletBalance] = useState<walletAssetsBalance[]>();
+  const [filteredBalanceData, setFilteredBalanceData] = useState<walletAssetsBalance[]>();
 
   const { list } = useWalletList({})
 
@@ -64,14 +78,27 @@ const MainNavbar = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-  // Example navigation links
-  const navLinks = [
-    { text: "Support", path: "/support" },
-    { text: "Docs", path: "https://docs.dexifier.com/" },
-    { text: "About Us", path: "/about" },
-  ];
 
-  useEffect(() => { }, []);
+  useEffect(() => {
+    // Loop through navLinks to find the active one based on the current path
+    navLinks.forEach(link => {
+      // Only check for internal links (i.e., not starting with "http")
+      if (pathname === "/") {
+        setActiveLink(true);
+      } else {
+        setActiveLink(false);
+      }
+    });
+  }, [pathname]);
+
+  useEffect(() => {
+    const tempFilteredBalances = walletBalance && walletBalance.filter((balance) =>
+      balance.blockChain != null
+        ? balance.blockChain.toLowerCase().includes(search.toLowerCase())
+        : false
+    );
+    setFilteredBalanceData(tempFilteredBalances || []);
+  }, [search, walletBalance]);
 
   async function openModal() {
     await setWalletBalanceData();
@@ -128,6 +155,7 @@ const MainNavbar = () => {
 
   const onClickWalletButton = () => {
     if (refOfConnectButton) {
+      dispatch(updateRequiredChain({ requiredChain: "" }));
       refOfConnectButton.click()
     }
   }
@@ -146,13 +174,14 @@ const MainNavbar = () => {
       return { usedPrice: 0, image: "/assets/tokens/default.png" }
     }
   }
-
-  const SubWallet: React.FC<any> = ({ walletBalance }) => {
+  const SubWallet: React.FC<any> = ({ walletBalance, index }) => {
     console.log("walletBalance", walletBalance);
+    const [isOpen, SetIsOpen] = useState<boolean>(true);
 
     return (
       <div className="pr-2">
-        <button className="flex justify-between items-center text-sm border border-primary p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
+        <button className="flex justify-between items-center text-sm border border-primary hover:opacity-80 p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
+          onClick={() => SetIsOpen(!isOpen)}
         >
           <div className="flex text-lg font-bold" >
             <Image src={getWalletIcon(walletBalance.blockChain, walletBalance.address) || "/assets/wallet/default"} width={28} height={28} alt={walletBalance.blockChain} className="mr-2" />
@@ -169,7 +198,7 @@ const MainNavbar = () => {
           </div>
         </button>
         <div className="p-2 text-[#e5e7ebc9]">
-          {walletBalance && walletBalance.balances && (walletBalance.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => {
+          {walletBalance && walletBalance.balances && isOpen && (walletBalance.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => {
             const { usedPrice, image } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
             const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
             return (
@@ -281,7 +310,7 @@ const MainNavbar = () => {
                   {link.text}
                 </Link>
               ))}
-              {!connectedWallets.length ?
+              {activeLink && (!connectedWallets.length ?
                 <button className="flex text-[1.075rem] bg-primary rounded-full p-2 pr-3 items-center justify-center hover:opacity-80"
                   onClick={onClickWalletButton}>
                   <div className="mx-2">
@@ -292,7 +321,7 @@ const MainNavbar = () => {
                       height={22}
                     />
                   </div>
-                  <span>connect wallet</span>
+                  <span>Connect Wallet</span>
                 </button>
                 : <div className="flex">
                   <button className="flex relative text-[1.075rem] min-h-[35px] border border-primary rounded-l-full rounded p-2 items-center justify-center hover:opacity-80"
@@ -316,6 +345,7 @@ const MainNavbar = () => {
                   <button
                     className="rounded-r-full color-[#141414] bg-primary p-2 pr-3 border-l hover:opacity-80" onClick={onClickWalletButton}> more wallet</button>
                 </div>
+              )
               }
             </div>
           </div>
@@ -353,17 +383,19 @@ const MainNavbar = () => {
         style={customStyles}
         className="bg-gradient-to-b to-[#002f19] from-[#01150c] border-l border-seperator z-30 p-4"
       >
+
         <div className="flex justify-end p-2">
           <button onClick={closeModal}>
             <X className="w-7 h-7 p-0.5 bg-primary rounded-full font-bold text-black hover:bg-primary-dark transition-colors duration-300" />
           </button>
         </div>
-        <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2">Your wallet</div>
+        <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2">Your Wallet</div>
+        <Search search={search} setSearch={setSearch} />
         <div className="relative h-full">
           <ShadowDecoration />
           <div className="overflow-auto h-full pb-[100px] pt-[20px]">
-            {walletBalance && walletBalance.map((walletBalance, index) => (
-              <SubWallet key={index} walletBalance={walletBalance} />
+            {filteredBalanceData && filteredBalanceData.map((walletBalance, index) => (
+              <SubWallet key={index} walletBalance={walletBalance} index={index} />
             ))}
           </div>
         </div>

@@ -14,7 +14,8 @@ import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
 import ShadowDecoration from "../../common/shadowDecoration";
 import ImageWrapper from "../../common/imageWrapper";
-import { getAbbrAddress } from "@/app/utils/catch-data";
+import { getAbbrAddress, getContrastRatio } from "@/app/utils/catch-data";
+import FallBackImage from "../../common/fallBackImage";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;
@@ -181,13 +182,14 @@ const TokenSection: React.FC<{
       <div className="flex justify-between items-center">
         <div className="flex items-center justify-center gap-6 capitalize">
           <ImageWrapper>
-            <Image
+            <FallBackImage
               src={imageSrc}
               height={37}
               width={37}
               alt="Token Icon"
               className="text-sm"
               loading="lazy"
+              fallbackSrc="/assets/icons/questionToken.png"
             />
           </ImageWrapper>
 
@@ -199,8 +201,10 @@ const TokenSection: React.FC<{
             >
               <div>
                 <span className="text-base px-1">{symbol}</span>
-                {/* <div></div> */}
-                <span className={`text-[14px] font-bold opacity-70`} style={{ color: selectedBlockchain?.color, textShadow: "1px 0px 1px #ffffff" }}>
+                {/* <div>
+                textShadow: "1px 0px 1px #ffffff" 
+                </div> */}
+                <span className={`text-[14px] font-bold`} style={{ color: selectedBlockchain?.color ? getContrastRatio(selectedBlockchain?.color, "#02140c00") ? selectedBlockchain?.color : "white" : "white" }}>
                   ({selectedBlockchain?.displayName})
                 </span>
               </div>

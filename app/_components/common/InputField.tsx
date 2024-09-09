@@ -173,6 +173,10 @@ const CustomCryptoField: React.FC<Props> = ({
     dispatch(updateTokenValue({ isFromToken, value: e.target.value }));
   };
 
+  const setInputAmountByPercent = (amount: number) => {
+    dispatch(updateTokenValue({ isFromToken, value: String(amount) }));
+  }
+
   const calculateUSDPrice = (selectedToken: Token, isFromToken: boolean, selectedRoute: Result | undefined) => {
     if (selectedRoute === undefined || selectedToken.value === undefined || selectedToken.usdPrice === null) {
       return 0;
@@ -198,7 +202,13 @@ const CustomCryptoField: React.FC<Props> = ({
 
         {isWalletConnected && isFromToken && (
           <label>
-            Balance: {tokenBalance} &nbsp; {selectedTokenData.fromToken.symbol}
+            <span>Balance: {tokenBalance} &nbsp; {selectedTokenData.fromToken.symbol}</span>
+            {tokenBalance !== "_" && tokenBalance !== "0" && <div className="text-primary flex justify-between">
+              <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance) * 0.25)}>25%</button><span>|</span>
+              <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance) * 0.5)}>50%</button><span>|</span>
+              <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance))}>Max</button>
+            </div>
+            }
           </label>
         )}
       </div>

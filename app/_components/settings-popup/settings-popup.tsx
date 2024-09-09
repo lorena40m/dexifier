@@ -45,16 +45,15 @@ const SettingsPopup = () => {
 
   const percentageBox = (text: string, value: number, className = "") => (
     <button
-      className={`${className} ${
-        settings.slippage == value
+      className={`${className} ${settings.slippage == value
           ? "border-primary text-primary"
           : "border-seperator text-white"
-      } text-sm sm:text-base border hover:border-primary-dark hover:text-primary-dark rounded-[.5625rem] cursor-pointer flex items-center justify-center w-1/4 xs:w-[4.25rem] h-[3.375rem] transition-colors duration-300`}
+        } text-sm sm:text-base border hover:border-primary-dark hover:text-primary-dark rounded-[.5625rem] cursor-pointer flex items-center justify-center w-1/4 xs:w-[4.25rem] h-[3.375rem] transition-colors duration-300`}
       onClick={() => {
         dispatch(updateSlippage({ value }));
         setIsSlippageCustom(false);
       }}
-      // onClick={() => setSlippageTolerance(value)}
+    // onClick={() => setSlippageTolerance(value)}
     >
       {text}
     </button>
@@ -104,9 +103,8 @@ const SettingsPopup = () => {
             onMouseLeave={() => setShowSlippageDetails(false)}
           />
           <div
-            className={`absolute -top-0.5 p-3 bg-black normal-case border border-primary text-xs rounded-xl ${
-              showSlippageDetails ? "block" : "hidden"
-            }`}
+            className={`absolute -top-0.5 p-3 bg-black normal-case border border-primary text-xs rounded-xl ${showSlippageDetails ? "block" : "hidden"
+              }`}
           >
             Your transaction will be reverted if the price changes unfavorably
             by more than this percentage
@@ -125,11 +123,10 @@ const SettingsPopup = () => {
 
           <input
             type="number"
-            className={`${
-              isSlippageCustom
+            className={`${isSlippageCustom
                 ? "border-primary text-primary"
                 : "border-seperator text-white"
-            } text-center px-[1.875rem] py-[1.1563rem] border hover:border-primary-dark outline-none  placeholder:text-slate-400 bg-transparent rounded-[.5625rem] cursor-pointer w-full xs:w-[7.5rem] h-[3.375rem] transition-colors duration-300`}
+              } text-center px-[1.875rem] py-[1.1563rem] border hover:border-primary-dark outline-none  placeholder:text-slate-400 bg-transparent rounded-[.5625rem] cursor-pointer w-full xs:w-[7.5rem] h-[3.375rem] transition-colors duration-300`}
             value={settings.slippage}
             placeholder="custom"
             step={0.1}
@@ -198,12 +195,11 @@ const SettingsPopup = () => {
                 onMouseLeave={() => setShowInfiniteApprovalDetails(false)}
               />
               <div
-                className={`min-w-[400px] absolute -top-20 p-3 bg-black normal-case border border-primary text-xs rounded-xl ${
-                  showInfiniteApprovalDetails ? "block" : "hidden"
-                }`}
+                className={`min-w-[400px] absolute -top-20 p-3 bg-black normal-case border border-primary text-xs rounded-xl ${showInfiniteApprovalDetails ? "block" : "hidden"
+                  }`}
               >
                 Enabling the &apos;Infinite approval&apos; mode grants
-                unrestricted access to smart contracts of DEXes/Bridges,
+                unrestricted access to smart contracts of DEXs/Bridges,
                 allowing them to utilize the approved token amount without
                 limitations.
               </div>
