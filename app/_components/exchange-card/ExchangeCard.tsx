@@ -23,16 +23,16 @@ import {
   setRouteProcess,
   setSelectedRoute,
   updateRouteFetched,
-} from "@/redux_slice/slice/routeSlice";
+} from "@/redux_slice/slice/browserSlice/routeSlice";
 import {
   resetSwap,
   updateSwapStatus,
-} from "@/redux_slice/slice/swapSlice";
-import { updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/blockchainSlice";
-import { updateToken, updateTokenValue } from "@/redux_slice/slice/tokenSlice";
+} from "@/redux_slice/slice/browserSlice/swapSlice";
+import { updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/browserSlice/blockchainSlice";
+import { updateToken, updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { sortQuotesBy } from "@/app/utils/catch-data";
 import WalletSourcePopup from "./wallet-popup";
-import { setButtonRef } from "@/redux_slice/slice/walletSlice";
+import { setButtonRef } from "@/redux_slice/slice/browserSlice/walletSlice";
 import ConfirmModal from "./ConfirmModal";
 import {
   BestRouteResponse,
@@ -45,8 +45,11 @@ import { calculatePendingSwap, cancelSwap } from "@rango-dev/queue-manager-rango
 import { getWalletsForNewSwap } from "@/app/manager/QueueManager";
 import { PendingSwapSettings } from "@/app/wallet/types/swap";
 import { getPendingSwaps } from "@/app/utils/queue";
+import NoWallet from "../no-wallet/Nowallet";
+import NoWalletInput from "../common/noWalletInput";
+import { updateManner } from "@/redux_slice/slice/settingsSlice";
 
-enum WALLET {
+export enum WALLET {
   NONE,
   BROWSE,
 }
@@ -69,13 +72,13 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   const pendingSwaps = getPendingSwaps(manager);
 
   // react state
-  const [wallet, setWallet] = useState<WALLET>(WALLET.BROWSE);
   const [blockchains, setBlockChains] = useState<Blockchain[]>([]);
   const [isSelectionsComplete, setIsSelectionsComplete] =
     useState<boolean>(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState<boolean>(false)
 
   const { isError } = useAppSelector((state) => state.routes);
+  const { wallet } = useAppSelector((state) => state.settings);
   const selectedToken = useAppSelector((state) => state?.tokens?.fromToken
   );
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
@@ -307,7 +310,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                   ? "bg-primary text-[#000]"
                   : " bg-transparent"
                 }`}
-              onClick={() => setWallet(WALLET.NONE)}
+              onClick={() => dispatch(updateManner({ wallet: WALLET.NONE }))}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
               No Wallet
@@ -320,7 +323,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                   ? "bg-primary text-[#000]"
                   : " bg-transparent"
                 }`}
-              onClick={() => setWallet(WALLET.BROWSE)}
+              onClick={() => dispatch(updateManner({ wallet: WALLET.BROWSE }))}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
               Browser Wallet
@@ -436,10 +439,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
             : buttonTemplate("Connect Wallet", "", false, handleConnectButtonClick)}
         </div>
       ) : (
-        <div className="flex items-center justify-center h-[50vh] md:max-w-[85%] mx-auto ">
-          Coming Soon...
-          <RiZzzFill className="text-primary" />
-        </div>
+        <NoWallet blockchains={blockchains} isWalletConnected={isWalletConnected} />
       )}
 
       <ConfirmModal

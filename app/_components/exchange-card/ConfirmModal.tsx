@@ -1,8 +1,8 @@
 import Image from 'next/image';
 import { useWalletList } from '@/app/wallet/useWalletList';
 import { useAppSelector } from '@/redux_slice/provider';
-import { updateConfirmResponse, updateCustomAddress } from '@/redux_slice/slice/swapSlice';
-import { ConnectedWallet, updateSelectedWallets } from '@/redux_slice/slice/walletSlice';
+import { updateConfirmResponse, updateCustomAddress } from '@/redux_slice/slice/browserSlice/swapSlice';
+import { ConnectedWallet, updateSelectedWallets } from '@/redux_slice/slice/browserSlice/walletSlice';
 import { X } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import Modal from 'react-modal';

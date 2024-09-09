@@ -21,7 +21,7 @@ import { MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } f
 import { configWalletsToWalletName } from "./utils/providers";
 import { Wallet, WalletInfoWithNamespaces } from "./types";
 import { useAppSelector } from "@/redux_slice/provider";
-import { disconnectedWallet, updateConnectedWallet } from "@/redux_slice/slice/walletSlice";
+import { disconnectedWallet, updateConnectedWallet } from "@/redux_slice/slice/browserSlice/walletSlice";
 
 export type OnWalletConnectionChange = (key: string) => void;
 

@@ -1,4 +1,4 @@
-import { axiosClient } from "@/lib/axios-client";
+import { axiosBrowserClient } from "@/lib/axios-client";
 import { reformatTokens } from "./api-utils";
 import {
   Bridge,
@@ -17,14 +17,14 @@ import { BestRouteResponse, BlockchainMeta, CheckApprovalResponse, CheckTxStatus
 import { RequestOptions } from "rango-sdk/lib/types";
 
 export async function getBlockchains(): Promise<BlockchainMeta[]> {
-  const data: AxiosResponse = await axiosClient.get(
+  const data: AxiosResponse = await axiosBrowserClient.get(
     "/meta/blockchains?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
   const blockchains = data.data as BlockchainMeta[];
   return blockchains;
 }
 export async function getBlockchainTokens(blockchainName: string) {
-  const data: AxiosResponse = await axiosClient.get(
+  const data: AxiosResponse = await axiosBrowserClient.get(
     `/meta?blockchains=${blockchainName}&apiKey=` +
     process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
@@ -33,7 +33,7 @@ export async function getBlockchainTokens(blockchainName: string) {
 }
 
 export async function getCompactBlockchainTokens() {
-  const data: AxiosResponse = await axiosClient.get(
+  const data: AxiosResponse = await axiosBrowserClient.get(
     `/meta/compact?apiKey=` + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
   const tokens = reformatTokens(data.data.tokens) as Token[];
@@ -41,7 +41,7 @@ export async function getCompactBlockchainTokens() {
 }
 
 export async function getBridges(): Promise<Bridge[]> {
-  const response: AxiosResponse = await axiosClient.get(
+  const response: AxiosResponse = await axiosBrowserClient.get(
     "/meta/swappers?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
   const swappers = response.data as Bridge[];
@@ -52,7 +52,7 @@ export async function getBridges(): Promise<Bridge[]> {
 }
 
 export async function getExchanges(): Promise<Exchange[]> {
-  const response: AxiosResponse = await axiosClient.get(
+  const response: AxiosResponse = await axiosBrowserClient.get(
     "/meta/swappers?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
   const swappers = response.data as Exchange[];
@@ -67,7 +67,7 @@ export async function getBananceOfToken(
   tokenAddress: string | null
 ): Promise<TokenBalance> {
   console.log(address, "|", blockchain, "|", symbol, "|", tokenAddress);
-  const response: AxiosResponse = await axiosClient.get(
+  const response: AxiosResponse = await axiosBrowserClient.get(
     `wallets/token-balance?walletAddress=${address}&blockchain=${blockchain}&symbol=${symbol}${tokenAddress === null ? "" : "&address=" + tokenAddress
     }&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`
   );
@@ -89,7 +89,7 @@ export async function getBananceOfWallet(
       }
     }).join('');
   }
-  const response: AxiosResponse = await axiosClient.get(
+  const response: AxiosResponse = await axiosBrowserClient.get(
     `wallets/details?${requestQuery}&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`
   );
   const walletBalanceData = response.data.wallets;
@@ -101,7 +101,7 @@ export async function getBestRoutes(
   data: RouteData
 ): Promise<BestRoutesResponse> {
   try {
-    const response: AxiosResponse = await axiosClient.post(
+    const response: AxiosResponse = await axiosBrowserClient.post(
       `https://api.rango.exchange/routing/bests?apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
       data
     );
@@ -142,7 +142,7 @@ export async function createTransaction(
   params: TxSwapRequest
 ): Promise<TxSwapResponse> {
   try {
-    const response: AxiosResponse = await axiosClient.get(
+    const response: AxiosResponse = await axiosBrowserClient.get(
       `https://api.rango.exchange/basic/swap?from=${params.from}&to=${params.to}&amount=${params.amount}&slippage=${params.slippage}&fromAddress=${params.fromAddress}&toAddress=${params.toAddress}&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`
     );
 
@@ -182,7 +182,7 @@ export async function createMultiStepTransaction(
   options?: RequestOptions
 ): Promise<CreateTransactionResponse> {
   try {
-    const response: AxiosResponse = await axiosClient.post(
+    const response: AxiosResponse = await axiosBrowserClient.post(
       `https://api.rango.exchange/tx/create?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
       requestBody,
       { ...options }
@@ -224,7 +224,7 @@ export async function checkApproval(
   options?: RequestOptions
 ): Promise<CheckApprovalResponse> {
   try {
-    const response: AxiosResponse = await axiosClient.get(
+    const response: AxiosResponse = await axiosBrowserClient.get(
       `https://api.rango.exchange/tx/${requestId}/check-approval?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
       { params: { txId }, ...options },
     );
@@ -259,7 +259,7 @@ export async function checkStatus(
   options?: RequestOptions
 ): Promise<TransactionStatusResponse> {
   try {
-    const response: AxiosResponse = await axiosClient.post(
+    const response: AxiosResponse = await axiosBrowserClient.post(
       `https://api.rango.exchange/tx/check-status?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
       requestBody,
       { ...options }
@@ -300,7 +300,7 @@ export async function reportFailure(
   options?: RequestOptions
 ): Promise<void> {
   try {
-    await axiosClient.post(
+    await axiosBrowserClient.post(
       `https://api.rango.exchange/tx/report-tx?&apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
       requestBody,
       { ...options }
@@ -314,7 +314,7 @@ export async function confirmRoute(
   data: ConfirmRouteRequest
 ): Promise<ConfirmRouteResponse> {
   try {
-    const response: AxiosResponse = await axiosClient.post(
+    const response: AxiosResponse = await axiosBrowserClient.post(
       `https://api.rango.exchange/routing/confirm?apiKey=${process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC}`,
       data
     );

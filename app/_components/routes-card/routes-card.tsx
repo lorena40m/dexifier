@@ -2,7 +2,7 @@
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
-import { setSelectedRoute } from "@/redux_slice/slice/routeSlice";
+import { setSelectedRoute } from "@/redux_slice/slice/browserSlice/routeSlice";
 import {
   Result,
   Swap,

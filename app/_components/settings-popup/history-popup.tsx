@@ -87,9 +87,6 @@ const HistoryPopup = () => {
     }
   }, [search]);
 
-  console.log("dummyData=>", dummyData);
-
-
   const triggerButton = (
     <Button
       className="p-2 bg-transparent hover:bg-transparent"

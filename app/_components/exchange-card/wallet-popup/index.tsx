@@ -11,7 +11,7 @@ import { useWallets } from "@rango-dev/wallets-react";
 import { toastError } from "@/lib/utils";
 import { TokenAmountType } from "@/app/types/interface"
 import { useDispatch } from "react-redux";
-import { updateTokenValue } from "@/redux_slice/slice/tokenSlice";
+import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { useAppSelector } from "@/redux_slice/provider";
 import ShadowDecoration from "../../common/shadowDecoration";
 
