@@ -18,6 +18,7 @@ const config = {
         white: "#FFFFFF",
         seperator: "#5F5F5F",
         paragraph: "#F2F2F2",
+        border: "#5f5f5f",
       },
       container: {
         center: true,

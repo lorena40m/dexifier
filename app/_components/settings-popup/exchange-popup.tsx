@@ -5,12 +5,15 @@ import { BridgeEnum, Exchange } from "@/app/types/interface";
 import { getExchanges } from "@/app/api/rango-api";
 import { useAppDispatch } from "@/redux_slice/provider";
 import { updateTotalExchanges } from "@/redux_slice/slice/settingsSlice";
+import { SwapperMetaExtended } from "rango-sdk/lib/types";
 
 const ExchangePopup = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch();
-  const [exchangesData, setExchangesData] = useState<Exchange[]>([]);
+  const [exchangesData, setExchangesData] = useState<SwapperMetaExtended[]>([]);
   useEffect(() => {
     getExchanges().then((data) => {
+      console.log("SwapperMetaExtended", data);
+
       setExchangesData(data);
       dispatch(updateTotalExchanges({ value: data?.length }));
     });

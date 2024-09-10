@@ -7,6 +7,7 @@ import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
 import CustomLoader from "../../common/loader";
 import ImageWrapper from "../../common/imageWrapper";
+import FallBackImage from "../../common/fallBackImage";
 
 const SwapSourcePopup: React.FC<{
   blockchains: Blockchain[];
@@ -23,6 +24,8 @@ const SwapSourcePopup: React.FC<{
   const selectedToken = useAppSelector((state) =>
     isFromToken ? state?.tokens?.fromToken : state?.tokens?.toToken
   );
+  console.log("selectedToken==>", selectedToken);
+
 
   const triggerButton = (
     <button
@@ -32,12 +35,13 @@ const SwapSourcePopup: React.FC<{
       {selectedToken?.image && (
         <div className="relative">
           <ImageWrapper>
-            <Image
+            <FallBackImage
               className="relative"
               src={selectedToken?.image}
               width={30}
               height={30}
               alt={`${selectedToken?.symbol}'s icon`}
+              fallbackSrc="/assets/icons/questionToken.png"
             />
           </ImageWrapper>
           <Image

@@ -32,7 +32,7 @@ import { updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/br
 import { updateToken, updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { sortQuotesBy } from "@/app/utils/catch-data";
 import WalletSourcePopup from "./wallet-popup";
-import { setButtonRef } from "@/redux_slice/slice/browserSlice/walletSlice";
+import { setButtonRef, updateRequiredChain } from "@/redux_slice/slice/browserSlice/walletSlice";
 import ConfirmModal from "./ConfirmModal";
 import {
   BestRouteResponse,
@@ -212,6 +212,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
   const handleConnectButtonClick = () => {
     if (walletSourcePopupRef.current) {
+      dispatch(updateRequiredChain({ requiredChain: "" }));
       walletSourcePopupRef.current.click();
     }
   };
@@ -405,7 +406,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                     : "Swap",
                   <>
                     <span className="pe-2.5">
-                      {isRouteProcess || !isRoutesFetched ? "" : "Swaping"}
+                      {isRouteProcess || !isRoutesFetched ? "" : "Swapping"}
                     </span>
                     <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
                   </>,

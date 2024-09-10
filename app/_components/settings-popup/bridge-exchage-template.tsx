@@ -118,11 +118,10 @@ const BridgeExchangeTemplate = ({
                   </div>
 
                   <div
-                    className={`w-4 h-4 ${
-                      isSelected
-                        ? "bg-primary text-black"
-                        : "bg-transparent border border-seperator"
-                    } rounded-[.25rem] flex items-center justify-center  `}
+                    className={`w-4 h-4 ${isSelected
+                      ? "bg-primary text-black"
+                      : "bg-transparent border border-seperator"
+                      } rounded-[.25rem] flex items-center justify-center  `}
                   >
                     {isSelected && <FaCheck size={10} />}
                   </div>
@@ -185,15 +184,15 @@ const BridgeExchangeTemplate = ({
                       className="!w-[26px] !h-[26px]"
                     />
 
-                    <h2 className="text-base sm:text-lg">{item.title}</h2>
+                    <h2 className="text-base sm:text-lg">{item.title}
+                      <span className="text-sm text-border">({item.id})</span></h2>
                   </div>
 
                   <div
-                    className={`w-4 h-4 ${
-                      isSelected
-                        ? "bg-primary text-black"
-                        : "bg-transparent border border-seperator"
-                    } rounded-[.25rem] flex items-center justify-center  `}
+                    className={`w-4 h-4 ${isSelected
+                      ? "bg-primary text-black"
+                      : "bg-transparent border border-seperator"
+                      } rounded-[.25rem] flex items-center justify-center  `}
                   >
                     {isSelected && <FaCheck size={10} />}
                   </div>

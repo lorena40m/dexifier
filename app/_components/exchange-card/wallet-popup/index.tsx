@@ -28,12 +28,12 @@ enum TextColorSet {
   'connected' = "#58ff66d6",
 }
 
-
-
 const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
+
   const [search, setSearch] = useState<string>("")
   const [filteredData, setFilteredData] = useState<WalletInfoWithNamespaces[]>();
-  const { list, handleClick, error, disconnectConnectingWallets } = useWalletList({})
+  const { requiredChain } = useAppSelector((state) => state.wallet)
+  const { list, handleClick, error, disconnectConnectingWallets } = useWalletList({ chain: requiredChain })
   const { state } = useWallets();
   const dispatch = useDispatch();
   const fromTokneValue = useAppSelector((state) => state.tokens.fromToken.value);
@@ -122,7 +122,7 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
   }
 
   return (
-    <PopupTemplate title={"Connect Wallets"} triggerButton={triggerButton}>
+    <PopupTemplate title={`Connect ${requiredChain} Wallets`} triggerButton={triggerButton}>
       <Search search={search} setSearch={setSearch} />
       <div className="relative w-full">
         <ShadowDecoration />

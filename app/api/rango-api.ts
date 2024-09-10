@@ -14,14 +14,16 @@ import {
 } from "../types/interface";
 import axios, { AxiosResponse } from "axios";
 import { BestRouteResponse, BlockchainMeta, CheckApprovalResponse, CheckTxStatusRequest, ConfirmRouteRequest, ConfirmRouteResponse, CreateTransactionRequest, CreateTransactionResponse, ReportTransactionRequest, TransactionStatusResponse } from "rango-types/mainApi";
-import { RequestOptions } from "rango-sdk/lib/types";
+import { RequestOptions, SwapperMetaExtended } from "rango-sdk/lib/types";
 
 export async function getBlockchains(): Promise<BlockchainMeta[]> {
   const data: AxiosResponse = await axiosBrowserClient.get(
     "/meta/blockchains?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
   );
   const blockchains = data.data as BlockchainMeta[];
-  return blockchains;
+  const filteredBlockchain = blockchains && blockchains.filter((blockchain) => blockchain.enabled && blockchain.name !== "BOBA_BNB");
+  console.log("blockchains", blockchains);
+  return filteredBlockchain;
 }
 export async function getBlockchainTokens(blockchainName: string) {
   const data: AxiosResponse = await axiosBrowserClient.get(
@@ -51,11 +53,12 @@ export async function getBridges(): Promise<Bridge[]> {
   return bridges;
 }
 
-export async function getExchanges(): Promise<Exchange[]> {
+export async function getExchanges(options?: RequestOptions): Promise<SwapperMetaExtended[]> {
   const response: AxiosResponse = await axiosBrowserClient.get(
-    "/meta/swappers?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
+    "/meta/swappers?apiKey=" + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC,
+    { ...options }
   );
-  const swappers = response.data as Exchange[];
+  const swappers = response.data as SwapperMetaExtended[];
   const exchanges = swappers.filter((swapper) => swapper.types.includes("DEX"));
   return exchanges;
 }

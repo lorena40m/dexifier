@@ -104,7 +104,6 @@ const NoWalletInput: React.FC<Props> = ({
   //Event Function
 
   const fromInputChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
-    console.log("value==>", e.target.value);
 
     dispatch(updateCurrencyValue({ isFromCurrency, value: e.target.value }));
   };

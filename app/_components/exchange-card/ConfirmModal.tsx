@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { useWalletList } from '@/app/wallet/useWalletList';
 import { useAppSelector } from '@/redux_slice/provider';
 import { updateConfirmResponse, updateCustomAddress } from '@/redux_slice/slice/browserSlice/swapSlice';
-import { ConnectedWallet, updateSelectedWallets } from '@/redux_slice/slice/browserSlice/walletSlice';
+import { ConnectedWallet, updateRequiredChain, updateSelectedWallets } from '@/redux_slice/slice/browserSlice/walletSlice';
 import { X } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import Modal from 'react-modal';
@@ -61,7 +61,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
   const [confirmValidation, setConfirmValidation] = useState<BlockchainValidationStatus[]>()
   const [selectedWalletsList, setSelectedWalletsList] = useState<SelectedWalletListProps[]>([]);
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
-  const { connectedWallets } = useAppSelector((state) => state.wallet);
+  const { connectedWallets, refOfConnectButton } = useAppSelector((state) => state.wallet);
   const { customAddress, confirmResponse } = useAppSelector((state) => state.swap);
   const lastNumber = selectedRoute?.swaps.length;
 
@@ -79,6 +79,13 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       }
     }
     return isValid;
+  }
+
+  const onClickWalletButton = (chain: string) => {
+    if (refOfConnectButton) {
+      dispatch(updateRequiredChain({ requiredChain: chain }))
+      refOfConnectButton.click()
+    }
   }
 
   const setCustomAddress = (event: ChangeEvent<HTMLInputElement>) => {
@@ -100,15 +107,18 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
     setIsChecked(!isChecked)
   }
   const closeModalAndContinueHandler = () => {
-    setIsChecked(false)
+    setIsChecked(false);
     setError(false);
-    closeModalAndContinue()
+    dispatch(updateRequiredChain({ requiredChain: "" }));
+    closeModalAndContinue();
+
   }
 
   const closeConfirmModalHandler = () => {
     setIsChecked(false);
     setError(false);
     dispatch(updateCustomAddress({ customAddress: null }));
+    dispatch(updateRequiredChain({ requiredChain: "" }));
     dispatch(
       updateConfirmResponse({
         confirmResponse: undefined
@@ -234,16 +244,26 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           <div className="rounded-full w-[24px] h-[24px] bg-[#13f187] text-black font-bold text-center align-center items-center p-auto">
             {index + 1}
           </div>
-          <span> Your {chain} wallet</span>
+          <div className="flex gap-2 items-center">
+            <span> Your {chain} wallet</span>
+          </div>
         </div>
+
         {
           !isDisable &&
-          <div className="flex p-3 mb-4 overflow-auto">
+          <div className="flex p-3 mb-4 overflow-auto gap-3 items-center justify-center">
             {
-              validWallet.length === 0 ? <div className="text-[#f44336]">
-                <span className="font-bold">ERROR:</span> You should connect a {chain} supported wallet
-              </div> :
-                validWallet.map((connectedWallet) => {
+              validWallet.length === 0 ? <div className='flex flex-col items-center justify-center gap-3'> <div className="text-[#f44336]">
+                <span className="font-bold w-full">ERROR:</span> You should connect a {chain} supported wallet
+              </div>
+                <button
+                  className="flex h-[138px] w-[115px] flex-col items-center align-center rounded-lg bg-[#67676775] p-6 py-4 gap-2 hover:opacity-80"
+                  style={{ border: "1px", borderStyle: "solid" }}
+                  onClick={() => onClickWalletButton(chain)}>
+                  More wallets...
+                </button>
+              </div> : <div className="flex items-center justify-center gap-3">
+                {validWallet.map((connectedWallet) => {
                   let isSelected = false;
                   for (index = 0; index < selectedWalletsList.length; index++) {
                     const selectedWalletList = selectedWalletsList[index];
@@ -263,22 +283,31 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                       chain={chain}
                     />
                   )
-                })
+                })}
+                <button
+                  className="flex h-[138px] w-[115px] flex-col text-center items-center align-center rounded-lg bg-[#67676775] p-6 py-4 gap-2 hover:opacity-80"
+                  style={{ border: "1px", borderStyle: "solid" }}
+                  onClick={() => onClickWalletButton(chain)}>
+                  More wallets...
+                </button></div>
             }
           </div>
         }
-        {validDatas && validDatas.map((validData, index) => {
-          return (
-            <div
-              key={index}
-              className={`${validData.ok ? "text-[#13f187]" : "text-[#f44336]"} text-xs font-bold flex flex-col items-center tracking-wide mb-2`}
-            >
-              <span>Needed &nbsp; &asymp; {getAmountFromString(validData.requiredAmount.amount, validData.requiredAmount.decimals)} {validData.asset.symbol} for &nbsp;
-                {ConfirmMessage[validData.reason]} &nbsp;
-                and You have {getAmountFromString(validData.currentAmount.amount, validData.currentAmount.decimals)} {validData.asset.symbol} </span>
-            </div>)
-        })}
-      </div>
+
+        {
+          validDatas && validDatas.map((validData, index) => {
+            return (
+              <div
+                key={index}
+                className={`${validData.ok ? "text-[#13f187]" : "text-[#f44336]"} text-xs font-bold flex flex-col items-center tracking-wide mb-2`}
+              >
+                <span>Needed &nbsp; &asymp; {getAmountFromString(validData.requiredAmount.amount, validData.requiredAmount.decimals)} {validData.asset.symbol} for &nbsp;
+                  {ConfirmMessage[validData.reason]} &nbsp;
+                  and You have {getAmountFromString(validData.currentAmount.amount, validData.currentAmount.decimals)} {validData.asset.symbol} </span>
+              </div>)
+          })
+        }
+      </div >
 
     )
   }
