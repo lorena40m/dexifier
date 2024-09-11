@@ -13,6 +13,7 @@ import { swapSlice } from "./slice/browserSlice/swapSlice";
 import { walletSlice } from "./slice/browserSlice/walletSlice";
 import { currencySlice } from "./slice/noWalletSlice/currencySlice";
 import { rateSlice } from "./slice/noWalletSlice/rateSlice";
+import { filterSlice } from "./slice/browserSlice/filterSlice";
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -32,7 +33,8 @@ const rootReducer = combineReducers({
   quoteData: quoteDataSlice.reducer,
   wallet: walletSlice.reducer,
   currency: currencySlice.reducer,
-  rate: rateSlice.reducer
+  rate: rateSlice.reducer,
+  filter: filterSlice.reducer
 });
 
 // Persist the root reducer

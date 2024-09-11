@@ -3,7 +3,6 @@ import Image from "next/image";
 import CustomLoader from "../../common/loader";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
-import { getBlockchainTokens } from "@/app/api/rango-api";
 import { Blockchain, RootState, Token } from "@/app/types/interface";
 import { toastSuccess } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
