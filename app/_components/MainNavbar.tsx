@@ -15,9 +15,10 @@ import TooltipTemplate from "./common/tooltip-template";
 import ButtonCopyIcon from "./common/coypButtonIcon";
 import ShadowDecoration from "./common/shadowDecoration";
 import Search from "./common/search";
-import { updateRequiredChain } from "@/redux_slice/slice/browserSlice/walletSlice";
+import { updateRequiredChain, updateWalletBalances } from "@/redux_slice/slice/browserSlice/walletSlice";
 import { useDispatch } from "react-redux";
-// import logo from "@/public/assets/logo.png";
+import { WalletSelector, BlockchainSelector } from "./common/multi-select";
+import { updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
 
 const customStyles = {
   overlay: {
@@ -50,16 +51,17 @@ const MainNavbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeLink, setActiveLink] = useState(false);
-  const [search, setSearch] = useState<string>("");
-
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const { connectedWallets, refOfConnectButton } = useAppSelector((state) => state.wallet)
+  const [search, setSearch] = useState<string>("");
+  const [totalUSDAmount, setTotalUSDAmount] = useState<string>("0")
+
+  const { connectedWallets, refOfConnectButton, walletBalances } = useAppSelector((state) => state.wallet);
+  const { filterWalletList, filterChainList } = useAppSelector((state) => state.filter)
+  const { blockchains } = useAppSelector((state) => state.blockchains)
   const { tokens } = useAppSelector((state) => state.allToken);
 
   const [modalIsOpen, setIsModalOpen] = React.useState(false);
-
-  const [walletBalance, setWalletBalance] = useState<walletAssetsBalance[]>();
   const [filteredBalanceData, setFilteredBalanceData] = useState<walletAssetsBalance[]>();
 
   const { list } = useWalletList({})
@@ -92,16 +94,29 @@ const MainNavbar = () => {
   }, [pathname]);
 
   useEffect(() => {
-    const tempFilteredBalances = walletBalance && walletBalance.filter((balance) =>
-      balance.blockChain != null
-        ? balance.blockChain.toLowerCase().includes(search.toLowerCase())
-        : false
+    const tempFilteredBalances = walletBalances && walletBalances.filter((balance) => {
+      const walletType = connectedWallets.find((connectedWallet) => connectedWallet.address === balance.address && connectedWallet.chain === balance.blockChain)?.walletType;
+      console.log("filter==>", filterWalletList, walletType);
+      return (filterChainList === undefined ? false : filterChainList.includes(balance.blockChain)) &&
+        (walletType === undefined ? false : filterWalletList.includes(walletType)) &&
+        (balance.blockChain != null
+          ? balance.blockChain.toLowerCase().includes(search.toLowerCase())
+          : false)
+    }
     );
     setFilteredBalanceData(tempFilteredBalances || []);
-  }, [search, walletBalance]);
+  }, [search, filterWalletList, filterChainList, walletBalances]);
+
+  useEffect(() => {
+    setWalletBalanceData()
+      .then(() => {
+        console.log("get balance data success");
+      }).catch(() => {
+        console.log("get balance data error");
+      });
+  }, [connectedWallets])
 
   async function openModal() {
-    await setWalletBalanceData();
     setIsModalOpen(true);
   }
 
@@ -128,15 +143,54 @@ const MainNavbar = () => {
     }
   }
 
+  const getWalletBalanceWithUSD = async (sortedWalletBalance: walletAssetsBalance[]) => {
+    setTotalUSDAmount("0");
+    let totalUSDAmount = 0;
+    const walletBalanceWithUSD = await Promise.all(
+      sortedWalletBalance.map(async (walletData) => {
+        const balance = walletData.balances.length !== 0
+          ? await Promise.all(walletData.balances.map(async (balance) => {
+            const { usedPrice } = await getTokeData(balance?.asset.blockchain, balance?.asset.address);
+            const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
+            const usdAmount = parseFloat(amount) * usedPrice;
+            totalUSDAmount += usdAmount;
+            return { ...balance, usdAmount: usdAmount };
+          }))
+          : [];
+        return {
+          ...walletData,
+          balances: balance,
+        };
+      })
+    );
+    if (totalUSDAmount > 0) {
+      setTotalUSDAmount(totalUSDAmount.toFixed(3))
+    }
+    return walletBalanceWithUSD;
+  };
+
   const setWalletBalanceData = async () => {
     setLoading(true);
-    const getBalanceQuery = connectedWallets.map((connectedWallet) => {
-      return connectedWallet.chain + "." + connectedWallet.address
-    });
-    const walletBalanceData = await getBananceOfWallet(getBalanceQuery);
-    const sortedWalletBalance = walletBalanceData.sort((a, b) => { return b.balances?.length - a.balances?.length })
-    setWalletBalance(sortedWalletBalance);
-    setLoading(false);
+    try {
+      const getBalanceQuery = connectedWallets.map((connectedWallet) => {
+        return connectedWallet.chain + "." + connectedWallet.address;
+      });
+      const walletBalanceData = await getBananceOfWallet(getBalanceQuery);
+      const walletBalanceWithUSD = await getWalletBalanceWithUSD(walletBalanceData);
+      const sortedWalletBalance = walletBalanceWithUSD.sort((a, b) => b.balances?.length - a.balances?.length);
+      dispatch(updateWalletBalances({ walletBalances: sortedWalletBalance }));
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+    } finally {
+      setLoading(false);
+      dispatch(updateFilterWallet({ filterWalletList: connectedWallets.map((connectedWallet) => connectedWallet.walletType) })); // Ensure loading is set to false regardless of success or error
+    }
+  };
+
+  const refreshWalletBalance = async () => {
+    setIsModalOpen(false);
+    await setWalletBalanceData()
+    setIsModalOpen(true);
   }
 
   const mappedWallets = connectedWallets.filter((connectedWallets, index, self) =>
@@ -147,11 +201,13 @@ const MainNavbar = () => {
     const detail = list.find(detail => detail.type === wallet.walletType);
     return {
       ...wallet,
-      title: detail ? detail.title : 'Unknown',
-      image: detail ? detail.image : null,
-      link: detail ? detail.link : null
+      title: detail !== undefined ? detail.title : 'Unknown',
+      image: detail !== undefined ? detail.image : null,
+      link: detail !== undefined ? detail.link : null
     };
   });
+
+  console.log("mappedWallets==>", mappedWallets);
 
   const onClickWalletButton = () => {
     if (refOfConnectButton) {
@@ -165,7 +221,7 @@ const MainNavbar = () => {
     return list.find(detail => detail.type === walletType)?.image;
   }
 
-  const getTokeData = (blockchian: string, address: string) => {
+  const getTokeData = (blockchian: string, address: string | null) => {
 
     const tokenData = tokens.find(token => token.blockchain === blockchian && token.address === address);
     if (tokenData) {
@@ -174,6 +230,9 @@ const MainNavbar = () => {
       return { usedPrice: 0, image: "/assets/tokens/default.png" }
     }
   }
+
+  console.log("walletBalances==>", walletBalances);
+
   const SubWallet: React.FC<any> = ({ walletBalance, index }) => {
     console.log("walletBalance", walletBalance);
     const [isOpen, SetIsOpen] = useState<boolean>(true);
@@ -183,7 +242,15 @@ const MainNavbar = () => {
         <button className="flex justify-between items-center text-sm border border-primary hover:opacity-80 p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
           onClick={() => SetIsOpen(!isOpen)}
         >
-          <div className="flex text-lg font-bold" >
+          <div className="flex text-lg font-bold items-center" >
+            <div className="mr-2">
+              <Image src={"/assets/icons/arrow.png"}
+                className={`transition-transform duration-500 ease-in-out ${!isOpen ? 'rotate-0' : 'rotate-180'}`}
+                width={20}
+                height={20}
+                alt={"arrow"}
+              />
+            </div>
             <Image src={getWalletIcon(walletBalance.blockChain, walletBalance.address) || "/assets/wallet/default"} width={28} height={28} alt={walletBalance.blockChain} className="mr-2" />
             {walletBalance.blockChain}
           </div>
@@ -199,7 +266,7 @@ const MainNavbar = () => {
         </button>
         <div className="p-2 text-[#e5e7ebc9]">
           {walletBalance && walletBalance.balances && isOpen && (walletBalance.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : walletBalance.balances.map((balance: any, index: number) => {
-            const { usedPrice, image } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
+            const { image } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
             const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
             return (
               <div key={index} className="flex justify-between items-center border-b border-b-[#13F18738] py-2">
@@ -214,7 +281,7 @@ const MainNavbar = () => {
                 </div>
                 <div className="flex flex-col mr-3">
                   <span>{amount}</span>
-                  <span className="text-xs">{(parseFloat(amount) * usedPrice).toFixed(3)} $</span>
+                  <span className="text-xs">{parseFloat(balance.usdAmount).toFixed(3)} $</span>
                 </div>
               </div>
             )
@@ -327,20 +394,24 @@ const MainNavbar = () => {
                   <button className="flex relative text-[1.075rem] min-h-[35px] border border-primary rounded-l-full rounded p-2 items-center justify-center hover:opacity-80"
                     style={{ backgroundColor: `${loading ? "" : "#13f187"}` }}
                     onClick={openModal}>
-                    {loading ? <div className="w-[35px] absolute left-[8px] z-1"><CustomLoader /></div> : mappedWallets && mappedWallets.map((walletData, index) => (
-                      <div key={index} style={{ position: 'absolute', left: '8px', zIndex: 1 }}>
-                        <Image
-                          src={walletData.image || ""}
-                          alt="button-icon"
-                          width={32}
-                          height={32}
-                          style={{ translate: `${1 + 0.6 * index * 25}px` }} // slightly increase size
-                        />
-                      </div>
-                    ))
+                    {loading ? <div className="w-[35px] absolute left-[8px] z-1"><CustomLoader /></div> :
+                      mappedWallets && mappedWallets.map((walletData, index) => (
+                        <div key={index} style={{ position: 'absolute', left: '8px', zIndex: 1 }}>
+                          <Image
+                            src={walletData.image || ""}
+                            alt="button-icon"
+                            width={32}
+                            height={32}
+                            style={{ translate: `${1 + 0.6 * index * 25}px` }} // slightly increase size
+                          />
+                        </div>
+                      ))
+
                     }
                     <span
-                      style={{ paddingLeft: `${(1 + 0.6 * mappedWallets.length) * 25}px` }}></span>
+                      style={{ paddingLeft: `${(1 + 0.6 * mappedWallets.length) * 25}px` }}>
+                      {!loading && <span>{totalUSDAmount} $</span>}
+                    </span>
                   </button>
                   <button
                     className="rounded-r-full color-[#141414] bg-primary p-2 pr-3 border-l hover:opacity-80" onClick={onClickWalletButton}> more wallet</button>
@@ -389,11 +460,25 @@ const MainNavbar = () => {
             <X className="w-7 h-7 p-0.5 bg-primary rounded-full font-bold text-black hover:bg-primary-dark transition-colors duration-300" />
           </button>
         </div>
-        <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2">Your Wallet</div>
+        <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2 mb-4 flex items-center justify-between">
+          <span>Your Wallet</span>
+          <button onClick={refreshWalletBalance}>
+            <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
+          </button>
+        </div>
+
         <Search search={search} setSearch={setSearch} />
-        <div className="relative h-full">
+        <div className="flex justify-between">
+          <div className="w-1/2">
+            <WalletSelector walletOptions={mappedWallets} />
+          </div>
+          <div className="w-1/2">
+            <BlockchainSelector blockchainOptions={blockchains} />
+          </div>
+        </div>
+        <div className="relative h-full min-h-screen ">
           <ShadowDecoration />
-          <div className="overflow-auto h-full pb-[100px] pt-[20px]">
+          <div className="overflow-auto h-full pb-[160px] pt-[15px]">
             {filteredBalanceData && filteredBalanceData.map((walletBalance, index) => (
               <SubWallet key={index} walletBalance={walletBalance} index={index} />
             ))}

@@ -31,6 +31,7 @@ const TokenSection: React.FC<{
   );
   const { isRoutesFetched } = useAppSelector((state) => state.routes);
   const savedRouteData = useAppSelector((state) => state.quoteData);
+  const { walletBalances } = useAppSelector((state) => state.wallet);
 
   // react state
   const [tokenData, setTokenData] = useState<Token[]>([]);
@@ -76,6 +77,17 @@ const TokenSection: React.FC<{
     return aToken?.address === bToken.address &&
       aToken?.name === bToken.name &&
       aToken?.symbol === bToken.symbol
+  }
+
+  const getTokenAmount = (address: string | null, symbol: string) => {
+    if (selectedBlockchain === null) {
+      return
+    }
+    let tokenAmount = 0;
+    walletBalances.filter((walletBalance) => walletBalance.blockChain === selectedBlockchain?.name).map((walletBalance) => {
+      walletBalance.balances.filter((balance) => balance.asset.symbol === symbol && balance.asset.address === address).forEach((balance) => { tokenAmount += (balance.usdAmount || 0) })
+    })
+    return tokenAmount.toFixed(3)
   }
 
   //  use Effect
@@ -153,83 +165,87 @@ const TokenSection: React.FC<{
     address: string | null,
     status: boolean = false,
     index: number
-  ) => (
-    <DialogClose
-      className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
-        }`}
-      onClick={() => {
-        if (!status) {
-          const tempSelectedToken = tokenData.filter(
-            (tok) => tok.address === id && tok.symbol === symbol && tok.name === name
-          )[0];
+  ) => {
+    return (
+      <DialogClose
+        className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
+          }`}
+        onClick={() => {
+          if (!status) {
+            const tempSelectedToken = tokenData.filter(
+              (tok) => tok.address === id && tok.symbol === symbol && tok.name === name
+            )[0];
 
-          dispatch(
-            updateToken({
-              token: { ...tempSelectedToken, value: savedRouteData.amount },
-              isFromToken,
-            })
-          );
-          // if (isRoutesFetched) {
-          //   dispatch(resetRoute());
-          //   dispatch(resetSwap());
-          // }
+            dispatch(
+              updateToken({
+                token: { ...tempSelectedToken, value: savedRouteData.amount },
+                isFromToken,
+              })
+            );
+            // if (isRoutesFetched) {
+            //   dispatch(resetRoute());
+            //   dispatch(resetSwap());
+            // }
 
-          toastSuccess(`${tempSelectedToken.symbol}'s selected as token`);
-        } else dispatch(resetToken({ isFromToken }));
-      }}
-      key={`${id}-${name}-${index}`}
-    >
-      <div className="flex justify-between items-center">
-        <div className="flex items-center justify-center gap-6 capitalize">
-          <ImageWrapper>
-            <FallBackImage
-              src={imageSrc}
-              height={37}
-              width={37}
-              alt="Token Icon"
-              className="text-sm"
-              loading="lazy"
-              fallbackSrc="/assets/icons/questionToken.png"
-            />
-          </ImageWrapper>
+            toastSuccess(`${tempSelectedToken.symbol}'s selected as token`);
+          } else dispatch(resetToken({ isFromToken }));
+        }}
+        key={`${id}-${name}-${index}`}
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex items-center justify-center gap-6 capitalize">
+            <ImageWrapper>
+              <FallBackImage
+                src={imageSrc}
+                height={37}
+                width={37}
+                alt="Token Icon"
+                className="text-sm"
+                loading="lazy"
+                fallbackSrc="/assets/icons/questionToken.png"
+              />
+            </ImageWrapper>
 
-          <div className="flex flex-col">
-            <TooltipTemplate
-              content={name}
-              className="!-mb-1"
-              key={`${index}-${name}`}
-            >
-              <div>
-                <span className="text-base px-1">{symbol}</span>
-                {/* <div>
+            <div className="flex flex-col">
+              <TooltipTemplate
+                content={name}
+                className="!-mb-1"
+                key={`${index}-${name}`}
+              >
+                <div>
+                  <span className="text-base px-1">{symbol}</span>
+                  {/* <div>
                 textShadow: "1px 0px 1px #ffffff" 
                 </div> */}
-                <span className={`text-[14px] font-bold`} style={{ color: selectedBlockchain?.color ? getContrastRatio(selectedBlockchain?.color, "#02140c00") ? selectedBlockchain?.color : "white" : "white" }}>
-                  ({selectedBlockchain?.displayName})
+                  <span className={`text-[14px] font-bold`} style={{ color: selectedBlockchain?.color ? getContrastRatio(selectedBlockchain?.color, "#02140c00") ? selectedBlockchain?.color : "white" : "white" }}>
+                    ({selectedBlockchain?.displayName})
+                  </span>
+                </div>
+              </TooltipTemplate>
+              <TooltipTemplate
+                content={address || "null"}>
+                <span className="text-[12px] opacity-40">
+                  {address === null
+                    ? "null"
+                    : getAbbrAddress(address)}
                 </span>
-              </div>
-            </TooltipTemplate>
-            <TooltipTemplate
-              content={address || "null"}>
-              <span className="text-[12px] opacity-40">
-                {address === null
-                  ? "null"
-                  : getAbbrAddress(address)}
-              </span>
-            </TooltipTemplate>
+              </TooltipTemplate>
+            </div>
+          </div>
+          <div className="flex gap-4 items-center">
+            <span>{parseFloat(getTokenAmount(address, symbol) || "0") > 0 && getTokenAmount(address, symbol) + "$"}</span>
+            {isPopular && <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" />}
+            {status ? (
+              <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
+            ) : (
+              <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
+            )}
           </div>
         </div>
-        <div className="flex gap-4 items-center">
-          {isPopular && <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" />}
-          {status ? (
-            <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-          ) : (
-            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
-          )}
-        </div>
-      </div>
-    </DialogClose>
-  );
+      </DialogClose>
+    )
+  };
+
   return (
     <section>
       <h1 className="capitalize text-base sm:text-lg mb-4">select token</h1>

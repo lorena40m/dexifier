@@ -6,7 +6,8 @@ const config = {
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./node_modules/react-tailwindcss-select/dist/index.esm.js"
   ],
   prefix: "",
   theme: {

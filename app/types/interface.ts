@@ -142,6 +142,7 @@ export interface walletAssetsBalance {
       amount: string,
       decimals: number
     }
+    usdAmount?: number
   }[]
 }
 

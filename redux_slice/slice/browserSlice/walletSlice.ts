@@ -1,4 +1,4 @@
-import { WalletData } from "@/app/types/interface";
+import { walletAssetsBalance, WalletData } from "@/app/types/interface";
 import { Wallet, WidgetConfig } from "@/app/wallet/types";
 import { ProviderInterface } from "@rango-dev/wallets-react";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -26,17 +26,19 @@ export interface ConnectedWallet extends Wallet {
 const initialWalletList: {
   connectedWallets: ConnectedWallet[]
   selectedWallets: Wallet[]
+  walletBalances: walletAssetsBalance[]
   refOfConnectButton: HTMLButtonElement | null
   config: WidgetConfig
   providers: ProviderInterface[]
   requiredChain: string
 } = {
   connectedWallets: [],
+  walletBalances: [],
   config: { apiKey: "" },
   providers: [],
   refOfConnectButton: null,
   selectedWallets: [],
-  requiredChain: ""
+  requiredChain: "",
 }
 
 export const walletSlice = createSlice({
@@ -54,8 +56,7 @@ export const walletSlice = createSlice({
           accounts.map((account) => {
             const shouldMarkWalletAsSelected = !state.connectedWallets.find(
               (connectedWallet) =>
-                connectedWallet.chain === account.chain &&
-                connectedWallet.selected,
+                connectedWallet.chain === account.chain && connectedWallet.selected,
             );
             return {
               balances: [],
@@ -128,11 +129,19 @@ export const walletSlice = createSlice({
     ) {
       return { ...state, selectedWallets: action.payload.selectedWallets };
     },
+
     updateRequiredChain(
       state,
       action: PayloadAction<{ requiredChain: string }>
     ) {
       return { ...state, requiredChain: action.payload.requiredChain };
+    },
+
+    updateWalletBalances(
+      state,
+      action: PayloadAction<{ walletBalances: walletAssetsBalance[] }>
+    ) {
+      return { ...state, walletBalances: action.payload.walletBalances }
     },
 
     updateWalletProvider(
@@ -151,5 +160,6 @@ export const {
   clearConnectedWallet,
   setButtonRef,
   updateSelectedWallets,
-  updateRequiredChain
+  updateRequiredChain,
+  updateWalletBalances,
 } = walletSlice.actions;
