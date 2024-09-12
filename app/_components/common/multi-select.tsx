@@ -1,11 +1,12 @@
 import { TokenBalance } from "@/redux_slice/slice/browserSlice/walletSlice";
 import { InstallObjects } from "@rango-dev/wallets-shared";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
 import { tree } from "next/dist/build/templates/app-page";
 import { BlockchainMeta } from "rango-types";
-import { updateFilterChain, updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
+import { updateFilterChain, updateFilterEmptyWallet, updateFilterSmallBalance, updateFilterUnsupportedToken, updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
+import { useAppSelector } from "@/redux_slice/provider";
 
 // Define wallet interface based on ConnectedWallet
 interface WalletOption {
@@ -31,6 +32,10 @@ interface BlockchainSelectorProps {
   blockchainOptions: BlockchainMeta[];
 }
 
+interface HideFilterSelectorrProps {
+  filterOptions: string[]
+}
+
 
 export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions }) => {
   const dispatch = useDispatch();
@@ -38,16 +43,33 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
   const [selectedWallets, setSelectedWallets] = useState<WalletOption[]>(walletOptions.map((wallet) => ({ ...wallet, selected: true })))
   const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref to the dropdown
+
+  // Close dropdown if clicked outside
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false); // Close dropdown if click outside
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const filterWalletList = selectedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
+    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
+  }, [selectedWallets])
 
   // Function to toggle a wallet's selected status
-  const toggleWallet = (index: number) => {
+  const toggleWallet = (walletType: string) => {
     const updatedWallets = selectedWallets.map((wallet, i) =>
-      i === index ? { ...wallet, selected: !wallet.selected } : wallet
+      wallet.walletType === walletType ? { ...wallet, selected: !wallet.selected } : wallet
     );
-    const filterWalletList = updatedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
-    console.log("filterWalletList==>", selectedWallets, filterWalletList);
     setSelectedWallets(updatedWallets);
-    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
   };
 
   // Filtered wallets based on the search term
@@ -61,10 +83,10 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={dropdownRef}>
       {/* Dropdown button */}
       <button
-        className="bg-[#13F187] text-white py-2 px-4 rounded-lg w-full text-left flex items-center justify-between"
+        className="bg-[#13F187] text-white py-2 px-4 rounded-lg w-full text-left flex items-center justify-between hover:opacity-80"
         onClick={() => setIsOpen(!isOpen)} // Toggle dropdown
       >
         {getSelectedWallets().length > 0 ? (
@@ -107,9 +129,10 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
           </div>
 
           {/* Wallets list */}
-          <div className="p-4 max-h-60 overflow-y-auto">
+          <div className="p-2 max-h-60 overflow-y-auto">
             {filteredWallets.map((wallet, index) => (
-              <button onClick={() => toggleWallet(index)} key={wallet.walletType} className="flex w-full items-center justify-between mb-2">
+              <button onClick={() => toggleWallet(wallet.walletType)} key={wallet.walletType}
+                className="flex w-full items-center justify-between mb-2 p-1 px-2 rounded-lg hover:opacity-80 hover:bg-[#087140]">
                 <div className="flex items-center">
                   <Image src={wallet.image ?? ""} alt={wallet.title} width={25} height={25} className="h-6 w-6 mr-3" />
                   <span>{wallet.title}</span>
@@ -134,17 +157,33 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
   const [selectedBlockchains, setSelectedBlockchains] = useState<BlockchainMeta[]>(blockchainOptions);
   const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref to the dropdown
+
+  // Close dropdown if clicked outside
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false); // Close dropdown if click outside
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    const filterChainList = selectedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
+    dispatch(updateFilterChain({ filterChainList: filterChainList }));
+  }, [selectedBlockchains])
 
   // Function to toggle a blockchain's selected status
-  const toggleBlockchain = (index: number) => {
+  const toggleBlockchain = (displayName: string) => {
     const updatedBlockchains = selectedBlockchains.map((blockchain, i) =>
-      i === index ? { ...blockchain, enabled: !blockchain.enabled } : blockchain
+      blockchain.displayName === displayName ? { ...blockchain, enabled: !blockchain.enabled } : blockchain
     );
-
-    const filterChainList = updatedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
-    console.log("filterChainList==>", filterChainList);
     setSelectedBlockchains(updatedBlockchains);
-    dispatch(updateFilterChain({ filterChainList: filterChainList }));
   };
 
   // Filtered blockchains based on the search term
@@ -168,10 +207,10 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       {/* Dropdown button */}
       <button
-        className="bg-[#13F187] text-white py-2 px-4 rounded-lg w-full text-left flex items-center justify-between"
+        className="bg-[#13F187] text-white py-2 px-4 rounded-lg w-full text-left flex items-center justify-between hover:opacity-80"
         onClick={() => setIsOpen(!isOpen)} // Toggle dropdown
       >
         {getSelectedBlockchains().length > 0 ? (
@@ -215,17 +254,18 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
           <div className="p-2">
             <input
               type="text"
-              placeholder="Search blockchains..."
+              placeholder="Search Blockchains..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#13F187]"
+              className="w-full px-3 py-1 border rounded-lg text-border focus:outline-none focus:ring-2 focus:ring-[#13F187]"
             />
           </div>
 
           {/* Blockchain list */}
-          <div className="p-4 max-h-60 overflow-y-auto">
+          <div className="p-2 max-h-60 overflow-y-auto">
             {filteredBlockchains.map((blockchain, index) => (
-              <button onClick={() => toggleBlockchain(index)} key={blockchain.chainId || index} className="flex w-full items-center justify-between mb-2">
+              <button onClick={() => toggleBlockchain(blockchain.displayName)} key={blockchain.chainId || index}
+                className="flex w-full items-center justify-between p-1 px-2 rounded-lg mb-2 hover:opacity-80 hover:bg-[#087140]">
                 <div className="flex items-center">
                   <Image src={blockchain.logo} alt={blockchain.displayName} width={25} height={25} className="h-6 w-6 mr-3" />
                   <span>{blockchain.displayName}</span>
@@ -244,3 +284,87 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
   );
 };
 
+
+export const HideFilterSelector: React.FC<HideFilterSelectorrProps> = ({ filterOptions }) => {
+  const dispatch = useDispatch();
+  const { isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken } = useAppSelector((state) => state.filter);
+  const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
+
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref to the dropdown
+
+  // Close dropdown if clicked outside
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false); // Close dropdown if click outside
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const toggleSelector = (index: number) => {
+    if (index === 0) {
+      dispatch(updateFilterSmallBalance({ isHideSmallBalance: !isHideSmallBalance }));
+    } else if (index === 1) {
+      dispatch(updateFilterEmptyWallet({ isHideEmptyWallet: !isHideEmptyWallet }));
+    } else if (index === 2) {
+      dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: !isHideUnsupportedToken }));
+    }
+  }
+
+  const getStatus = (index: number) => {
+    if (index === 0) {
+      return isHideSmallBalance
+    } else if (index === 1) {
+      return isHideEmptyWallet
+    } else if (index === 2) {
+      return isHideUnsupportedToken
+    } else {
+      console.log("error while select filter");
+      return
+    }
+  }
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Dropdown button */}
+      <button
+        className="bg-[#13F187] text-white py-2 px-4 rounded-lg w-full text-left flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)} // Toggle dropdown
+      >
+        <span className="bg-primary">...</span>
+      </button>
+
+      {/* Dropdown content */}
+      {isOpen && (
+        <div className="absolute right-0 z-40 bg-primary-dark border border-gray-300 mt-2 rounded-lg shadow-lg w-[255px]">
+          <div className="px-4 py-2 text-gray-500 border-b flex justify-between">
+            <span>More</span>
+          </div>
+
+          {/* Blockchain list */}
+          <div className="p-2 max-h-60 overflow-y-auto">
+            {filterOptions.map((filterText, index) => (
+              <button onClick={() => toggleSelector(index)} key={filterText || index}
+                className="flex w-full gap-1 items-center mb-2 p-1 px-2 rounded-lg hover:bg-[#087140] hover:opacity-80">
+
+                <input
+                  type="checkbox"
+                  checked={getStatus(index)}
+                  className="form-checkbox h-5 w-5 text-[#13F187]"
+                />
+                <div className="flex items-center">
+                  <span>{filterText}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
