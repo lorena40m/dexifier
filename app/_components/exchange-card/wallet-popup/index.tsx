@@ -34,6 +34,7 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
   const [filteredData, setFilteredData] = useState<WalletInfoWithNamespaces[]>();
   const { requiredChain } = useAppSelector((state) => state.wallet)
   const { list, handleClick, error, disconnectConnectingWallets } = useWalletList({ chain: requiredChain })
+  const { filterLoading } = useAppSelector((state) => state.filter);
   const { state } = useWallets();
   const dispatch = useDispatch();
   const fromTokneValue = useAppSelector((state) => state.tokens.fromToken.value);
@@ -110,9 +111,10 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
 
   const singleWalletButton = (walletData: WalletInfoWithNamespaces, index: number) => {
     return (
-      <button key={`wallet-${index}`} className="flex flex-col min-w-[125px] items-center justify-center p-2 rounded-lg hover:opacity-80"
+      <button key={`wallet-${index}`} className="flex flex-col min-w-[125px] items-center justify-center p-2 rounded-lg disabled:cursor-not-allowed hover:opacity-80"
         style={{ backgroundColor: BgColorSet[walletData.state] }}
-        onClick={() => walletClick(walletData)}>
+        onClick={() => walletClick(walletData)}
+        disabled={filterLoading}>
         <Image src={walletData.image} alt={`@{index}'s wallet`} width={45}
           height={45} />
         <span className="text-sm">{walletData.title}</span>

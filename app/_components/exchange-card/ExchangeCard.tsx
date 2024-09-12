@@ -306,7 +306,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
             <Button
               variant="outline"
               size={"sm"}
-              className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
+              className={`border-primary disabled:cursor-not-allowed rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
                 }  ${wallet === WALLET.NONE
                   ? "bg-primary text-[#000]"
                   : " bg-transparent"
@@ -356,7 +356,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
           <Button
             variant={"outline"}
-            className="bg-transparent self-center cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
+            className="bg-transparent self-center disabled:cursor-not-allowed cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
             disabled={fromToken.blockchain === "" ||
               toToken.blockchain === "" ||
               fromToken.symbol === "" ||

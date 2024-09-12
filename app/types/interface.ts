@@ -127,7 +127,7 @@ export interface TokenBalance {
   traceId: number | null;
 }
 
-export interface walletAssetsBalance {
+export interface WalletAssetsBalance {
   blockChain: string,
   address: string,
   failed: boolean,

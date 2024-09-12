@@ -29,7 +29,7 @@ const SettingsPopup = () => {
 
   const triggerButton = (
     <Button
-      className="p-2 bg-transparent hover:bg-transparent"
+      className="p-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
       disabled={isInProcess || isSwapMade}
     >
       <TooltipTemplate content="Settings" className="!mb-1">
@@ -46,8 +46,8 @@ const SettingsPopup = () => {
   const percentageBox = (text: string, value: number, className = "") => (
     <button
       className={`${className} ${settings.slippage == value
-          ? "border-primary text-primary"
-          : "border-seperator text-white"
+        ? "border-primary text-primary"
+        : "border-seperator text-white"
         } text-sm sm:text-base border hover:border-primary-dark hover:text-primary-dark rounded-[.5625rem] cursor-pointer flex items-center justify-center w-1/4 xs:w-[4.25rem] h-[3.375rem] transition-colors duration-300`}
       onClick={() => {
         dispatch(updateSlippage({ value }));
@@ -124,8 +124,8 @@ const SettingsPopup = () => {
           <input
             type="number"
             className={`${isSlippageCustom
-                ? "border-primary text-primary"
-                : "border-seperator text-white"
+              ? "border-primary text-primary"
+              : "border-seperator text-white"
               } text-center px-[1.875rem] py-[1.1563rem] border hover:border-primary-dark outline-none  placeholder:text-slate-400 bg-transparent rounded-[.5625rem] cursor-pointer w-full xs:w-[7.5rem] h-[3.375rem] transition-colors duration-300`}
             value={settings.slippage}
             placeholder="custom"

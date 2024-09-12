@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAppSelector } from "@/redux_slice/provider";
 import { useWalletList } from "../wallet/useWalletList";
-import { walletAssetsBalance } from "../types/interface";
+import { WalletAssetsBalance } from "../types/interface";
 import Modal from 'react-modal';
 import { Divide, X } from "lucide-react";
 import { getBananceOfWallet } from "../api/rango-api";
@@ -17,8 +17,9 @@ import ShadowDecoration from "./common/shadowDecoration";
 import Search from "./common/search";
 import { updateRequiredChain, updateWalletBalances } from "@/redux_slice/slice/browserSlice/walletSlice";
 import { useDispatch } from "react-redux";
-import { WalletSelector, BlockchainSelector } from "./common/multi-select";
-import { updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
+import { WalletSelector, BlockchainSelector, HideFilterSelector } from "./common/multi-select";
+import { updateFilterChain, updateFilterEmptyWallet, updateFilterLoading, updateFilterSmallBalance, updateFilterUnsupportedToken, updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
+import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 
 const customStyles = {
   overlay: {
@@ -41,6 +42,12 @@ const navLinks = [
   { text: "About Us", path: "/about" },
 ];
 
+const filterOptions = [
+  "Hide small balances",
+  "Hide empty wallets",
+  "Hide unsupported tokens"
+];
+
 const MainNavbar = () => {
 
   Modal.setAppElement('#root');
@@ -58,11 +65,12 @@ const MainNavbar = () => {
 
   const { connectedWallets, refOfConnectButton, walletBalances } = useAppSelector((state) => state.wallet);
   const { filterWalletList, filterChainList } = useAppSelector((state) => state.filter)
+  const { isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken, filterLoading } = useAppSelector((state) => state.filter);
   const { blockchains } = useAppSelector((state) => state.blockchains)
   const { tokens } = useAppSelector((state) => state.allToken);
 
   const [modalIsOpen, setIsModalOpen] = React.useState(false);
-  const [filteredBalanceData, setFilteredBalanceData] = useState<walletAssetsBalance[]>();
+  const [filteredBalanceData, setFilteredBalanceData] = useState<WalletAssetsBalance[]>();
 
   const { list } = useWalletList({})
 
@@ -94,20 +102,73 @@ const MainNavbar = () => {
   }, [pathname]);
 
   useEffect(() => {
-    const tempFilteredBalances = walletBalances && walletBalances.filter((balance) => {
-      const walletType = connectedWallets.find((connectedWallet) => connectedWallet.address === balance.address && connectedWallet.chain === balance.blockChain)?.walletType;
-      console.log("filter==>", filterWalletList, walletType);
-      return (filterChainList === undefined ? false : filterChainList.includes(balance.blockChain)) &&
-        (walletType === undefined ? false : filterWalletList.includes(walletType)) &&
-        (balance.blockChain != null
-          ? balance.blockChain.toLowerCase().includes(search.toLowerCase())
-          : false)
+    const filterFunction = async () => {
+      let filteredBalances = [];
+      const tempFilteredBalances = walletBalances && walletBalances.filter((balance) => {
+        const walletBalance = getWalletUSDBalance(balance);
+        const walletType = connectedWallets.find((connectedWallet) => connectedWallet.address === balance.address && connectedWallet.chain === balance.blockChain)?.walletType;
+        console.log("filter==>", filterWalletList, walletType);
+        return (isHideEmptyWallet ? walletBalance > 0 : true) &&
+          (filterChainList === undefined ? false : filterChainList.includes(balance.blockChain)) &&
+          (walletType === undefined ? false : filterWalletList.includes(walletType)) &&
+          (balance.blockChain != null
+            ? balance.blockChain.toLowerCase().includes(search.toLowerCase())
+            : false)
+      }
+      );
+
+      if (isHideUnsupportedToken) {
+        const tempBalancesWithSupportedChain = tempFilteredBalances && tempFilteredBalances.map((balances) => {
+          const newBalances = balances.balances.filter((balance) => {
+            const matchToken = tokens.find((token) => token.blockchain === balance.asset.blockchain && token.address === balance.asset.address);
+            if (matchToken) {
+              return true
+            } else {
+              return false
+            }
+          })
+          return { ...balances, balances: newBalances }
+        })
+        filteredBalances = tempBalancesWithSupportedChain;
+      } else {
+        filteredBalances = tempFilteredBalances;
+      }
+
+      if (isHideSmallBalance) {
+        filteredBalances = filteredBalances && filteredBalances.map((balances) => {
+          const newBalances = balances.balances.filter((balance) =>
+            (balance.usdAmount || 0) > 0.1
+          )
+          return { ...balances, balances: newBalances }
+        })
+      }
+      console.log("filteredBalances==>1", filteredBalances);
+
+      const sortBalance = async (filteredBalances: WalletAssetsBalance[]) => (filteredBalances.sort((a, b) => getWalletUSDBalance(b) - getWalletUSDBalance(a)));
+      filteredBalances = await sortBalance(filteredBalances);
+      console.log("filteredBalances==>2", filteredBalances);
+      setFilteredBalanceData(filteredBalances || []);
     }
-    );
-    setFilteredBalanceData(tempFilteredBalances || []);
-  }, [search, filterWalletList, filterChainList, walletBalances]);
+
+    filterFunction();
+  }, [search,
+    filterWalletList,
+    filterChainList,
+    walletBalances,
+    isHideSmallBalance,
+    isHideEmptyWallet,
+    isHideUnsupportedToken]);
+
+  console.log("connectedWallets==>", connectedWallets);
+
 
   useEffect(() => {
+
+    const filterWalletList = mappedWallets.map((wallet) => ({ ...wallet, selected: true })).filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
+    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
+    const filterChainList = blockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
+    dispatch(updateFilterChain({ filterChainList: filterChainList }));
+
     setWalletBalanceData()
       .then(() => {
         console.log("get balance data success");
@@ -117,11 +178,32 @@ const MainNavbar = () => {
   }, [connectedWallets])
 
   async function openModal() {
+
+    dispatch(updateFilterSmallBalance({ isHideSmallBalance: false }));
+    dispatch(updateFilterEmptyWallet({ isHideEmptyWallet: false }));
+    dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: false }));
+
     setIsModalOpen(true);
   }
 
   function closeModal() {
+
+    dispatch(updateFilterSmallBalance({ isHideSmallBalance: false }));
+    dispatch(updateFilterEmptyWallet({ isHideEmptyWallet: false }));
+    dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: false }));
+
     setIsModalOpen(false);
+  }
+
+  const getWalletUSDBalance = (balance: WalletAssetsBalance) => {
+    let walletBalance = 0;
+    if (balance.balances.length === 0) {
+      return 0;
+    }
+    balance.balances.forEach((balance) => {
+      walletBalance += balance.usdAmount || 0
+    })
+    return walletBalance;
   }
 
   const getAmountFromString = (amount: string, decimals: number) => {
@@ -143,14 +225,14 @@ const MainNavbar = () => {
     }
   }
 
-  const getWalletBalanceWithUSD = async (sortedWalletBalance: walletAssetsBalance[]) => {
+  const getWalletBalanceWithUSD = async (sortedWalletBalance: WalletAssetsBalance[]) => {
     setTotalUSDAmount("0");
     let totalUSDAmount = 0;
     const walletBalanceWithUSD = await Promise.all(
       sortedWalletBalance.map(async (walletData) => {
         const balance = walletData.balances.length !== 0
           ? await Promise.all(walletData.balances.map(async (balance) => {
-            const { usedPrice } = await getTokeData(balance?.asset.blockchain, balance?.asset.address);
+            const { usedPrice } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
             const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
             const usdAmount = parseFloat(amount) * usedPrice;
             totalUSDAmount += usdAmount;
@@ -171,18 +253,19 @@ const MainNavbar = () => {
 
   const setWalletBalanceData = async () => {
     setLoading(true);
+    dispatch(updateFilterLoading({ filterLoading: true }));
     try {
-      const getBalanceQuery = connectedWallets.map((connectedWallet) => {
-        return connectedWallet.chain + "." + connectedWallet.address;
-      });
-      const walletBalanceData = await getBananceOfWallet(getBalanceQuery);
+      dispatch(updateTokenValue({ isFromToken: true, value: "0" }));
+      const getBalanceQuery = async () => connectedWallets.map((connectedWallet) => connectedWallet.chain + "." + connectedWallet.address);
+      const balanceQuery = await getBalanceQuery();
+      const walletBalanceData = await getBananceOfWallet(balanceQuery);
       const walletBalanceWithUSD = await getWalletBalanceWithUSD(walletBalanceData);
-      const sortedWalletBalance = walletBalanceWithUSD.sort((a, b) => b.balances?.length - a.balances?.length);
-      dispatch(updateWalletBalances({ walletBalances: sortedWalletBalance }));
+      dispatch(updateWalletBalances({ walletBalances: walletBalanceWithUSD }));
     } catch (error) {
       console.error('Error fetching wallet balance:', error);
     } finally {
       setLoading(false);
+      dispatch(updateFilterLoading({ filterLoading: false }));
       dispatch(updateFilterWallet({ filterWalletList: connectedWallets.map((connectedWallet) => connectedWallet.walletType) })); // Ensure loading is set to false regardless of success or error
     }
   };
@@ -468,17 +551,20 @@ const MainNavbar = () => {
         </div>
 
         <Search search={search} setSearch={setSearch} />
-        <div className="flex justify-between">
-          <div className="w-1/2">
+        <div className="flex justify-between pb-2">
+          <div className="w-[40%]">
             <WalletSelector walletOptions={mappedWallets} />
           </div>
-          <div className="w-1/2">
+          <div className="w-[45%]">
             <BlockchainSelector blockchainOptions={blockchains} />
           </div>
+          <div className="w-[10%]">
+            <HideFilterSelector filterOptions={filterOptions} />
+          </div>
         </div>
-        <div className="relative h-full min-h-screen ">
+        <div className="relative h-[calc(100%-220px)] ">
           <ShadowDecoration />
-          <div className="overflow-auto h-full pb-[160px] pt-[15px]">
+          <div className="overflow-auto h-full">
             {filteredBalanceData && filteredBalanceData.map((walletBalance, index) => (
               <SubWallet key={index} walletBalance={walletBalance} index={index} />
             ))}

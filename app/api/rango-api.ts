@@ -10,7 +10,7 @@ import {
   TxSwapRequest,
   TxSwapResponse,
   TokenBalance,
-  walletAssetsBalance,
+  WalletAssetsBalance,
 } from "../types/interface";
 import axios, { AxiosResponse } from "axios";
 import { BestRouteResponse, BlockchainMeta, CheckApprovalResponse, CheckTxStatusRequest, ConfirmRouteRequest, ConfirmRouteResponse, CreateTransactionRequest, CreateTransactionResponse, ReportTransactionRequest, TransactionStatusResponse } from "rango-types/mainApi";
@@ -81,7 +81,7 @@ export async function getBananceOfToken(
 
 export async function getBananceOfWallet(
   addressWithBlockchian: string[],
-): Promise<walletAssetsBalance[]> {
+): Promise<WalletAssetsBalance[]> {
   let requestQuery;
   if (addressWithBlockchian.length !== 0) {
     requestQuery = addressWithBlockchian.map((address, index) => {

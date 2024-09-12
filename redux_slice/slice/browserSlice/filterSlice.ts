@@ -2,10 +2,18 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 const initialFilterList: {
   filterChainList: string[],
-  filterWalletList: string[]
+  filterWalletList: string[],
+  isHideSmallBalance: boolean,
+  isHideEmptyWallet: boolean,
+  isHideUnsupportedToken: boolean
+  filterLoading: boolean
 } = {
   filterWalletList: [],
-  filterChainList: []
+  filterChainList: [],
+  isHideSmallBalance: false,
+  isHideEmptyWallet: false,
+  isHideUnsupportedToken: false,
+  filterLoading: false
 }
 
 export const filterSlice = createSlice({
@@ -20,6 +28,33 @@ export const filterSlice = createSlice({
       return { ...state, filterWalletList: action.payload.filterWalletList }
     },
 
+    updateFilterSmallBalance(
+      state,
+      action: PayloadAction<{ isHideSmallBalance: boolean }>
+    ) {
+      return { ...state, isHideSmallBalance: action.payload.isHideSmallBalance }
+    },
+
+    updateFilterEmptyWallet(
+      state,
+      action: PayloadAction<{ isHideEmptyWallet: boolean }>
+    ) {
+      return { ...state, isHideEmptyWallet: action.payload.isHideEmptyWallet }
+    },
+
+    updateFilterUnsupportedToken(
+      state,
+      action: PayloadAction<{ isHideUnsupportedToken: boolean }>
+    ) {
+      return { ...state, isHideUnsupportedToken: action.payload.isHideUnsupportedToken }
+    },
+    updateFilterLoading(
+      state,
+      action: PayloadAction<{ filterLoading: boolean }>
+    ) {
+      return { ...state, filterLoading: action.payload.filterLoading }
+    },
+
     updateFilterChain(
       state,
       action: PayloadAction<{ filterChainList: string[] }>
@@ -31,5 +66,9 @@ export const filterSlice = createSlice({
 
 export const {
   updateFilterWallet,
-  updateFilterChain
+  updateFilterChain,
+  updateFilterSmallBalance,
+  updateFilterEmptyWallet,
+  updateFilterUnsupportedToken,
+  updateFilterLoading
 } = filterSlice.actions;
