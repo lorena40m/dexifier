@@ -18,7 +18,8 @@ import Search from "./common/search";
 import { updateRequiredChain, updateWalletBalances } from "@/redux_slice/slice/browserSlice/walletSlice";
 import { useDispatch } from "react-redux";
 import { WalletSelector, BlockchainSelector, HideFilterSelector } from "./common/multi-select";
-import { updateFilterEmptyWallet, updateFilterSmallBalance, updateFilterUnsupportedToken, updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
+import { updateFilterChain, updateFilterEmptyWallet, updateFilterLoading, updateFilterSmallBalance, updateFilterUnsupportedToken, updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
+import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 
 const customStyles = {
   overlay: {
@@ -64,7 +65,7 @@ const MainNavbar = () => {
 
   const { connectedWallets, refOfConnectButton, walletBalances } = useAppSelector((state) => state.wallet);
   const { filterWalletList, filterChainList } = useAppSelector((state) => state.filter)
-  const { isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken } = useAppSelector((state) => state.filter);
+  const { isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken, filterLoading } = useAppSelector((state) => state.filter);
   const { blockchains } = useAppSelector((state) => state.blockchains)
   const { tokens } = useAppSelector((state) => state.allToken);
 
@@ -141,8 +142,11 @@ const MainNavbar = () => {
           return { ...balances, balances: newBalances }
         })
       }
+      console.log("filteredBalances==>1", filteredBalances);
+
       const sortBalance = async (filteredBalances: WalletAssetsBalance[]) => (filteredBalances.sort((a, b) => getWalletUSDBalance(b) - getWalletUSDBalance(a)));
-      filteredBalances = await sortBalance(filteredBalances)
+      filteredBalances = await sortBalance(filteredBalances);
+      console.log("filteredBalances==>2", filteredBalances);
       setFilteredBalanceData(filteredBalances || []);
     }
 
@@ -155,7 +159,16 @@ const MainNavbar = () => {
     isHideEmptyWallet,
     isHideUnsupportedToken]);
 
+  console.log("connectedWallets==>", connectedWallets);
+
+
   useEffect(() => {
+
+    const filterWalletList = mappedWallets.map((wallet) => ({ ...wallet, selected: true })).filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
+    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
+    const filterChainList = blockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
+    dispatch(updateFilterChain({ filterChainList: filterChainList }));
+
     setWalletBalanceData()
       .then(() => {
         console.log("get balance data success");
@@ -240,17 +253,19 @@ const MainNavbar = () => {
 
   const setWalletBalanceData = async () => {
     setLoading(true);
+    dispatch(updateFilterLoading({ filterLoading: true }));
     try {
-      const getBalanceQuery = connectedWallets.map((connectedWallet) => {
-        return connectedWallet.chain + "." + connectedWallet.address;
-      });
-      const walletBalanceData = await getBananceOfWallet(getBalanceQuery);
+      dispatch(updateTokenValue({ isFromToken: true, value: "0" }));
+      const getBalanceQuery = async () => connectedWallets.map((connectedWallet) => connectedWallet.chain + "." + connectedWallet.address);
+      const balanceQuery = await getBalanceQuery();
+      const walletBalanceData = await getBananceOfWallet(balanceQuery);
       const walletBalanceWithUSD = await getWalletBalanceWithUSD(walletBalanceData);
       dispatch(updateWalletBalances({ walletBalances: walletBalanceWithUSD }));
     } catch (error) {
       console.error('Error fetching wallet balance:', error);
     } finally {
       setLoading(false);
+      dispatch(updateFilterLoading({ filterLoading: false }));
       dispatch(updateFilterWallet({ filterWalletList: connectedWallets.map((connectedWallet) => connectedWallet.walletType) })); // Ensure loading is set to false regardless of success or error
     }
   };

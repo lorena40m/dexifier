@@ -89,7 +89,7 @@ const HistoryPopup = () => {
 
   const triggerButton = (
     <Button
-      className="p-2 bg-transparent hover:bg-transparent"
+      className="p-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
       disabled={isInProcess || isSwapMade}
     >
       <TooltipTemplate content="History" className="!mb-1">

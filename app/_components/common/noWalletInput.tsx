@@ -132,7 +132,7 @@ const NoWalletInput: React.FC<Props> = ({
             max={42000000}
             onChange={(e) => fromInputChangeHandler(e)}
             placeholder={isFromCurrency ? "Please enter 1-42000000" : "0"}
-            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
+            className="flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
             style={{ outline: "none" }}
             disabled={!isFromCurrency}
           />

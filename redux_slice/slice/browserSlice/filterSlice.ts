@@ -6,12 +6,14 @@ const initialFilterList: {
   isHideSmallBalance: boolean,
   isHideEmptyWallet: boolean,
   isHideUnsupportedToken: boolean
+  filterLoading: boolean
 } = {
   filterWalletList: [],
   filterChainList: [],
   isHideSmallBalance: false,
   isHideEmptyWallet: false,
-  isHideUnsupportedToken: false
+  isHideUnsupportedToken: false,
+  filterLoading: false
 }
 
 export const filterSlice = createSlice({
@@ -46,6 +48,12 @@ export const filterSlice = createSlice({
     ) {
       return { ...state, isHideUnsupportedToken: action.payload.isHideUnsupportedToken }
     },
+    updateFilterLoading(
+      state,
+      action: PayloadAction<{ filterLoading: boolean }>
+    ) {
+      return { ...state, filterLoading: action.payload.filterLoading }
+    },
 
     updateFilterChain(
       state,
@@ -61,5 +69,6 @@ export const {
   updateFilterChain,
   updateFilterSmallBalance,
   updateFilterEmptyWallet,
-  updateFilterUnsupportedToken
+  updateFilterUnsupportedToken,
+  updateFilterLoading
 } = filterSlice.actions;

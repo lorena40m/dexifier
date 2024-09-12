@@ -59,17 +59,14 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
     };
   }, []);
 
-  useEffect(() => {
-    const filterWalletList = selectedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
-    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
-  }, [selectedWallets])
-
   // Function to toggle a wallet's selected status
   const toggleWallet = (walletType: string) => {
     const updatedWallets = selectedWallets.map((wallet, i) =>
       wallet.walletType === walletType ? { ...wallet, selected: !wallet.selected } : wallet
     );
+    const filterWalletList = updatedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
     setSelectedWallets(updatedWallets);
+    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
   };
 
   // Filtered wallets based on the search term
@@ -173,17 +170,14 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
     };
   }, []);
 
-  useEffect(() => {
-    const filterChainList = selectedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
-    dispatch(updateFilterChain({ filterChainList: filterChainList }));
-  }, [selectedBlockchains])
-
   // Function to toggle a blockchain's selected status
   const toggleBlockchain = (displayName: string) => {
     const updatedBlockchains = selectedBlockchains.map((blockchain, i) =>
       blockchain.displayName === displayName ? { ...blockchain, enabled: !blockchain.enabled } : blockchain
     );
+    const filterChainList = updatedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
     setSelectedBlockchains(updatedBlockchains);
+    dispatch(updateFilterChain({ filterChainList: filterChainList }));
   };
 
   // Filtered blockchains based on the search term

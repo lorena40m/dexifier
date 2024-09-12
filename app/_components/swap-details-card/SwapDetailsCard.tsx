@@ -221,7 +221,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
           <div className="flex justify-between">
             <h1 className="text-2xl mb-5">Swap Details</h1>
             <button
-              className="text-red-700 hover:opacity-80 mx-[20px] text-lg font-bold"
+              className="text-red-700 disabled:cursor-not-allowed hover:opacity-80 mx-[20px] text-lg font-bold"
               onClick={onDelete}
               disabled={selectedSwap?.id === undefined}>
               delete
@@ -317,7 +317,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
           </div>
           <div className="flex my-2">
             <button
-              className={`m-auto border border-primary rounded-xl p-6 py-2 ${isSwapMade ? "opacity-80" : "hover:opacity-80"}`}
+              className={`m-auto border disabled:cursor-not-allowed border-primary rounded-xl p-6 py-2 ${isSwapMade ? "opacity-80" : "hover:opacity-80"}`}
               onClick={onCancel}
               disabled={isSwapMade}>
               <span className="text-lg">Cancel</span>
