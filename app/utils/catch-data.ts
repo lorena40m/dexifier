@@ -162,7 +162,7 @@ export const getAmountFromString = (amount: string, decimals: number) => {
     const integerPart = num / divisor;
     const remainder = num % divisor;
     let fractionalPart = remainder.toString().padStart(decimals, "0");
-    fractionalPart = fractionalPart.slice(0, 3);
+    fractionalPart = fractionalPart.slice(0, 2);
     let tokenPrice = integerPart.toString() + "." + fractionalPart;
     tokenPrice = tokenPrice.replace(/\.?0+$/, "");
     return tokenPrice;
@@ -383,4 +383,17 @@ export function getContrastRatio(hex1: string, hex2: string) {
   const lum2 = getLuminance([rgb2[0], rgb2[1], rgb2[2]]) + 0.05;
   const result = lum1 > lum2 ? lum1 / lum2 : lum2 / lum1;
   return result > minContrast
+}
+
+export function formatReadableDate(isoDate: string) {
+  const date = new Date(isoDate);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
 }

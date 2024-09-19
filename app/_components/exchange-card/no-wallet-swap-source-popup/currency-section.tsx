@@ -15,6 +15,8 @@ import ShadowDecoration from "../../common/shadowDecoration";
 import ImageWrapper from "../../common/imageWrapper";
 import { getAbbrAddress } from "@/app/utils/catch-data";
 import { resetCurrency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice";
+import { resetRate } from "@/redux_slice/slice/noWalletSlice/rateSlice";
+import { CurrencyResponse, Networks } from "@/app/types/noWalletInterface";
 
 const CurrencySection: React.FC<{
   currencies: CurrencyResponse;
@@ -35,24 +37,35 @@ const CurrencySection: React.FC<{
     name: string,
     icon: string,
     notes: string,
+    networks: Networks[],
     status = false,
     index: number
   ) => (
-    <DialogClose
-      className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
+    networks && networks.map((network) => (<DialogClose
+      className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status && selectedCurrency.network?.network === network.network ? "border-primary" : "border-seperator"
         }`}
       onClick={() => {
-        if (!status) {
+        if (!status || selectedCurrency.network?.network !== network.network) {
           const tempSelectedCurrency = currencies.data.filter(
             (currency) => currency.code === code && currency.name === name
           )[0];
 
+          const selectedNetwork = tempSelectedCurrency.networks.filter((tempNetwork) => tempNetwork.name === network.name)[0];
+
           dispatch(
             updateCurrency({
-              currency: { ...tempSelectedCurrency, value: "" },
+              currency: {
+                code: tempSelectedCurrency.code,
+                name: tempSelectedCurrency.name,
+                icon: tempSelectedCurrency.icon,
+                notes: tempSelectedCurrency.notes,
+                network: selectedNetwork,
+                value: ""
+              },
               isFromCurrency,
             })
           );
+          dispatch(resetRate())
           // if (isRoutesFetched) {
           //   dispatch(resetRoute());
           //   dispatch(resetSwap());
@@ -61,7 +74,7 @@ const CurrencySection: React.FC<{
           toastSuccess(`${tempSelectedCurrency.code}'s selected as token`);
         } else dispatch(resetCurrency({ isFromCurrency }));
       }}
-      key={`${code}-${name}-${index}`}
+      key={`${code}-${name}-${index}-${network.name}`}
     >
       <div className="flex justify-between items-center">
         <div className="flex items-center justify-center gap-6 capitalize">
@@ -92,15 +105,24 @@ const CurrencySection: React.FC<{
           </div>
         </div>
         <div className="flex gap-4 items-center">
-          {status ? (
-            <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-          ) : (
-            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
-          )}
+          <div className="flex gap-2 items-center">
+            <div className="flex flex-col">
+              <span className="flex  justify-end text-2xs">{network.network}</span>
+              <span className="flex  justify-end text-xs text-primary">{network.name}</span>
+            </div>
+            {status && selectedCurrency.network?.network === network.network ? (
+              <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
+            ) : (
+              <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
+            )}
+          </div>
         </div>
       </div>
-    </DialogClose>
+    </DialogClose>))
+
   );
+
+
   return (
     <section>
       <h1 className="capitalize text-base sm:text-lg mb-4">select Currency</h1>
@@ -115,6 +137,7 @@ const CurrencySection: React.FC<{
               currency.name,
               currency.icon,
               currency.notes,
+              currency.networks,
               currency.code === selectedCurrency.code && currency.name === selectedCurrency.name,
               index
             )

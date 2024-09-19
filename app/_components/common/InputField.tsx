@@ -87,7 +87,6 @@ const CustomCryptoField: React.FC<Props> = ({
       routeData.amount == "" ||
       routeData.amount == 0 ||
       routeData.amount == undefined ||
-      !isWalletConnected ||
       isExchangeButtonClicked
     ) {
       console.log("fetch failed because of data", routeData, isExchangeButtonClicked);
@@ -148,7 +147,7 @@ const CustomCryptoField: React.FC<Props> = ({
               const integerPart = num / divisor;
               const remainder = num % divisor;
               let fractionalPart = remainder.toString().padStart(decimals, "0");
-              fractionalPart = fractionalPart.slice(0, 3);
+              fractionalPart = fractionalPart.slice(0, 2);
               let tokenPrice = integerPart.toString() + "." + fractionalPart;
               tokenPrice = tokenPrice.replace(/\.?0+$/, "");
               return parseFloat(tokenPrice);
@@ -192,7 +191,7 @@ const CustomCryptoField: React.FC<Props> = ({
     const usdValue = isFromToken
       ? Number(selectedToken.value) * selectedToken.usdPrice
       : Number(selectedRoute.outputAmount) * selectedToken.usdPrice
-    return usdValue.toFixed(3)
+    return usdValue.toFixed(2)
   };
 
   return (
@@ -203,12 +202,14 @@ const CustomCryptoField: React.FC<Props> = ({
         {isWalletConnected && isFromToken && (
           <label>
             <span>Balance: {tokenBalance} &nbsp; {selectedTokenData.fromToken.symbol}</span>
-            {tokenBalance !== "_" && tokenBalance !== "0" && <div className="text-primary flex justify-between">
-              <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance) * 0.25)}>25%</button><span>|</span>
-              <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance) * 0.5)}>50%</button><span>|</span>
-              <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance))}>Max</button>
+            <div>
+              {tokenBalance !== "_" && tokenBalance !== "0" && <div className="text-primary justify-end flex gap-2">
+                <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance) * 0.25)}>25%</button><span>|</span>
+                <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance) * 0.5)}>50%</button><span>|</span>
+                <button className="flex hover:opacity-80" onClick={() => setInputAmountByPercent(parseFloat(tokenBalance))}>Max</button>
+              </div>
+              }
             </div>
-            }
           </label>
         )}
       </div>
@@ -218,11 +219,11 @@ const CustomCryptoField: React.FC<Props> = ({
             type="number"
             value={
               isFromToken
-                ? isWalletConnected ? selectedToken.value || "" : ""
+                ? selectedToken.value || ""
                 : selectedRoute != undefined &&
                   !isRouteProcess &&
                   isRoutesFetched
-                  ? Number.parseFloat(selectedRoute.outputAmount).toFixed(3)
+                  ? Number.parseFloat(selectedRoute.outputAmount).toFixed(2)
                   : 0
             }
             min={1}
@@ -231,7 +232,7 @@ const CustomCryptoField: React.FC<Props> = ({
             placeholder={isFromToken ? "Please enter 1-42000000" : "0"}
             className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
             style={{ outline: "none" }}
-            disabled={!isFromToken || isInProcess || isSwapMade || !isWalletConnected}
+            disabled={!isFromToken || isInProcess || isSwapMade}
           />
           <span className="text-xs px-3 opacity-50">
             ~

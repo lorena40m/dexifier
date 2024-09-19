@@ -40,8 +40,6 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
   const pendingSwaps = getPendingSwaps(manager);
   const list: PendingSwap[] = getPendingSwaps(manager).map(({ swap }) => swap);
 
-  console.log("state=>", state, confirmResponse);
-
   const selectedSwap = confirmResponse?.result?.requestId
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmResponse?.result?.requestId)
     : undefined;
@@ -156,8 +154,6 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
     )
   }
 
-  console.log("list==>", list);
-
   const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
     return (
       <div className={`${className} flex flex-col items-center`}>
@@ -176,7 +172,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
           </div>
         </div>
         <span className="text-xs">
-          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(3)}
+          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(2)}
         </span>
         <span className="text-sm">
           {swapData[isFrom ? "from" : "to"].symbol}
@@ -205,7 +201,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
           />
         </div>
         <span className="text-xs">
-          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(3)}
+          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(2)}
         </span>
         <span className="text-xs">
           {swapData[isFrom ? "from" : "to"].symbol}
@@ -216,7 +212,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
 
   return (
     isWalletConnected && selectedRoute && (
-      <div className="relative !bg-[#0b4b2f26] lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+      <div className="relative !bg-modal lg:h-[34.0625rem] lg:w-full py-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
         <div className="z-0">
           <div className="flex justify-between">
             <h1 className="text-2xl mb-5">Swap Details</h1>

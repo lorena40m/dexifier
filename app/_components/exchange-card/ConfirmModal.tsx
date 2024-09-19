@@ -15,6 +15,7 @@ import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';
 import ShadowDecoration from '../common/shadowDecoration';
 import { ConfirmMessage } from '@/app/types/interface';
+import ButtonCopyIcon from '../common/coypButtonIcon';
 
 const customStyles = {
   overlay: {
@@ -253,14 +254,16 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           !isDisable &&
           <div className="flex p-3 mb-4 overflow-auto gap-3 items-center justify-center">
             {
-              validWallet.length === 0 ? <div className='flex flex-col items-center justify-center gap-3'> <div className="text-[#f44336]">
+              validWallet.length === 0 ? <div className='flex flex-col items-center justify-center gap-3'> <div className="text-error">
                 <span className="font-bold w-full">ERROR:</span> You should connect a {chain} supported wallet
               </div>
                 <button
-                  className="flex h-[138px] w-[115px] flex-col items-center align-center rounded-lg bg-[#67676775] p-6 py-4 gap-2 hover:opacity-80"
+                  className="flex h-[136px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-4 gap-2 hover:opacity-80"
                   style={{ border: "1px", borderStyle: "solid" }}
                   onClick={() => onClickWalletButton(chain)}>
-                  More wallets...
+                  <span className='m-auto text-sm'>
+                    More wallets...
+                  </span>
                 </button>
               </div> : <div className="flex items-center justify-center gap-3">
                 {validWallet.map((connectedWallet) => {
@@ -285,10 +288,12 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                   )
                 })}
                 <button
-                  className="flex h-[138px] w-[115px] flex-col text-center items-center align-center rounded-lg bg-[#67676775] p-6 py-4 gap-2 hover:opacity-80"
+                  className="flex h-[136px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-4 gap-2 hover:opacity-80"
                   style={{ border: "1px", borderStyle: "solid" }}
                   onClick={() => onClickWalletButton(chain)}>
-                  More wallets...
+                  <span className='m-auto text-sm'>
+                    More wallets...
+                  </span>
                 </button></div>
             }
           </div>
@@ -299,7 +304,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
             return (
               <div
                 key={index}
-                className={`${validData.ok ? "text-[#13f187]" : "text-[#f44336]"} text-xs font-bold flex flex-col items-center tracking-wide mb-2`}
+                className={`${validData.ok ? "text-[#13f187]" : "text-error"} text-xs font-bold flex flex-col items-center tracking-wide mb-2`}
               >
                 <span>Needed &nbsp; &asymp; {getAmountFromString(validData.requiredAmount.amount, validData.requiredAmount.decimals)} {validData.asset.symbol} for &nbsp;
                   {ConfirmMessage[validData.reason]} &nbsp;
@@ -331,19 +336,20 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
 
     return (
       <button key={connectedWallet.walletType + chain}
-        className="flex flex-col items-center align-center m-auto rounded-lg bg-[#67676775] p-6 py-4 gap-2 hover:opacity-80"
+        className="flex flex-col items-center align-center m-auto rounded-lg bg-modal p-4 py-3 gap-2 hover:opacity-80"
         style={{ border: "1px", borderStyle: "solid", borderColor: isSelected ? "#13f187" : "" }}
         onClick={selectConfirmWallet}>
         <Image src={walletLogo || ""}
           alt="button-icon"
-          width={64}
-          height={64} />
-        <div className="text-[#bbbbbb] text-xs flex flex-col items-center align-center">
+          width={54}
+          height={54} />
+        <div className="text-[#bbbbbb] text-lg flex flex-col items-center align-center">
           <span>
             {connectedWallet.walletType}
           </span>
-          <span>
-            {getAbbrAddress(connectedWallet.address)}
+          <span className="flex items-center text-sm gap-1">
+            <span>{getAbbrAddress(connectedWallet.address)}</span>
+            <ButtonCopyIcon text={connectedWallet.address} />
           </span>
         </div>
       </button>
@@ -372,10 +378,10 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       {
         selectedRoute && lastNumber && <div className="text-sm font-bold text-center py-2">Confirm Swap &nbsp;
           <span className="text-[#bbbbbb] text-lg">
-            {parseFloat(selectedRoute.swaps[0].fromAmount).toFixed(3)} &nbsp;
+            {parseFloat(selectedRoute.swaps[0].fromAmount).toFixed(2)} &nbsp;
           </span>
           {selectedRoute.swaps[0].from.symbol} [{selectedRoute.swaps[0].from.blockchain}] to &nbsp;
-          <span className="text-[#bbbbbb] text-lg"> {parseFloat(selectedRoute.swaps[lastNumber - 1].toAmount).toFixed(3)} &nbsp;</span>
+          <span className="text-[#bbbbbb] text-lg"> {parseFloat(selectedRoute.swaps[lastNumber - 1].toAmount).toFixed(2)} &nbsp;</span>
           {selectedRoute.swaps[lastNumber - 1].to.symbol} [{selectedRoute.swaps[lastNumber - 1].to.blockchain}]
         </div>
       }
@@ -405,7 +411,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           <div className="flex flex-col" style={{ visibility: loading ? "hidden" : "visible" }}>
             {
               confirmResponse?.error &&
-              <span className="text-[#f44336] font-bold text-xs flex flex-col items-center tracking-wide mb-2">
+              <span className="text-error font-bold text-xs flex flex-col items-center tracking-wide mb-2">
                 {confirmResponse.error}
               </span>
             }

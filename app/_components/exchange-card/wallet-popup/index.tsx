@@ -124,7 +124,7 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
   }
 
   return (
-    <PopupTemplate title={`Connect ${requiredChain} Wallets`} triggerButton={triggerButton}>
+    <PopupTemplate title={<span>Connect <span className="text-primary">{requiredChain}</span> Wallets</span>} triggerButton={triggerButton}>
       <Search search={search} setSearch={setSearch} />
       <div className="relative w-full">
         <ShadowDecoration />

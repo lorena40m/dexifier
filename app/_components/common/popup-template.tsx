@@ -20,7 +20,7 @@ const PopupTemplate = ({
   triggerButton,
 }: {
   children: ReactNode;
-  title: string;
+  title: string | ReactNode;
   topButton?: ReactNode;
   triggerButton: ReactNode;
 }) => {

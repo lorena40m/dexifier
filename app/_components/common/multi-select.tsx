@@ -39,7 +39,6 @@ interface HideFilterSelectorrProps {
 
 export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions }) => {
   const dispatch = useDispatch();
-
   const [selectedWallets, setSelectedWallets] = useState<WalletOption[]>(walletOptions.map((wallet) => ({ ...wallet, selected: true })))
   const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
@@ -64,9 +63,9 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
     const updatedWallets = selectedWallets.map((wallet, i) =>
       wallet.walletType === walletType ? { ...wallet, selected: !wallet.selected } : wallet
     );
-    const filterWalletList = updatedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
+    const tempfilterWalletList = updatedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
     setSelectedWallets(updatedWallets);
-    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
+    dispatch(updateFilterWallet({ filterWalletList: tempfilterWalletList }));
   };
 
   // Filtered wallets based on the search term
@@ -195,7 +194,6 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
       ({ ...blockchain, enabled: isAllSelect })
     );
     const filterChainList = updatedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
-    console.log("filterChainList==>", filterChainList);
     setSelectedBlockchains(updatedBlockchains);
     dispatch(updateFilterChain({ filterChainList: filterChainList }));
   }
