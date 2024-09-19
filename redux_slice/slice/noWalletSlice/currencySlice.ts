@@ -1,17 +1,18 @@
+import { CurrencyType, SelectedCurrencyType } from "@/app/types/noWalletInterface";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Token } from "@/app/types/interface";
 
-export type Currency = CurrencyType & {
+export type Currency = SelectedCurrencyType & {
   value: string;
 };
 
-const initialCurrencyState: { fromCurrency: Currency; toCurrency: Currency } = {
+const initialCurrencyState: { fromCurrency: Currency; toCurrency: Currency, isFixed: boolean } = {
   fromCurrency: {
     code: "",
     name: "",
     icon: "",
     notes: "",
-    value: ""
+    value: "",
+    network: undefined
   },
 
   toCurrency: {
@@ -19,8 +20,12 @@ const initialCurrencyState: { fromCurrency: Currency; toCurrency: Currency } = {
     name: "",
     icon: "",
     notes: "",
-    value: ""
+    value: "",
+    network: undefined
   },
+
+  isFixed: true
+
 };
 
 const initialState: Currency = {
@@ -28,7 +33,8 @@ const initialState: Currency = {
   name: "",
   icon: "",
   notes: "",
-  value: ""
+  value: "",
+  network: undefined
 }
 
 export const currencySlice = createSlice({
@@ -54,7 +60,7 @@ export const currencySlice = createSlice({
       if (isFromCurrency) {
         return { ...state, fromCurrency: { ...state.fromCurrency, value: value } };
       } else {
-        return { ...state, fromCurrency: { ...state.toCurrency, value: value } };
+        return { ...state, toCurrency: { ...state.toCurrency, value: value } };
       }
     },
     resetCurrency(state, action: PayloadAction<{ isFromCurrency: boolean }>) {
@@ -62,7 +68,11 @@ export const currencySlice = createSlice({
         return { ...state, fromCurrency: initialState };
       else return { ...state, toCurrency: initialState };
     },
+
+    updateFixedState(state, action: PayloadAction<{ isFixed: boolean }>) {
+      return { ...state, isFixed: action.payload.isFixed }
+    }
   },
 });
 
-export const { resetCurrency, updateCurrency, updateCurrencyValue } = currencySlice.actions;
+export const { resetCurrency, updateCurrency, updateCurrencyValue, updateFixedState } = currencySlice.actions;

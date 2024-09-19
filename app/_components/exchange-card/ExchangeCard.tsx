@@ -229,8 +229,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       routeData.to.blockchain == "" ||
       routeData.amount == "" ||
       routeData.amount == 0 ||
-      routeData.amount == undefined ||
-      !isWalletConnected
+      routeData.amount == undefined
     ) {
       return;
     }
@@ -258,11 +257,21 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   };
 
   const exchangeFromAndToTokens = async () => {
+    let tempFromToken, tempToToken
     dispatch(setExchangeMode({ isExchangeButtonClicked: true }));
-    if (selectedRoute?.outputAmount === "0") return
-    const output = parseFloat(selectedRoute?.outputAmount || "0").toFixed(3);
-    const tempFromToken = fromToken;
-    const tempToToken = { ...toToken, value: output };
+    if (
+      fromToken.value === "" ||
+      fromToken.value === "0" ||
+      fromToken.value === 0 ||
+      fromToken.value === undefined ||
+      selectedRoute === undefined) {
+      tempFromToken = { ...fromToken, value: 0 };
+      tempToToken = { ...toToken, value: 0 };
+    } else {
+      const output = parseFloat(selectedRoute?.outputAmount || "0").toFixed(2);
+      tempFromToken = fromToken;
+      tempToToken = { ...toToken, value: output };
+    }
     const fromBlockchain = selectedBlockchains.fromBlockchain;
     const toBlockchain = selectedBlockchains.toBlockchain;
     dispatch(updateToken({ isFromToken: true, token: tempToToken }));
@@ -270,6 +279,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
     dispatch(updateToBlockchain({ blockchain: fromBlockchain }));
     dispatch(updateToken({ isFromToken: false, token: tempFromToken }));
     await refetchRoutes(tempToToken, tempFromToken);
+    dispatch(setExchangeMode({ isExchangeButtonClicked: false }));
   }
 
   // single components
@@ -295,7 +305,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
   return (
     <div
-      className={`w-full bg-[#fff] bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
       <div
         id="__controls"
@@ -307,10 +317,11 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
               variant="outline"
               size={"sm"}
               className={`border-primary disabled:cursor-not-allowed rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
-                }  ${wallet === WALLET.NONE
-                  ? "bg-primary text-[#000]"
-                  : " bg-transparent"
                 }`}
+              style={wallet === WALLET.NONE
+                ? { backgroundColor: "#13F187", color: "#000" }
+                : { backgroundColor: "transparent" }
+              }
               onClick={() => dispatch(updateManner({ wallet: WALLET.NONE }))}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
@@ -320,10 +331,11 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
               size={"sm"}
               variant="outline"
               className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
-                } ${wallet === WALLET.BROWSE
-                  ? "bg-primary text-[#000]"
-                  : " bg-transparent"
                 }`}
+              style={wallet === WALLET.BROWSE
+                ? { backgroundColor: "#13F187", color: "#000" }
+                : { backgroundColor: "transparent" }
+              }
               onClick={() => dispatch(updateManner({ wallet: WALLET.BROWSE }))}
               disabled={isInProcess || isSwapMade || isRouteProcess}
             >
@@ -361,10 +373,8 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
               toToken.blockchain === "" ||
               fromToken.symbol === "" ||
               toToken.symbol === "" ||
-              selectedToken === undefined ||
-              fromToken.value === "" ||
-              fromToken.value === undefined ||
-              selectedRoute === undefined}
+              selectedToken === undefined
+            }
             onClick={exchangeFromAndToTokens}
           >
             <Image
@@ -437,7 +447,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
                     dispatch(resetSwap());
                   }
                 )
-            : buttonTemplate("Connect Wallet", "", false, handleConnectButtonClick)}
+            : buttonTemplate("Connect Wallet", <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />, isInProcess, handleConnectButtonClick)}
         </div>
       ) : (
         <NoWallet blockchains={blockchains} isWalletConnected={isWalletConnected} />

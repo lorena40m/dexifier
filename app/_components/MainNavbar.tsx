@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAppSelector } from "@/redux_slice/provider";
 import { useWalletList } from "../wallet/useWalletList";
-import { WalletAssetsBalance } from "../types/interface";
+import { WALLET, WalletAssetsBalance } from "../types/interface";
 import Modal from 'react-modal';
 import { Divide, X } from "lucide-react";
 import { getBananceOfWallet } from "../api/rango-api";
@@ -68,6 +68,7 @@ const MainNavbar = () => {
   const { isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken, filterLoading } = useAppSelector((state) => state.filter);
   const { blockchains } = useAppSelector((state) => state.blockchains)
   const { tokens } = useAppSelector((state) => state.allToken);
+  const { wallet } = useAppSelector((state) => state.settings);
 
   const [modalIsOpen, setIsModalOpen] = React.useState(false);
   const [filteredBalanceData, setFilteredBalanceData] = useState<WalletAssetsBalance[]>();
@@ -90,16 +91,14 @@ const MainNavbar = () => {
   }, []);
 
   useEffect(() => {
-    // Loop through navLinks to find the active one based on the current path
-    navLinks.forEach(link => {
-      // Only check for internal links (i.e., not starting with "http")
-      if (pathname === "/") {
-        setActiveLink(true);
-      } else {
-        setActiveLink(false);
-      }
-    });
-  }, [pathname]);
+
+    if (pathname === "/" && wallet === WALLET.BROWSE) {
+      setActiveLink(true);
+    } else {
+      setActiveLink(false);
+    }
+
+  }, [pathname, wallet]);
 
   useEffect(() => {
     const filterFunction = async () => {
@@ -107,7 +106,6 @@ const MainNavbar = () => {
       const tempFilteredBalances = walletBalances && walletBalances.filter((balance) => {
         const walletBalance = getWalletUSDBalance(balance);
         const walletType = connectedWallets.find((connectedWallet) => connectedWallet.address === balance.address && connectedWallet.chain === balance.blockChain)?.walletType;
-        console.log("filter==>", filterWalletList, walletType);
         return (isHideEmptyWallet ? walletBalance > 0 : true) &&
           (filterChainList === undefined ? false : filterChainList.includes(balance.blockChain)) &&
           (walletType === undefined ? false : filterWalletList.includes(walletType)) &&
@@ -142,11 +140,9 @@ const MainNavbar = () => {
           return { ...balances, balances: newBalances }
         })
       }
-      console.log("filteredBalances==>1", filteredBalances);
 
       const sortBalance = async (filteredBalances: WalletAssetsBalance[]) => (filteredBalances.sort((a, b) => getWalletUSDBalance(b) - getWalletUSDBalance(a)));
       filteredBalances = await sortBalance(filteredBalances);
-      console.log("filteredBalances==>2", filteredBalances);
       setFilteredBalanceData(filteredBalances || []);
     }
 
@@ -158,9 +154,6 @@ const MainNavbar = () => {
     isHideSmallBalance,
     isHideEmptyWallet,
     isHideUnsupportedToken]);
-
-  console.log("connectedWallets==>", connectedWallets);
-
 
   useEffect(() => {
 
@@ -178,20 +171,21 @@ const MainNavbar = () => {
   }, [connectedWallets])
 
   async function openModal() {
+    setLoading(true);
+    const filterWalletList = mappedWallets.map((wallet) => ({ ...wallet, selected: true })).filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
+    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
+    const filterChainList = blockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
+    dispatch(updateFilterChain({ filterChainList: filterChainList }));
 
     dispatch(updateFilterSmallBalance({ isHideSmallBalance: false }));
     dispatch(updateFilterEmptyWallet({ isHideEmptyWallet: false }));
     dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: false }));
 
     setIsModalOpen(true);
+    setLoading(false);
   }
 
   function closeModal() {
-
-    dispatch(updateFilterSmallBalance({ isHideSmallBalance: false }));
-    dispatch(updateFilterEmptyWallet({ isHideEmptyWallet: false }));
-    dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: false }));
-
     setIsModalOpen(false);
   }
 
@@ -246,7 +240,7 @@ const MainNavbar = () => {
       })
     );
     if (totalUSDAmount > 0) {
-      setTotalUSDAmount(totalUSDAmount.toFixed(3))
+      setTotalUSDAmount(totalUSDAmount.toFixed(2))
     }
     return walletBalanceWithUSD;
   };
@@ -290,8 +284,6 @@ const MainNavbar = () => {
     };
   });
 
-  console.log("mappedWallets==>", mappedWallets);
-
   const onClickWalletButton = () => {
     if (refOfConnectButton) {
       dispatch(updateRequiredChain({ requiredChain: "" }));
@@ -314,10 +306,7 @@ const MainNavbar = () => {
     }
   }
 
-  console.log("walletBalances==>", walletBalances);
-
   const SubWallet: React.FC<any> = ({ walletBalance, index }) => {
-    console.log("walletBalance", walletBalance);
     const [isOpen, SetIsOpen] = useState<boolean>(true);
 
     return (
@@ -364,7 +353,7 @@ const MainNavbar = () => {
                 </div>
                 <div className="flex flex-col mr-3">
                   <span>{amount}</span>
-                  <span className="text-xs">{parseFloat(balance.usdAmount).toFixed(3)} $</span>
+                  <span className="text-xs">{parseFloat(balance.usdAmount).toFixed(2)} $</span>
                 </div>
               </div>
             )

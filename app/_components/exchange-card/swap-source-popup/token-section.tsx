@@ -14,7 +14,7 @@ import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
 import ShadowDecoration from "../../common/shadowDecoration";
 import ImageWrapper from "../../common/imageWrapper";
-import { getAbbrAddress, getContrastRatio } from "@/app/utils/catch-data";
+import { getAbbrAddress, getAmountFromString, getContrastRatio } from "@/app/utils/catch-data";
 import FallBackImage from "../../common/fallBackImage";
 
 const TokenSection: React.FC<{
@@ -84,10 +84,14 @@ const TokenSection: React.FC<{
       return
     }
     let tokenAmount = 0;
+    let assetAmount = 0;
     walletBalances.filter((walletBalance) => walletBalance.blockChain === selectedBlockchain?.name).map((walletBalance) => {
-      walletBalance.balances.filter((balance) => balance.asset.symbol === symbol && balance.asset.address === address).forEach((balance) => { tokenAmount += (balance.usdAmount || 0) })
+      walletBalance.balances.filter((balance) => balance.asset.symbol === symbol && balance.asset.address === address).forEach((balance) => {
+        tokenAmount += (balance.usdAmount || 0);
+        assetAmount += parseFloat(getAmountFromString(balance.amount.amount, balance.amount.decimals))
+      });
     })
-    return tokenAmount.toFixed(3)
+    return { usdAmount: tokenAmount.toFixed(2), assetsAmount: assetAmount.toFixed(2) }
   }
 
   //  use Effect
@@ -232,9 +236,12 @@ const TokenSection: React.FC<{
               </TooltipTemplate>
             </div>
           </div>
-          <div className="flex gap-4 items-center">
-            <span>{parseFloat(getTokenAmount(address, symbol) || "0") > 0 && getTokenAmount(address, symbol) + "$"}</span>
-            {isPopular && <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" />}
+          <div className="flex gap-3 items-center">
+            <div className="flex flex-col">
+              <span className="text-sm">{parseFloat(getTokenAmount(address, symbol)?.assetsAmount || "0") > 0 && getTokenAmount(address, symbol)?.assetsAmount + " " + symbol}</span>
+              <span className="text-sm text-border">{parseFloat(getTokenAmount(address, symbol)?.usdAmount || "0") > 0 && getTokenAmount(address, symbol)?.usdAmount + "$"}</span>
+            </div>
+            {isPopular ? <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" /> : <div className="w-[25px] h-[25px]" />}
             {status ? (
               <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
             ) : (

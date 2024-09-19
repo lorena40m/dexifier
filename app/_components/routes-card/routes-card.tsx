@@ -158,7 +158,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
                 {singleNodeTemplate(
                   singleNode.from.logo as string,
                   singleNode.from.symbol,
-                  parseFloat(singleNode.fromAmount).toFixed(3),
+                  parseFloat(singleNode.fromAmount).toFixed(2),
                   singleNode.from.blockchainLogo
                 )}
 
@@ -216,7 +216,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
                   {singleNodeTemplate(
                     singleNode.to.logo as string,
                     singleNode.to.symbol,
-                    parseFloat(singleNode.toAmount).toFixed(3),
+                    parseFloat(singleNode.toAmount).toFixed(2),
                     singleNode.to.blockchainLogo
                   )}
                 </div>
@@ -235,29 +235,28 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
 
   // render part
 
-  return (
-    isWalletConnected && (
-      <div className="relative bg-[#0b4b2f26] w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+  return ((
+    <div className="relative bg-modal w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
 
-        <div className="z-0 w-full">
-          <h1 className="text-2xl mb-4">Routes</h1>
+      <div className="z-0 w-full">
+        <h1 className="text-2xl mb-4">Routes</h1>
 
-          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-            {optionsButton("Recommended", 0)}
-            {optionsButton("Fastest", 1)}
-            {optionsButton("Cheapest", 2)}
-            {optionsButton("Smart", 3)}
-          </div>
-          <div className="relative">
-            <ShadowDecoration />
-            <div className="overflow-y-auto lg:h-[25rem] pe-2">
-              {sortedRoutes.map((item) => singleRouteContainer(item, tokens))}
-            </div>
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+          {optionsButton("Recommended", 0)}
+          {optionsButton("Fastest", 1)}
+          {optionsButton("Cheapest", 2)}
+          {optionsButton("Smart", 3)}
+        </div>
+        <div className="relative">
+          <ShadowDecoration />
+          <div className="overflow-y-auto lg:h-[25rem] pe-2">
+            {sortedRoutes.map((item) => singleRouteContainer(item, tokens))}
           </div>
         </div>
-        <div className="absolute lg:h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-black/0 to-[#050F0F] z-10" />
       </div>
-    )
+      <div className="absolute lg:h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-black/0 to-[#050F0F] z-10" />
+    </div>
+  )
   );
 };
 

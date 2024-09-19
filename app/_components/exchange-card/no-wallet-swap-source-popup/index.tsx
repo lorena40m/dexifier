@@ -6,6 +6,7 @@ import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
 import CustomLoader from "../../common/loader";
 import ImageWrapper from "../../common/imageWrapper";
+import { CurrencyResponse } from "@/app/types/noWalletInterface";
 
 const SwapSourcePopup: React.FC<{
   currencies: CurrencyResponse;
@@ -19,20 +20,10 @@ const SwapSourcePopup: React.FC<{
       : state?.currency?.toCurrency
   );
 
-  const selectedBlockchain = useAppSelector((state) =>
-    isFromCurrency
-      ? state?.blockchains?.fromBlockchain
-      : state?.blockchains?.toBlockchain
-  );
-
-  const selectedToken = useAppSelector((state) =>
-    isFromCurrency ? state?.tokens?.fromToken : state?.tokens?.toToken
-  );
-
   const triggerButton = (
     <button
       className="w-[150px] bg-transparent focus:ring-0 border-none focus:ring-offset-0 focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0 flex items-center justify-center gap-[.5625rem] text-sm disabled:cursor-not-allowed disabled:opacity-50"
-      disabled={isInProcess || isSwapMade}
+      disabled={false}
     >
       {selectedCurrency.icon && (
         <div className="relative">
@@ -53,7 +44,7 @@ const SwapSourcePopup: React.FC<{
           <span>{selectedCurrency.code}</span>
 
           <span className="text-xs opacity-80">
-            {selectedCurrency.name}
+            {selectedCurrency.network?.network}
           </span>
         </div>
       ) : (
@@ -65,7 +56,7 @@ const SwapSourcePopup: React.FC<{
   return (
     <PopupTemplate title="Swap source" triggerButton={triggerButton}>
       <main>
-        {selectedBlockchain !== null && (
+        {(
           <Suspense fallback={<CustomLoader />}>
             <TokenSection
               currencies={currencies}

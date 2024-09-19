@@ -20,6 +20,8 @@ const config = {
         seperator: "#5F5F5F",
         paragraph: "#F2F2F2",
         border: "#5f5f5f",
+        error: "#f44336",
+        modal: "#0b4b2f12"
       },
       container: {
         center: true,

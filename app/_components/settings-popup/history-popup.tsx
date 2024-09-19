@@ -39,13 +39,13 @@ const HistoryPopup = () => {
       const fromToken: TokenData = {
         symbol: `${historyData.steps[0].fromSymbol}`,
         blockchain: `${historyData.steps[0].fromBlockchain}`,
-        amount: parseFloat(historyData.inputAmount).toFixed(3),
+        amount: parseFloat(historyData.inputAmount).toFixed(2),
         imageSrc: historyData.steps[0].fromLogo,
       };
       const toToken: TokenData = {
         symbol: `${historyData.steps[lastIndex].toSymbol}`,
         blockchain: `${historyData.steps[lastIndex].toBlockchain}`,
-        amount: parseFloat(historyData.simulationResult.outputAmount).toFixed(3),
+        amount: parseFloat(historyData.simulationResult.outputAmount).toFixed(2),
         imageSrc: historyData.steps[lastIndex].toLogo,
       };
       const requestId = historyData.requestId;
