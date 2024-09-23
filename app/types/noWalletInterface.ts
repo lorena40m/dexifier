@@ -59,11 +59,21 @@ export type TransacionRequest = {
   refundExtraId?: string
 }
 
+type TransactionCoin = {
+  coinCode: string,
+  coinName: string,
+  icon: string,
+  network: string,
+  networkName: string,
+  networkShortName: string,
+  memoName: string
+}
+
 export type TransactionData = {
   amount: number,
   amountTo: number,
-  coinFrom: any,
-  coinTo: any,
+  coinFrom: TransactionCoin,
+  coinTo: TransactionCoin,
   createdAt: string,
   depositAddress: string,
   depositExtraId: string | null,

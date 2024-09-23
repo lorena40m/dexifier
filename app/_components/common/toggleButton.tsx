@@ -13,7 +13,7 @@ const ToggleButton = () => {
   return (
     <div className="flex items-center space-x-4">
       <div
-        className={`flex items-center justify-between w-14 h-7 p-1 rounded-full cursor-pointer ${isFixed ? 'bg-green-500' : 'bg-gray-300'
+        className={`flex items-center justify-between w-14 h-7 p-1 rounded-full cursor-pointer ${isFixed ? 'bg-primary' : 'bg-gray-400'
           }`}
         onClick={handleToggle}
       >
