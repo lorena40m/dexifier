@@ -24,7 +24,7 @@ const NoWalletInput: React.FC<Props> = ({
   label,
   currencies,
   isFromCurrency = false,
-  isFixed = false
+  isFixed = true
 }) => {
 
   // redux hook

@@ -3,7 +3,7 @@ import NoWalletInput from "../common/noWalletInput"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Blockchain } from "@/app/types/interface"
-import { FC, ReactNode, useEffect, useRef, useState } from "react"
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { createTransaction, fetchConfirm, getCurrencies } from "@/app/api/noWallet-api"
 import { useAppSelector } from "@/redux_slice/provider"
 import CustomLoader from "../common/loader"
@@ -25,11 +25,16 @@ const NoWallet: FC<NoWalletProps> = () => {
   const [currencies, setCurrencies] = useState<CurrencyResponse>({ count: 0, data: [] })
   const { rateResult, isLoading } = useAppSelector((state) => state.rate);
   const { fromCurrency, toCurrency, isFixed } = useAppSelector((state) => state.currency);
-  const { recipientAddress, recipientAddressError, isTransactionLoading } = useAppSelector((state) => state.transaction);
+  const { recipientAddress, transactionData, recipientAddressError, isTransactionLoading } = useAppSelector((state) => state.transaction);
 
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmIntervalId, setConfirmIntervalId] = useState<NodeJS.Timeout | null>(null);
   const transactionIdRef = useRef<string>(""); // To store transaction ID for confirming
+
+  const transactionDataMemo = useMemo(
+    () => ({ transactionData }),
+    [transactionData]
+  );
 
   useEffect(() => {
     getCurrencies().then((result) => {
@@ -37,6 +42,12 @@ const NoWallet: FC<NoWalletProps> = () => {
       console.log("currencies", result);
     })
   }, [])
+
+  useEffect(() => {
+    if (transactionData === undefined || rateResult === undefined) {
+      stopConfirming()
+    }
+  }, [transactionDataMemo])
 
   const startConfirming = (transactionId: string) => {
     // Start polling for confirmation
@@ -144,7 +155,7 @@ const NoWallet: FC<NoWalletProps> = () => {
       </div>
       {rateResult && <div className="flex justify-center"><span className="text-error text-sm">{rateResult.message || ""}</span></div>}
       {buttonTemplate(
-        isConfirming ? "Stop Confirmation" : "Exchange Now",
+        (isConfirming) ? "Stop Confirmation" : "Exchange Now",
         <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
         isLoading || isTransactionLoading,
         isLoading ||
@@ -153,7 +164,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         recipientAddress === undefined ||
         recipientAddress === "" ||
         recipientAddressError.isError,
-        isConfirming ? stopConfirming : createTransactionHandler
+        (isConfirming) ? stopConfirming : createTransactionHandler
       )}
     </div>
   )

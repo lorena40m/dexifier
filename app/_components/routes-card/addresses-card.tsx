@@ -8,11 +8,13 @@ import { updateAddressError, updateRecipientAddress, updateTransactionData } fro
 import ButtonCopyIcon from "../common/coypButtonIcon";
 import { formatReadableDate } from "@/app/utils/catch-data";
 import StatusBar from "../common/statusBar";
+import ImageWrapper from "../common/imageWrapper";
 
 const AddressesCard = () => {
   const dispatch = useDispatch();
   const { fromCurrency, toCurrency } = useAppSelector((state) => state.currency);
   const { recipientAddress, recipientAddressError, transactionData } = useAppSelector((state) => state.transaction);
+  const { rateResult } = useAppSelector((state) => state.rate);
   const depositAddress = useAppSelector((state) => state.transaction.transactionData?.depositAddress);
   const [steps, setSteps] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -21,6 +23,9 @@ const AddressesCard = () => {
     () => ({ transactionData }),
     [transactionData]
   );
+
+  console.log("transactionData==>", transactionData);
+
 
   console.log("recipientAddress==>", recipientAddress, recipientAddressError);
   useEffect(() => {
@@ -67,8 +72,88 @@ const AddressesCard = () => {
         <div className="relative">
           {/* <ShadowDecoration /> */}
           <div className="p-3 min-h-[430px] flex flex-col justify-around">
+            {rateResult && <div className="flex justify-center pt-6">
+              <div className="flex items-center gap-2 m-auto">
+                <div
+                  className="bg-transparent flex items-center justify-center gap-[.5625rem] text-sm"
+                >
+                  {fromCurrency.icon && (
+                    <div className="relative">
+                      <ImageWrapper>
+                        <Image
+                          className="relative"
+                          src={transactionData?.coinFrom.icon || fromCurrency.icon}
+                          width={30}
+                          height={30}
+                          alt={`${fromCurrency.icon}'s icon`}
+                        />
+                      </ImageWrapper>
+                    </div>
+                  )}
 
+                  {fromCurrency.code !== "" && (
+                    <div className="flex items-center gap-2 ">
+                      <span>{transactionData?.amount || rateResult.fromAmount}</span>
+                      <span>{fromCurrency.code}</span>
+
+                      <span className="text opacity-80">
+                        [{fromCurrency.network?.network}]
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Image src={"/assets/icons/circleArrow.png"} width={30} height={30} alt="circleAddress" />
+                </div>
+
+                <div
+                  className="bg-transparent flex items-center justify-center gap-[.5625rem] text-sm"
+                >
+                  {toCurrency.icon && (
+                    <div className="relative">
+                      <ImageWrapper>
+                        <Image
+                          className="relative"
+                          src={transactionData?.coinTo.icon || toCurrency.icon}
+                          width={30}
+                          height={30}
+                          alt={`${toCurrency.icon}'s icon`}
+                        />
+                      </ImageWrapper>
+                    </div>
+                  )}
+
+                  {toCurrency.code !== "" && (
+                    <div className="flex items-center gap-2 ">
+                      <span>{transactionData?.amountTo || rateResult.toAmount}</span>
+                      <span>{toCurrency.code}</span>
+
+                      <span className="text opacity-80">
+                        [{toCurrency.network?.network}]
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            }
             <div>
+              <span className="text-lg mb-1">Recipient <span className="text-primary">{toCurrency?.network?.shortName} {toCurrency.name}</span> address</span>
+              <div className={`${recipientAddress === "" ? "border-primary" : recipientAddressError.isError || false ? "border-error" : "border-[#695F5F]"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem] my-3`}>
+                <Input
+                  type="text"
+                  value={recipientAddress}
+                  onChange={(e) => recipientInputChangeHandler(e)}
+                  placeholder={"Enter recipient address"}
+                  className="flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+                  style={{ outline: "none" }}
+                  disabled={false}
+                />
+              </div>
+
+              {recipientAddress === "" ? <span className="text-primary text-sm">Enter the Recipient Address first !</span>
+                : (recipientAddressError && <span className="text-error">{recipientAddressError?.error || ""}</span>)}
               {transactionData && <div className="flex flex-col items-center justify-center mb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -90,38 +175,26 @@ const AddressesCard = () => {
                 </div>
               </div>
               }
-              <span className="text-lg mb-1">Deposit <span className="text-primary">{fromCurrency.name}</span> address</span>
-              <div className={`${depositAddress === undefined || depositAddress === "" ? "border-[#695F5F]" : "border-primary"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem] my-3`}>
-                <Input
-                  type="text"
-                  value={depositAddress || ""}
-                  placeholder={"Enter deposit address"}
-                  className="text-primary flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
-                  style={{ outline: "none" }}
-                  readOnly={true}
-                  disabled={false}
-                />
-                <ButtonCopyIcon text={depositAddress || ""} />
-              </div>
             </div>
 
-            <div >
-              <span className="text-lg mb-1">Recipient address</span>
-              <div className={`${recipientAddress === "" ? "border-primary" : recipientAddressError.isError || false ? "border-error" : "border-[#695F5F]"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem] my-3`}>
-
-                <Input
-                  type="text"
-                  value={recipientAddress}
-                  onChange={(e) => recipientInputChangeHandler(e)}
-                  placeholder={"Enter recipient address"}
-                  className="flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
-                  style={{ outline: "none" }}
-                  disabled={false}
-                />
+            <div>
+              {transactionData && <div>
+                <span className="text-lg mb-1">Deposit <span className="text-primary">{fromCurrency.name}</span> address</span>
+                <div className={`${depositAddress === undefined || depositAddress === "" ? "border-[#695F5F]" : "border-primary"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem] my-3`}>
+                  <Input
+                    type="text"
+                    value={depositAddress || ""}
+                    placeholder={""}
+                    className="text-primary flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+                    style={{ outline: "none" }}
+                    readOnly={true}
+                    disabled={false}
+                  />
+                  <ButtonCopyIcon text={depositAddress || ""} />
+                </div>
+                <StatusBar steps={steps} currentStep={currentStep} />
               </div>
-              {transactionData && <StatusBar steps={steps} currentStep={currentStep} />}
-              {recipientAddress === "" ? <span className="text-primary text-sm">Enter the Recipient Address first !</span>
-                : (recipientAddressError && <span className="text-error">{recipientAddressError?.error || ""}</span>)}
+              }
             </div>
 
           </div>
