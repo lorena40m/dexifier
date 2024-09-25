@@ -29,7 +29,7 @@ const SettingsPopup = () => {
 
   const triggerButton = (
     <Button
-      className="p-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
+      className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
       disabled={isInProcess || isSwapMade}
     >
       <TooltipTemplate content="Settings" className="!mb-1">

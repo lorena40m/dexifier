@@ -16,7 +16,7 @@ const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }
           : isRoutesFetched && !isRouteProcess && wallet === WALLET.BROWSE
             ? "w-full max-w-[480px]"
             : "min-w-[650px]"} 
-          `}
+           h-[570px]`}
     >
       <ExchangeCard isWalletConnected={isWalletConnected} />
     </div>

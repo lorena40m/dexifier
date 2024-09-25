@@ -294,7 +294,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
         : "bg-primary hover:bg-primary-dark text-black"
         } ${isRoutesFetched ? "w-full" : "w-full md:max-w-[75%] lg:max-w-[67%]"
-        } font-semibold h-[3.125rem] mx-auto mt-5 text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+        } font-semibold h-[3.125rem] mx-auto mt-[55px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
       variant={"default"}
       onClick={() => onClick()}
       disabled={disabled}
@@ -305,7 +305,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
   return (
     <div
-      className={`w-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
       <div
         id="__controls"
@@ -450,7 +450,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
             : buttonTemplate("Connect Wallet", <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />, isInProcess, handleConnectButtonClick)}
         </div>
       ) : (
-        <NoWallet blockchains={blockchains} isWalletConnected={isWalletConnected} />
+        <NoWallet isWalletConnected={isWalletConnected} />
       )}
 
       <ConfirmModal
