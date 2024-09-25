@@ -12,7 +12,6 @@ const SwapSourcePopup: React.FC<{
   currencies: CurrencyResponse;
   isFromCurrency: boolean;
 }> = ({ currencies, isFromCurrency }) => {
-  const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
 
   const selectedCurrency = useAppSelector((state) =>
     isFromCurrency

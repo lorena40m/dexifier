@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Blockchain } from "@/app/types/interface"
 import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
-import { createTransaction, fetchConfirm, getCurrencies } from "@/app/api/noWallet-api"
+import { createTransaction, fetchConfirm, getCurrencies, getRate } from "@/app/api/noWallet-api"
 import { useAppSelector } from "@/redux_slice/provider"
 import CustomLoader from "../common/loader"
 import { updateTransactionData, updateAddressError, updateTransactionLoading } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
@@ -12,10 +12,12 @@ import { useDispatch } from "react-redux"
 import { log } from "console"
 import ToggleButton from "../common/toggleButton"
 import { toastError } from "@/lib/utils"
-import { CurrencyResponse } from "@/app/types/noWalletInterface"
+import { CurrencyResponse, CurrencyType } from "@/app/types/noWalletInterface"
+import { updateConfirming, updateLoadingState, updateRateResult } from "@/redux_slice/slice/noWalletSlice/rateSlice"
+import { setExchangeMode } from "@/redux_slice/slice/browserSlice/routeSlice"
+import { Currency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice"
 
 interface NoWalletProps {
-  blockchains: Blockchain[],
   isWalletConnected: boolean,
 }
 
@@ -23,11 +25,9 @@ const NoWallet: FC<NoWalletProps> = () => {
   const dispatch = useDispatch();
 
   const [currencies, setCurrencies] = useState<CurrencyResponse>({ count: 0, data: [] })
-  const { rateResult, isLoading } = useAppSelector((state) => state.rate);
+  const { rateResult, isLoading, isConfirming } = useAppSelector((state) => state.rate);
   const { fromCurrency, toCurrency, isFixed } = useAppSelector((state) => state.currency);
   const { recipientAddress, transactionData, recipientAddressError, isTransactionLoading } = useAppSelector((state) => state.transaction);
-
-  const [isConfirming, setIsConfirming] = useState(false);
   const [confirmIntervalId, setConfirmIntervalId] = useState<NodeJS.Timeout | null>(null);
   const transactionIdRef = useRef<string>(""); // To store transaction ID for confirming
 
@@ -51,12 +51,13 @@ const NoWallet: FC<NoWalletProps> = () => {
 
   const startConfirming = (transactionId: string) => {
     // Start polling for confirmation
-    setIsConfirming(true);
+    dispatch(updateConfirming({ isConfirming: true }));
     const intervalId = setInterval(async () => {
       const ConfirmedData = await fetchConfirm(transactionId);
+      dispatch(updateTransactionData({ transactionData: ConfirmedData }))
       if (ConfirmedData?.status === "success" || ConfirmedData?.status === "overdue" || ConfirmedData?.status === "refunded") {
         clearInterval(intervalId);
-        setIsConfirming(false);
+        dispatch(updateConfirming({ isConfirming: false }));
         // Optionally dispatch a success action or update state here
       }
     }, 5000); // Poll every 5 seconds (adjust as needed)
@@ -69,7 +70,61 @@ const NoWallet: FC<NoWalletProps> = () => {
       clearInterval(confirmIntervalId);
       setConfirmIntervalId(null);
     }
-    setIsConfirming(false);
+    dispatch(updateConfirming({ isConfirming: false }));
+  };
+
+  const exchangeFromAndToCurrencies = async () => {
+    let tempFromCurrency: Currency, tempToCurrency: Currency;
+    dispatch(setExchangeMode({ isExchangeButtonClicked: true }));
+    if (
+      fromCurrency.value === "" ||
+      fromCurrency.value === "0" ||
+      fromCurrency.value === undefined) {
+      tempFromCurrency = { ...fromCurrency, value: "0" };
+      tempToCurrency = { ...toCurrency, value: "0" };
+    } else {
+      const output = (rateResult?.toAmount || 0).toString();
+      tempFromCurrency = fromCurrency;
+      tempToCurrency = { ...toCurrency, value: output };
+    }
+    dispatch(updateCurrency({ isFromCurrency: true, currency: tempToCurrency }));
+    dispatch(updateCurrency({ isFromCurrency: false, currency: tempFromCurrency }));
+    await refetchRates(tempToCurrency, tempFromCurrency);
+    dispatch(setExchangeMode({ isExchangeButtonClicked: false }));
+  }
+
+  const refetchRates = (tempToCurrency: Currency, tempFromCurrency: Currency) => {
+    const rateData = {
+      coinFrom: tempToCurrency.code,
+      networkFrom: tempToCurrency.network?.network || "",
+      coinTo: tempFromCurrency.code,
+      networkTo: tempFromCurrency.network?.network || "",
+      amount: tempToCurrency.value,
+      rateType: isFixed ? "fixed" : "floating"
+
+    }
+    if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "") {
+      console.log("rate fetch fail with request data error");
+      return
+    }
+    console.log("rateData==>", rateData);
+    dispatch(updateLoadingState({ isLoading: true }));
+    getRate(rateData).then((result) => {
+      dispatch(updateRateResult({ rateResult: result }))
+      console.log(result);
+    }).catch((error) => {
+      if (error.response && error.response.status === 422) {
+        const result = error.response.data
+        dispatch(updateRateResult({ rateResult: result }))
+      } else {
+        toastError("errors while fetching rate data")
+      }
+    }).finally(() => {
+      dispatch(updateTransactionData({ transactionData: undefined }));
+      dispatch(updateAddressError({ recipientAddressError: { isError: false, error: "" } }));
+      dispatch(updateLoadingState({ isLoading: false }));
+
+    })
   };
 
   const createTransactionHandler = async () => {
@@ -138,8 +193,14 @@ const NoWallet: FC<NoWalletProps> = () => {
       <Button
         variant={"outline"}
         className="bg-transparent self-center cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
-        disabled={true}
-        onClick={() => { }}
+        disabled={fromCurrency.code === "" ||
+          toCurrency.code === "" ||
+          fromCurrency.network?.network === "" ||
+          fromCurrency.network?.network === undefined ||
+          toCurrency.network?.network === "" ||
+          toCurrency.network?.network === undefined
+        }
+        onClick={exchangeFromAndToCurrencies}
       >
         <Image
           src={"/assets/icons/swap.png"}
@@ -155,7 +216,7 @@ const NoWallet: FC<NoWalletProps> = () => {
       </div>
       {rateResult && <div className="flex justify-center"><span className="text-error text-sm">{rateResult.message || ""}</span></div>}
       {buttonTemplate(
-        (isConfirming) ? "Stop Confirmation" : "Exchange Now",
+        isConfirming ? "Stop Confirmation" : "Exchange Now",
         <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
         isLoading || isTransactionLoading,
         isLoading ||
@@ -164,7 +225,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         recipientAddress === undefined ||
         recipientAddress === "" ||
         recipientAddressError.isError,
-        (isConfirming) ? stopConfirming : createTransactionHandler
+        isConfirming ? stopConfirming : createTransactionHandler
       )}
     </div>
   )

@@ -37,6 +37,7 @@ const NoWalletInput: React.FC<Props> = ({
       : state?.currency?.toCurrency
   );
   const { rateResult, isLoading } = useAppSelector((state) => state.rate);
+  const { isExchangeButtonClicked } = useAppSelector((state) => state.routes);
 
   const [rateFetchError, setRateFetchError] = useState<boolean>(false);
 
@@ -55,10 +56,10 @@ const NoWalletInput: React.FC<Props> = ({
       coinTo: selectedCurrencyData.toCurrency.code,
       networkTo: selectedCurrencyData.toCurrency.network?.network || "",
       amount: selectedCurrency.value,
-      rateType: selectedCurrencyData.isFixed ? "fixed" : "floating"
+      rateType: isFixed ? "fixed" : "floating"
 
     }
-    if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "" || !isFromCurrency) {
+    if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "" || !isFromCurrency || isExchangeButtonClicked) {
       console.log("rate fetch fail with request data error");
       return
     }

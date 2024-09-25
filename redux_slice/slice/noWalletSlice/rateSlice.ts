@@ -4,9 +4,11 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const initialRateState: {
   rateResult: RateResponse | undefined;
   isLoading: boolean;
+  isConfirming: boolean;
 } = {
   rateResult: undefined,
-  isLoading: false
+  isLoading: false,
+  isConfirming: false
 };
 
 export const rateSlice = createSlice({
@@ -27,6 +29,13 @@ export const rateSlice = createSlice({
       return { ...state, isLoading: action.payload.isLoading }
     },
 
+    updateConfirming(
+      state,
+      action: PayloadAction<{ isConfirming: boolean }>
+    ) {
+      return { ...state, isConfirming: action.payload.isConfirming }
+    },
+
     resetRate(
       state
     ) {
@@ -35,5 +44,5 @@ export const rateSlice = createSlice({
   },
 });
 
-export const { updateRateResult, resetRate, updateLoadingState } =
+export const { updateRateResult, resetRate, updateLoadingState, updateConfirming } =
   rateSlice.actions;

@@ -16,21 +16,69 @@ import ImageWrapper from "../../common/imageWrapper";
 import { getAbbrAddress } from "@/app/utils/catch-data";
 import { resetCurrency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice";
 import { resetRate } from "@/redux_slice/slice/noWalletSlice/rateSlice";
-import { CurrencyResponse, Networks } from "@/app/types/noWalletInterface";
+import { CurrencyResponse, CurrencyType, Networks } from "@/app/types/noWalletInterface";
 
 const CurrencySection: React.FC<{
   currencies: CurrencyResponse;
   isFromCurrency: boolean;
 }> = ({ currencies, isFromCurrency }) => {
+  const INITIALNUMBER = 10;
   const dispatch = useDispatch();
   const [search, setSearch] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [filteredData, setFilteredData] = useState<CurrencyType[]>([]);
+  const [displayData, setDisplayData] = useState<CurrencyType[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [itemsToShow, setItemsToShow] = useState(INITIALNUMBER);
 
   const selectedCurrency = useAppSelector((state) =>
     isFromCurrency
       ? state?.currency?.fromCurrency
       : state?.currency?.toCurrency
   );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollContainerRef === null || scrollContainerRef?.current === null) {
+        return;
+      }
+      const { scrollTop, scrollHeight, clientHeight } =
+        scrollContainerRef?.current;
+
+      if (scrollTop + clientHeight >= scrollHeight - 10 && !loading) {
+        loadMoreData();
+      }
+    };
+
+    if (scrollContainerRef === null || scrollContainerRef?.current === null) {
+      return;
+    }
+    const scrollContainer = scrollContainerRef.current;
+    scrollContainer.addEventListener("scroll", handleScroll);
+
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, [loading, itemsToShow, filteredData]);
+
+  useEffect(() => {
+    const filteredTokens = currencies.data.filter((currency) =>
+      currency.name.toLowerCase().includes(search.toLowerCase()) ||
+      currency.code.toLowerCase().includes(search.toLowerCase())
+    );
+    setFilteredData(filteredTokens);
+    setDisplayData(filteredTokens.slice(0, itemsToShow));
+  }, [search, itemsToShow, currencies]);
+
+  const loadMoreData = () => {
+    const nextItemsToShow = itemsToShow * 2;
+
+    setTimeout(() => {
+      setDisplayData((prevData) => [
+        ...prevData,
+        ...filteredData.slice(prevData.length, nextItemsToShow),
+      ]);
+      setItemsToShow(nextItemsToShow);
+    }, 500);
+  };
 
   const currencyTemplate = (
     code: string,
@@ -130,8 +178,8 @@ const CurrencySection: React.FC<{
       <div
         className="relative"
       >
-        <div className="max-h-[45vh] pe-2.5 overflow-y-auto pb-2.5">
-          {loading ? <CustomLoader /> : currencies && currencies.data.map((currency, index) =>
+        <div ref={scrollContainerRef} className="max-h-[45vh] pe-2.5 overflow-y-auto pb-2.5">
+          {loading ? <CustomLoader /> : displayData && displayData.map((currency, index) =>
             currencyTemplate(
               currency.code,
               currency.name,

@@ -9,12 +9,13 @@ import ButtonCopyIcon from "../common/coypButtonIcon";
 import { formatReadableDate } from "@/app/utils/catch-data";
 import StatusBar from "../common/statusBar";
 import ImageWrapper from "../common/imageWrapper";
+import CustomLoader from "../common/loader";
 
 const AddressesCard = () => {
   const dispatch = useDispatch();
   const { fromCurrency, toCurrency } = useAppSelector((state) => state.currency);
   const { recipientAddress, recipientAddressError, transactionData } = useAppSelector((state) => state.transaction);
-  const { rateResult } = useAppSelector((state) => state.rate);
+  const { rateResult, isConfirming } = useAppSelector((state) => state.rate);
   const depositAddress = useAppSelector((state) => state.transaction.transactionData?.depositAddress);
   const [steps, setSteps] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -24,10 +25,20 @@ const AddressesCard = () => {
     [transactionData]
   );
 
-  console.log("transactionData==>", transactionData);
+  async function pasteFromClipboard() {
+    try {
+      if (navigator.clipboard) {
+        const clipboardText = await navigator.clipboard.readText();
 
+        dispatch(updateRecipientAddress({ recipientAddress: clipboardText }));
+      } else {
+        console.error('Clipboard API not supported.');
+      }
+    } catch (error) {
+      console.error('Failed to read from clipboard:', error);
+    }
+  }
 
-  console.log("recipientAddress==>", recipientAddress, recipientAddressError);
   useEffect(() => {
     if (transactionData?.status === "confirmation") {
       setCurrentStep(0);
@@ -67,7 +78,7 @@ const AddressesCard = () => {
           id="__controls"
           className="border-b-[0.1px] border-[#333] border-solid"
         >
-          <h1 className="text-2xl mb-4 px-4">{transactionData === undefined || transactionData?.status === "wait" ? "Addresses" : "Confirmation"}</h1>
+          <h1 className="text-2xl mb-4 px-4">{!isConfirming ? "Addresses" : "Confirmation"}</h1>
         </div >
         <div className="relative">
           {/* <ShadowDecoration /> */}
@@ -139,17 +150,18 @@ const AddressesCard = () => {
             </div>
             }
             <div>
-              <span className="text-lg mb-1">Recipient <span className="text-primary">{toCurrency?.network?.shortName} {toCurrency.name}</span> address</span>
+              <span className="text-lg mb-1">Recipient <span className="text-primary">{toCurrency?.network?.name} {toCurrency.code}</span> address</span>
               <div className={`${recipientAddress === "" ? "border-primary" : recipientAddressError.isError || false ? "border-error" : "border-[#695F5F]"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem] my-3`}>
                 <Input
                   type="text"
                   value={recipientAddress}
                   onChange={(e) => recipientInputChangeHandler(e)}
                   placeholder={"Enter recipient address"}
-                  className="flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+                  className="flex-1 text-md border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
                   style={{ outline: "none" }}
                   disabled={false}
                 />
+                <button className="border border-primary text-primary rounded-lg p-1" onClick={pasteFromClipboard}>paste</button>
               </div>
 
               {recipientAddress === "" ? <span className="text-primary text-sm">Enter the Recipient Address first !</span>
@@ -179,20 +191,20 @@ const AddressesCard = () => {
 
             <div>
               {transactionData && <div>
-                <span className="text-lg mb-1">Deposit <span className="text-primary">{fromCurrency.name}</span> address</span>
+                <span className="text-lg mb-1">Deposit <span className="text-primary">{fromCurrency?.network?.name} {fromCurrency.code}</span> address</span>
                 <div className={`${depositAddress === undefined || depositAddress === "" ? "border-[#695F5F]" : "border-primary"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem] my-3`}>
                   <Input
                     type="text"
                     value={depositAddress || ""}
                     placeholder={""}
-                    className="text-primary flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+                    className="text-primary text-md flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
                     style={{ outline: "none" }}
                     readOnly={true}
                     disabled={false}
                   />
                   <ButtonCopyIcon text={depositAddress || ""} />
                 </div>
-                <StatusBar steps={steps} currentStep={currentStep} />
+                {isConfirming && (transactionData.status === "wait" ? <CustomLoader /> : <StatusBar steps={steps} currentStep={currentStep} />)}
               </div>
               }
             </div>

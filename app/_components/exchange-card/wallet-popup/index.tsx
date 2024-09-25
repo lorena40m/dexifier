@@ -91,7 +91,7 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
 
   const triggerButton = (
     <Button
-      className="p-2 bg-transparent hover:bg-transparent"
+      className="px-2 bg-transparent hover:bg-transparent"
       // disabled={!isWalletConnected}
       ref={ref}
     >
