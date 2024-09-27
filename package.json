@@ -34,6 +34,7 @@
     "lucide-react": "^0.397.0",
     "next": "14.2.4",
     "pino-pretty": "^11.2.2",
+    "qrcode": "^1.5.4",
     "rango-sdk": "^0.1.45",
     "rango-types": "^0.1.59",
     "react": "^18.3.1",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@types/node": "^18",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/react-modal": "^3.16.3",

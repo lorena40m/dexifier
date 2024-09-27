@@ -29,6 +29,11 @@ const TokenSection: React.FC<{
   const storedToken: Token = useSelector((state: RootState) =>
     isFromToken ? state?.tokens?.fromToken : state?.tokens?.toToken
   );
+
+  const oppositeToken = useAppSelector((state) =>
+    !isFromToken ? state?.tokens?.fromToken : state?.tokens?.toToken
+  );
+
   const { isRoutesFetched } = useAppSelector((state) => state.routes);
   const savedRouteData = useAppSelector((state) => state.quoteData);
   const { walletBalances } = useAppSelector((state) => state.wallet);
@@ -94,6 +99,8 @@ const TokenSection: React.FC<{
     return { usdAmount: tokenAmount.toFixed(2), assetsAmount: assetAmount.toFixed(2) }
   }
 
+  const selectedBlockchainMemo = useMemo(() => selectedBlockchain, [selectedBlockchain]);
+
   //  use Effect
   useEffect(() => {
     if (selectedBlockchain && selectedBlockchain !== null) {
@@ -113,7 +120,7 @@ const TokenSection: React.FC<{
         });
     }
     setItemsToShow(INITIALNUMBER);
-  }, [selectedBlockchain]);
+  }, [selectedBlockchainMemo]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -265,8 +272,8 @@ const TokenSection: React.FC<{
             className="relative"
           >
             <div ref={scrollContainerRef} className="max-h-[35vh] pe-2.5 overflow-y-auto pb-2.5">
-              {loading ? <CustomLoader /> : displayData && displayData.map((token, index) =>
-                tokenTemplate(
+              {loading ? <CustomLoader /> : displayData && displayData.map((token, index) => {
+                return (tokenTemplate(
                   token.blockchain,
                   token.isPopular,
                   token.address,
@@ -276,7 +283,8 @@ const TokenSection: React.FC<{
                   token.address,
                   isSameToken(storedToken, token),
                   index
-                )
+                ))
+              }
               )}
             </div>
             {!loading && <ShadowDecoration />}

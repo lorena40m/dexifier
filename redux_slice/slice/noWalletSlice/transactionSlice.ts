@@ -7,13 +7,15 @@ const initialRateState: {
   recipientAddressError: RecipientAddressError;
   depositAddress: string;
   transactionData: TransactionData | undefined;
-  isTransactionLoading: boolean
+  isTransactionLoading: boolean;
+  confirmIntervalId: NodeJS.Timeout | null;
 } = {
   recipientAddress: "",
   depositAddress: "",
   transactionData: undefined,
   recipientAddressError: { isError: false, error: "" },
-  isTransactionLoading: false
+  isTransactionLoading: false,
+  confirmIntervalId: null
 };
 
 export const transactionSlice = createSlice({
@@ -53,9 +55,16 @@ export const transactionSlice = createSlice({
       action: PayloadAction<{ isTransactionLoading: boolean }>
     ) {
       return { ...state, isTransactionLoading: action.payload.isTransactionLoading }
+    },
+
+    setConfirmIntervalId(
+      state,
+      action: PayloadAction<{ confirmIntervalId: NodeJS.Timeout | null }>
+    ) {
+      return { ...state, confirmIntervalId: action.payload.confirmIntervalId }
     }
   },
 });
 
-export const { updateRecipientAddress, updateDepositAddress, updateTransactionData, updateAddressError, updateTransactionLoading } =
+export const { updateRecipientAddress, updateDepositAddress, updateTransactionData, updateAddressError, updateTransactionLoading, setConfirmIntervalId } =
   transactionSlice.actions;

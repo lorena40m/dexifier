@@ -37,6 +37,12 @@ const CurrencySection: React.FC<{
       : state?.currency?.toCurrency
   );
 
+  const oppositeCurrency = useAppSelector((state) =>
+    !isFromCurrency
+      ? state?.currency?.fromCurrency
+      : state?.currency?.toCurrency
+  );
+
   useEffect(() => {
     const handleScroll = () => {
       if (scrollContainerRef === null || scrollContainerRef?.current === null) {
@@ -89,84 +95,89 @@ const CurrencySection: React.FC<{
     status = false,
     index: number
   ) => (
-    networks && networks.map((network) => (<DialogClose
-      className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status && selectedCurrency.network?.network === network.network ? "border-primary" : "border-seperator"
-        }`}
-      onClick={() => {
-        if (!status || selectedCurrency.network?.network !== network.network) {
-          const tempSelectedCurrency = currencies.data.filter(
-            (currency) => currency.code === code && currency.name === name
-          )[0];
+    networks && networks.map((network) => {
+      if (oppositeCurrency.code === code && oppositeCurrency.name === name && oppositeCurrency.network?.network === network.network) {
+        return
+      }
+      return (<DialogClose
+        className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status && selectedCurrency.network?.network === network.network ? "border-primary" : "border-seperator"
+          }`}
+        onClick={() => {
+          if (!status || selectedCurrency.network?.network !== network.network) {
+            const tempSelectedCurrency = currencies.data.filter(
+              (currency) => currency.code === code && currency.name === name
+            )[0];
 
-          const selectedNetwork = tempSelectedCurrency.networks.filter((tempNetwork) => tempNetwork.name === network.name)[0];
+            const selectedNetwork = tempSelectedCurrency.networks.filter((tempNetwork) => tempNetwork.name === network.name)[0];
 
-          dispatch(
-            updateCurrency({
-              currency: {
-                code: tempSelectedCurrency.code,
-                name: tempSelectedCurrency.name,
-                icon: tempSelectedCurrency.icon,
-                notes: tempSelectedCurrency.notes,
-                network: selectedNetwork,
-                value: ""
-              },
-              isFromCurrency,
-            })
-          );
-          dispatch(resetRate())
-          // if (isRoutesFetched) {
-          //   dispatch(resetRoute());
-          //   dispatch(resetSwap());
-          // }
+            dispatch(
+              updateCurrency({
+                currency: {
+                  code: tempSelectedCurrency.code,
+                  name: tempSelectedCurrency.name,
+                  icon: tempSelectedCurrency.icon,
+                  notes: tempSelectedCurrency.notes,
+                  network: selectedNetwork,
+                  value: ""
+                },
+                isFromCurrency,
+              })
+            );
+            dispatch(resetRate())
+            // if (isRoutesFetched) {
+            //   dispatch(resetRoute());
+            //   dispatch(resetSwap());
+            // }
 
-          toastSuccess(`${tempSelectedCurrency.code}'s selected as token`);
-        } else dispatch(resetCurrency({ isFromCurrency }));
-      }}
-      key={`${code}-${name}-${index}-${network.name}`}
-    >
-      <div className="flex justify-between items-center">
-        <div className="flex items-center justify-center gap-6 capitalize">
-          <ImageWrapper>
-            <Image
-              src={icon}
-              height={37}
-              width={37}
-              alt="Token Icon"
-              className="text-sm"
-              loading="lazy"
-            />
-          </ImageWrapper>
+            toastSuccess(`${tempSelectedCurrency.code}'s selected as token`);
+          } else dispatch(resetCurrency({ isFromCurrency }));
+        }}
+        key={`${code}-${name}-${index}-${network.name}`}
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex items-center justify-center gap-6 capitalize">
+            <ImageWrapper>
+              <Image
+                src={icon}
+                height={37}
+                width={37}
+                alt="Token Icon"
+                className="text-sm"
+                loading="lazy"
+              />
+            </ImageWrapper>
 
-          <div className="flex flex-col">
-            <TooltipTemplate
-              content={name}
-              className="!-mb-1"
-              key={`${index}-${name}`}
-            >
-              <div>
-                <span className="text-base px-1">{code}</span>
-                <span className={`text-[14px] font-bold opacity-70`}>
-                  ({name})
-                </span>
-              </div>
-            </TooltipTemplate>
-          </div>
-        </div>
-        <div className="flex gap-4 items-center">
-          <div className="flex gap-2 items-center">
             <div className="flex flex-col">
-              <span className="flex  justify-end text-2xs">{network.network}</span>
-              <span className="flex  justify-end text-xs text-primary">{network.name}</span>
+              <TooltipTemplate
+                content={name}
+                className="!-mb-1"
+                key={`${index}-${name}`}
+              >
+                <div>
+                  <span className="text-base px-1">{code}</span>
+                  <span className={`text-[14px] font-bold opacity-70`}>
+                    ({name})
+                  </span>
+                </div>
+              </TooltipTemplate>
             </div>
-            {status && selectedCurrency.network?.network === network.network ? (
-              <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-            ) : (
-              <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
-            )}
+          </div>
+          <div className="flex gap-4 items-center">
+            <div className="flex gap-2 items-center">
+              <div className="flex flex-col">
+                <span className="flex  justify-end text-2xs">{network.network}</span>
+                <span className="flex  justify-end text-xs text-primary">{network.name}</span>
+              </div>
+              {status && selectedCurrency.network?.network === network.network ? (
+                <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
+              ) : (
+                <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </DialogClose>))
+      </DialogClose>)
+    })
 
   );
 
@@ -179,8 +190,8 @@ const CurrencySection: React.FC<{
         className="relative"
       >
         <div ref={scrollContainerRef} className="max-h-[45vh] pe-2.5 overflow-y-auto pb-2.5">
-          {loading ? <CustomLoader /> : displayData && displayData.map((currency, index) =>
-            currencyTemplate(
+          {loading ? <CustomLoader /> : displayData && displayData.map((currency, index) => {
+            return (currencyTemplate(
               currency.code,
               currency.name,
               currency.icon,
@@ -188,7 +199,8 @@ const CurrencySection: React.FC<{
               currency.networks,
               currency.code === selectedCurrency.code && currency.name === selectedCurrency.name,
               index
-            )
+            ))
+          }
           )}
         </div>
         {!loading && <ShadowDecoration />}

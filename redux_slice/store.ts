@@ -15,6 +15,7 @@ import { currencySlice } from "./slice/noWalletSlice/currencySlice";
 import { rateSlice } from "./slice/noWalletSlice/rateSlice";
 import { filterSlice } from "./slice/browserSlice/filterSlice";
 import { transactionSlice } from "./slice/noWalletSlice/transactionSlice";
+import { historySlice } from "./slice/noWalletSlice/historySlice";
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -36,7 +37,8 @@ const rootReducer = combineReducers({
   currency: currencySlice.reducer,
   rate: rateSlice.reducer,
   filter: filterSlice.reducer,
-  transaction: transactionSlice.reducer
+  transaction: transactionSlice.reducer,
+  history: historySlice.reducer
 });
 
 // Persist the root reducer

@@ -343,115 +343,110 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
             </Button>
           </div>
 
-          {wallet === WALLET.BROWSE && (
-            <div className="flex items-center">
-              <SettingsPopup />
+          <div className="flex items-center">
+            <SettingsPopup />
 
-              <HistoryPopup />
+            <HistoryPopup />
 
-              <WalletSourcePopup ref={walletSourcePopupRef} />
-            </div>
-          )}
+            <WalletSourcePopup ref={walletSourcePopupRef} />
+          </div>
         </div>
       </div>
 
-      {wallet === WALLET.BROWSE ? (
-        <div
-          className={`${isRoutesFetched ? "py-4" : "mx-auto md:max-w-[85%] p-4"
-            } my-6 flex flex-col gap-3 justify-evenly`}
+
+      <div
+        className={`${"mx-auto max-w-[95%] p-4"
+          } my-6 flex flex-col gap-3 justify-evenly`}
+      >
+        <CustomCryptoField
+          blockchains={blockchains}
+          label="From"
+          isFromToken={true}
+          isWalletConnected={isWalletConnected} />
+
+        <Button
+          variant={"outline"}
+          className="bg-transparent self-center disabled:cursor-not-allowed cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
+          disabled={fromToken.blockchain === "" ||
+            toToken.blockchain === "" ||
+            fromToken.symbol === "" ||
+            toToken.symbol === "" ||
+            selectedToken === undefined
+          }
+          onClick={exchangeFromAndToTokens}
         >
-          <CustomCryptoField
-            blockchains={blockchains}
-            label="From"
-            isFromToken={true}
-            isWalletConnected={isWalletConnected} />
+          <Image
+            src={"/assets/icons/swap.png"}
+            alt="swap icon"
+            height={28}
+            width={28}
+          />
+        </Button>
 
-          <Button
-            variant={"outline"}
-            className="bg-transparent self-center disabled:cursor-not-allowed cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
-            disabled={fromToken.blockchain === "" ||
-              toToken.blockchain === "" ||
-              fromToken.symbol === "" ||
-              toToken.symbol === "" ||
-              selectedToken === undefined
-            }
-            onClick={exchangeFromAndToTokens}
-          >
-            <Image
-              src={"/assets/icons/swap.png"}
-              alt="swap icon"
-              height={28}
-              width={28}
-            />
-          </Button>
+        <CustomCryptoField blockchains={blockchains} label="To" />
 
-          <CustomCryptoField blockchains={blockchains} label="To" />
-
-          {isWalletConnected
-            ? selectedRoute == undefined
+        {isWalletConnected
+          ? selectedRoute == undefined
+            ? buttonTemplate(
+              fromToken.value == undefined &&
+                fromToken.value == "" &&
+                fromToken.value == 0
+                ? "please choose amount"
+                : isError
+                  ? "Routes not found"
+                  : "Please Select tokens",
+              <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
+              true,
+              () => {
+                // setIsLoading(true);
+              }
+            )
+            : !isSwapMade
               ? buttonTemplate(
-                fromToken.value == undefined &&
-                  fromToken.value == "" &&
-                  fromToken.value == 0
-                  ? "please choose amount"
-                  : isError
-                    ? "Routes not found"
-                    : "Please Select tokens",
-                <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
-                true,
+                isInProcess || !isRoutesFetched
+                  ? fromToken.value == undefined &&
+                    fromToken.value == "" &&
+                    fromToken.value == 0
+                    ? "please choose amount"
+                    : isError
+                      ? "Routes not found"
+                      : "Please Select tokens"
+                  : "Swap",
+                <>
+                  <span className="pe-2.5">
+                    {isRouteProcess || !isRoutesFetched ? "" : "Swapping"}
+                  </span>
+                  <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
+                </>,
+                isInProcess || !isRoutesFetched,
                 () => {
-                  // setIsLoading(true);
+                  dispatch(updateSwapStatus({ isInProcess: true }));
+                  setIsConfirmModalOpen(true);
                 }
               )
-              : !isSwapMade
-                ? buttonTemplate(
-                  isInProcess || !isRoutesFetched
-                    ? fromToken.value == undefined &&
-                      fromToken.value == "" &&
-                      fromToken.value == 0
-                      ? "please choose amount"
-                      : isError
-                        ? "Routes not found"
-                        : "Please Select tokens"
-                    : "Swap",
-                  <>
-                    <span className="pe-2.5">
-                      {isRouteProcess || !isRoutesFetched ? "" : "Swapping"}
-                    </span>
-                    <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
-                  </>,
-                  isInProcess || !isRoutesFetched,
-                  () => {
-                    dispatch(updateSwapStatus({ isInProcess: true }));
-                    setIsConfirmModalOpen(true);
-                  }
-                )
-                : buttonTemplate(
-                  <>
-                    <Image
-                      src={"/assets/icons/reset-icon.png"}
-                      width={21.39}
-                      height={25}
-                      alt="Reset icon"
-                      className="me-3"
-                    />
-                    Swap again
-                  </>,
-                  "",
-                  false,
-                  () => {
-                    onCancel();
-                    dispatch(updateTokenValue({ isFromToken: true, value: "0" }))
-                    dispatch(updateSwapStatus({ isInProcess: false }))
-                    dispatch(resetRoute());
-                    dispatch(resetSwap());
-                  }
-                )
-            : buttonTemplate("Connect Wallet", <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />, isInProcess, handleConnectButtonClick)}
-        </div>
-      ) : (
-        <NoWallet isWalletConnected={isWalletConnected} />
-      )}
+              : buttonTemplate(
+                <>
+                  <Image
+                    src={"/assets/icons/reset-icon.png"}
+                    width={21.39}
+                    height={25}
+                    alt="Reset icon"
+                    className="me-3"
+                  />
+                  Swap again
+                </>,
+                "",
+                false,
+                () => {
+                  onCancel();
+                  dispatch(updateTokenValue({ isFromToken: true, value: "0" }))
+                  dispatch(updateSwapStatus({ isInProcess: false }))
+                  dispatch(resetRoute());
+                  dispatch(resetSwap());
+                }
+              )
+          : buttonTemplate("Connect Wallet", <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />, isInProcess, handleConnectButtonClick)}
+      </div>
 
       <ConfirmModal
         isConfirmModalOpen={isConfirmModalOpen}
