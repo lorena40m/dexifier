@@ -59,7 +59,7 @@ export type TransacionRequest = {
   refundExtraId?: string
 }
 
-type TransactionCoin = {
+export type TransactionCoin = {
   coinCode: string,
   coinName: string,
   icon: string,

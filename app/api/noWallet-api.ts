@@ -73,7 +73,7 @@ export async function createTransaction(
   const data: AxiosResponse = await axiosNoWalletClient.post(
     "/transactions", transactionRequest
   );
-  const transactionResponse = data.data;
+  const transactionResponse = data.data as TransactionData;
 
   console.log("transactionResponse==>", transactionResponse)
 
@@ -86,7 +86,7 @@ export async function fetchConfirm(
   const data: AxiosResponse = await axiosNoWalletClient.get(
     `/transactions/${transactionId}`
   );
-  const confirmResponse = data.data;
+  const confirmResponse = data.data as TransactionData;
 
   console.log("confirmResponse==>", confirmResponse)
 

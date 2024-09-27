@@ -534,7 +534,7 @@ const MainNavbar = () => {
         </div>
         <div className="text-2xl font-bold border-b border-[#5f5f5f] p-2 mb-4 flex items-center justify-between">
           <span>Your Wallet</span>
-          <button onClick={refreshWalletBalance}>
+          <button onClick={() => refreshWalletBalance()}>
             <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
           </button>
         </div>

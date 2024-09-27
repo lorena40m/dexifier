@@ -236,7 +236,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
   // render part
 
   return ((
-    <div className="relative bg-modal w-full min-h-[530px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+    <div className="relative bg-modal w-full min-h-[570px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator backdrop-filter backdrop-blur-lg shadow-lg">
 
       <div className="z-0 w-full">
         <h1 className="text-2xl mb-4">Routes</h1>
@@ -249,7 +249,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
         </div>
         <div className="relative">
           <ShadowDecoration />
-          <div className="overflow-y-auto lg:h-[25rem] pe-2">
+          <div className="overflow-y-auto lg:h-[26.5rem] pe-2">
             {sortedRoutes.map((item) => singleRouteContainer(item, tokens))}
           </div>
         </div>

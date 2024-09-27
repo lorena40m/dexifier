@@ -36,7 +36,7 @@ const NoWalletInput: React.FC<Props> = ({
       ? state?.currency?.fromCurrency
       : state?.currency?.toCurrency
   );
-  const { rateResult, isLoading } = useAppSelector((state) => state.rate);
+  const { rateResult, isLoading, isConfirming } = useAppSelector((state) => state.rate);
   const { isExchangeButtonClicked } = useAppSelector((state) => state.routes);
 
   const [rateFetchError, setRateFetchError] = useState<boolean>(false);
@@ -59,7 +59,7 @@ const NoWalletInput: React.FC<Props> = ({
       rateType: isFixed ? "fixed" : "floating"
 
     }
-    if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "" || !isFromCurrency || isExchangeButtonClicked) {
+    if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "" || !isFromCurrency || isConfirming || isExchangeButtonClicked) {
       console.log("rate fetch fail with request data error");
       return
     }
@@ -84,7 +84,6 @@ const NoWalletInput: React.FC<Props> = ({
       dispatch(updateTransactionData({ transactionData: undefined }));
       dispatch(updateAddressError({ recipientAddressError: { isError: false, error: "" } }));
       dispatch(updateLoadingState({ isLoading: false }));
-
     })
 
   };

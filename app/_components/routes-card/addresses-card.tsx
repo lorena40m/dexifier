@@ -10,6 +10,7 @@ import { formatReadableDate } from "@/app/utils/catch-data";
 import StatusBar from "../common/statusBar";
 import ImageWrapper from "../common/imageWrapper";
 import CustomLoader from "../common/loader";
+import QrCodeGenerator from "../common/qrGenerator";
 
 const AddressesCard = () => {
   const dispatch = useDispatch();
@@ -55,7 +56,7 @@ const AddressesCard = () => {
       setSteps(['Confirmed', `${transactionData?.coinFrom.coinCode} to ${transactionData?.coinTo.coinCode}`, `${transactionData?.status}`])
       return
     }
-    if (transactionData?.status === "success" || transactionData?.status === "refunded" || transactionData?.status === "overdue") {
+    if (transactionData?.status === "success" || transactionData?.status === "refunded") {
       setCurrentStep(3);
       setSteps(['Confirmed', `${transactionData?.coinFrom.coinCode} to ${transactionData?.coinTo.coinCode}`, `${transactionData?.status}`])
       return
@@ -159,9 +160,9 @@ const AddressesCard = () => {
                   placeholder={"Enter recipient address"}
                   className="flex-1 text-md border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
                   style={{ outline: "none" }}
-                  disabled={false}
+                  disabled={isConfirming}
                 />
-                <button className="border border-primary text-primary rounded-lg p-1" onClick={pasteFromClipboard}>paste</button>
+                <button className="border border-primary text-primary rounded-lg p-1 disabled:cursor-not-allowed disabled:opacity-80" disabled={isConfirming} onClick={pasteFromClipboard}>paste</button>
               </div>
 
               {recipientAddress === "" ? <span className="text-primary text-sm">Enter the Recipient Address first !</span>
@@ -202,9 +203,16 @@ const AddressesCard = () => {
                     readOnly={true}
                     disabled={false}
                   />
+                  {depositAddress && <QrCodeGenerator text={depositAddress} />}
                   <ButtonCopyIcon text={depositAddress || ""} />
                 </div>
-                {isConfirming && (transactionData.status === "wait" ? <CustomLoader /> : <StatusBar steps={steps} currentStep={currentStep} />)}
+                {
+                  transactionData.status === "wait" ?
+                    (isConfirming && <div className="flex flex-col items-center text-primary"><CustomLoader /><span>Waiting to receive funds</span></div>) :
+                    transactionData.status === "success" ? <div className="flex flex-col items-center text-primary"><StatusBar steps={steps} currentStep={currentStep} /><span>Transaction is completed and funds are received</span></div> :
+                      transactionData.status === "overdue" ? <div className="flex justify-center"><span >Transation is overdue</span></div> :
+                        (isConfirming && <StatusBar steps={steps} currentStep={currentStep} />)
+                }
               </div>
               }
             </div>

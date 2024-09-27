@@ -1,6 +1,7 @@
 import { useAppSelector } from "@/redux_slice/provider";
 import ExchangeCard from "./ExchangeCard";
 import { FlexExchangeCardProps, WALLET } from "@/app/types/interface";
+import NoWallet from "../no-wallet/Nowallet";
 
 
 const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }) => {
@@ -11,14 +12,14 @@ const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }
   return (
     <div
       className={
-        `${(isSwapMade || isInProcess) && wallet === WALLET.BROWSE
-          ? "w-full max-w-[480px]"
-          : isRoutesFetched && !isRouteProcess && wallet === WALLET.BROWSE
-            ? "w-full max-w-[480px]"
-            : "min-w-[650px]"} 
-           h-[570px]`}
+        // `${(isSwapMade || isInProcess)
+        //   ? "w-full max-w-[480px]"
+        //   : isRoutesFetched && !isRouteProcess
+        //     ? "w-full max-w-[480px]"
+        //     : "min-w-[650px]"} 
+        `min-w-[600px] h-[570px]`}
     >
-      <ExchangeCard isWalletConnected={isWalletConnected} />
+      {wallet === WALLET.BROWSE ? <ExchangeCard isWalletConnected={isWalletConnected} /> : <NoWallet isWalletConnected={isWalletConnected} />}
     </div>
   );
 };
