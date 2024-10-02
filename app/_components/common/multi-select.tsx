@@ -40,6 +40,7 @@ interface HideFilterSelectorrProps {
 export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions }) => {
   const dispatch = useDispatch();
   const [selectedWallets, setSelectedWallets] = useState<WalletOption[]>(walletOptions.map((wallet) => ({ ...wallet, selected: true })))
+  const { filterWalletList } = useAppSelector((state) => state.filter);
   const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref to the dropdown
@@ -61,7 +62,7 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
   // Function to toggle a wallet's selected status
   const toggleWallet = (walletType: string) => {
     const updatedWallets = selectedWallets.map((wallet, i) =>
-      wallet.walletType === walletType ? { ...wallet, selected: !wallet.selected } : wallet
+      wallet.walletType === walletType ? { ...wallet, selected: !(wallet.selected && filterWalletList.includes(wallet.walletType)) } : { ...wallet, selected: filterWalletList.includes(wallet.walletType) }
     );
     const tempfilterWalletList = updatedWallets.filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
     setSelectedWallets(updatedWallets);
@@ -75,7 +76,7 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
 
   // Function to get selected wallet data
   const getSelectedWallets = () => {
-    return selectedWallets.filter(wallet => wallet.selected);
+    return selectedWallets.filter(wallet => wallet.selected && filterWalletList.includes(wallet.walletType));
   };
 
   return (
@@ -87,7 +88,7 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
       >
         {getSelectedWallets().length > 0 ? (
           <div className="flex items-center justify-between">
-            {getSelectedWallets().map((wallet, index) => (
+            {(getSelectedWallets().length > 2 ? getSelectedWallets().slice(0, 2) : getSelectedWallets()).map((wallet, index) => (
               <div key={index} style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 40 }}>
                 <Image
                   src={wallet.image || ""}
@@ -103,7 +104,7 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
         ) : (
           "No Wallets"
         )}
-        <span className="ml-2">
+        <span className="ml-2 ">
           {getSelectedWallets().length > 0 && <span >{getSelectedWallets().length} / {walletOptions.length} wallets</span>}
           <span>{isOpen ? "▲" : "▼"}</span></span>
       </button>
@@ -135,7 +136,7 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
                 </div>
                 <input
                   type="checkbox"
-                  checked={wallet.selected}
+                  checked={wallet.selected && filterWalletList.includes(wallet.walletType)}
                   className="form-checkbox h-5 w-5 text-[#13F187]"
                 />
               </button>
@@ -151,6 +152,8 @@ export const WalletSelector: React.FC<WalletSelectorProps> = ({ walletOptions })
 export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockchainOptions }) => {
   const dispatch = useDispatch();
   const [selectedBlockchains, setSelectedBlockchains] = useState<BlockchainMeta[]>(blockchainOptions);
+  const [filteredBlockchains, setFilteredBlockchains] = useState<BlockchainMeta[]>([]);
+  const { filterChainList } = useAppSelector((state) => state.filter);
   const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
   const [searchTerm, setSearchTerm] = useState(''); // State for search input
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref to the dropdown
@@ -172,21 +175,25 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
   // Function to toggle a blockchain's selected status
   const toggleBlockchain = (displayName: string) => {
     const updatedBlockchains = selectedBlockchains.map((blockchain, i) =>
-      blockchain.displayName === displayName ? { ...blockchain, enabled: !blockchain.enabled } : blockchain
+      blockchain.displayName === displayName ? { ...blockchain, enabled: !(blockchain.enabled && filterChainList.includes(blockchain.name)) } : { ...blockchain, enabled: (filterChainList.includes(blockchain.name)) }
     );
-    const filterChainList = updatedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
+    const filterChainLists = updatedBlockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
     setSelectedBlockchains(updatedBlockchains);
-    dispatch(updateFilterChain({ filterChainList: filterChainList }));
+    dispatch(updateFilterChain({ filterChainList: filterChainLists }));
   };
 
   // Filtered blockchains based on the search term
-  const filteredBlockchains = selectedBlockchains.filter(blockchain =>
-    blockchain.displayName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+
+  useEffect(() => {
+    const filteredBlockchains = selectedBlockchains.filter(blockchain =>
+      blockchain.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredBlockchains(filteredBlockchains);
+  }, [selectedBlockchains, searchTerm])
 
   // Function to get selected blockchain data
   const getSelectedBlockchains = () => {
-    return selectedBlockchains.filter(blockchain => blockchain.enabled);
+    return filteredBlockchains.filter(blockchain => blockchain.enabled && filterChainList.includes(blockchain.name));
   };
 
   const totalSelect = (isAllSelect: boolean) => {
@@ -264,7 +271,7 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
                 </div>
                 <input
                   type="checkbox"
-                  checked={blockchain.enabled}
+                  checked={filterChainList.includes(blockchain.name)}
                   className="form-checkbox h-5 w-5 text-[#13F187]"
                 />
               </button>
@@ -280,6 +287,8 @@ export const BlockchainSelector: React.FC<BlockchainSelectorProps> = ({ blockcha
 export const HideFilterSelector: React.FC<HideFilterSelectorrProps> = ({ filterOptions }) => {
   const dispatch = useDispatch();
   const { isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken } = useAppSelector((state) => state.filter);
+  console.log("isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken", isHideSmallBalance, isHideEmptyWallet, isHideUnsupportedToken);
+
   const [isOpen, setIsOpen] = useState(false); // State for dropdown visibility
 
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref to the dropdown
@@ -317,7 +326,7 @@ export const HideFilterSelector: React.FC<HideFilterSelectorrProps> = ({ filterO
       return isHideUnsupportedToken
     } else {
       console.log("error while select filter");
-      return
+      return false
     }
   }
 

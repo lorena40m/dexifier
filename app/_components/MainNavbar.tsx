@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -74,6 +74,8 @@ const MainNavbar = () => {
   const [filteredBalanceData, setFilteredBalanceData] = useState<WalletAssetsBalance[]>();
 
   const { list } = useWalletList({})
+
+  const connectedWalletsMemo = useMemo(() => connectedWallets, [connectedWallets]);
 
   const handleScroll = () => {
     if (window.scrollY > 0) {
@@ -168,18 +170,18 @@ const MainNavbar = () => {
       }).catch(() => {
         console.log("get balance data error");
       });
-  }, [connectedWallets])
+  }, [connectedWalletsMemo])
 
   async function openModal() {
     setLoading(true);
-    const filterWalletList = mappedWallets.map((wallet) => ({ ...wallet, selected: true })).filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
-    dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
-    const filterChainList = blockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
-    dispatch(updateFilterChain({ filterChainList: filterChainList }));
+    // const filterWalletList = mappedWallets.map((wallet) => ({ ...wallet, selected: true })).filter((updatedWallet) => updatedWallet.selected).map((wallet) => wallet.walletType)
+    // dispatch(updateFilterWallet({ filterWalletList: filterWalletList }));
+    // const filterChainList = blockchains.filter((updatedBlockchain) => updatedBlockchain.enabled).map((chain) => chain.name)
+    // dispatch(updateFilterChain({ filterChainList: filterChainList }));
 
-    dispatch(updateFilterSmallBalance({ isHideSmallBalance: false }));
+    dispatch(updateFilterSmallBalance({ isHideSmallBalance: true }));
     dispatch(updateFilterEmptyWallet({ isHideEmptyWallet: false }));
-    dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: false }));
+    dispatch(updateFilterUnsupportedToken({ isHideUnsupportedToken: true }));
 
     setIsModalOpen(true);
     setLoading(false);
@@ -198,6 +200,14 @@ const MainNavbar = () => {
       walletBalance += balance.usdAmount || 0
     })
     return walletBalance;
+  }
+
+  const getFilteredWalletUSDBalance = (filteredBalanceDatas: WalletAssetsBalance[]) => {
+    let filterWalletBalance = 0;
+    filteredBalanceDatas.forEach((filteredBalanceData) => {
+      filterWalletBalance += getWalletUSDBalance(filteredBalanceData);
+    })
+    return filterWalletBalance;
   }
 
   const getAmountFromString = (amount: string, decimals: number) => {
@@ -223,36 +233,49 @@ const MainNavbar = () => {
     setTotalUSDAmount("0");
     let totalUSDAmount = 0;
     const walletBalanceWithUSD = await Promise.all(
-      sortedWalletBalance.map(async (walletData) => {
-        const balance = walletData.balances.length !== 0
+      sortedWalletBalance && sortedWalletBalance.map(async (walletData) => {
+        const balance = walletData.balances && walletData.balances.length !== 0
           ? await Promise.all(walletData.balances.map(async (balance) => {
+            if (!balance || !balance.amount) return balance; // Check if balance or balance.amount is null/undefined
+
             const { usedPrice } = getTokeData(balance?.asset.blockchain, balance?.asset.address);
-            const amount = getAmountFromString(balance?.amount.amount, balance?.amount.decimals);
-            const usdAmount = parseFloat(amount) * usedPrice;
+            const amount = getAmountFromString(balance?.amount?.amount, balance?.amount?.decimals);
+
+            const usdAmount = parseFloat(amount) * (usedPrice || 0); // Add fallback for usedPrice
             totalUSDAmount += usdAmount;
             return { ...balance, usdAmount: usdAmount };
           }))
           : [];
+
         return {
           ...walletData,
           balances: balance,
         };
       })
     );
+
     if (totalUSDAmount > 0) {
-      setTotalUSDAmount(totalUSDAmount.toFixed(2))
+      setTotalUSDAmount(totalUSDAmount.toFixed(2));
     }
+
     return walletBalanceWithUSD;
   };
 
   const setWalletBalanceData = async () => {
     setLoading(true);
     dispatch(updateFilterLoading({ filterLoading: true }));
+
     try {
       dispatch(updateTokenValue({ isFromToken: true, value: "0" }));
-      const getBalanceQuery = async () => connectedWallets.map((connectedWallet) => connectedWallet.chain + "." + connectedWallet.address);
+
+      const getBalanceQuery = async () => connectedWallets.map((connectedWallet) =>
+        connectedWallet.chain + "." + connectedWallet.address
+      );
+
       const balanceQuery = await getBalanceQuery();
       const walletBalanceData = await getBananceOfWallet(balanceQuery);
+
+      if (!walletBalanceData) throw new Error("No wallet balance data found"); // Added null check for walletBalanceData
       const walletBalanceWithUSD = await getWalletBalanceWithUSD(walletBalanceData);
       dispatch(updateWalletBalances({ walletBalances: walletBalanceWithUSD }));
     } catch (error) {
@@ -260,9 +283,10 @@ const MainNavbar = () => {
     } finally {
       setLoading(false);
       dispatch(updateFilterLoading({ filterLoading: false }));
-      dispatch(updateFilterWallet({ filterWalletList: connectedWallets.map((connectedWallet) => connectedWallet.walletType) })); // Ensure loading is set to false regardless of success or error
+      dispatch(updateFilterWallet({ filterWalletList: connectedWallets.map((connectedWallet) => connectedWallet.walletType) }));
     }
   };
+
 
   const refreshWalletBalance = async () => {
     setIsModalOpen(false);
@@ -307,8 +331,8 @@ const MainNavbar = () => {
   }
 
   const SubWallet: React.FC<any> = ({ walletBalance, index }) => {
-    const [isOpen, SetIsOpen] = useState<boolean>(true);
-
+    const [isOpen, SetIsOpen] = useState<boolean>(walletBalance.balances.length === 0 ? false : true);
+    const totalAmount = getWalletUSDBalance(walletBalance);
     return (
       <div className="pr-2">
         <button className="flex justify-between items-center text-sm border border-primary hover:opacity-80 p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
@@ -326,14 +350,17 @@ const MainNavbar = () => {
             <Image src={getWalletIcon(walletBalance.blockChain, walletBalance.address) || "/assets/wallet/default"} width={28} height={28} alt={walletBalance.blockChain} className="mr-2" />
             {walletBalance.blockChain}
           </div>
-          <div className="flex items-center gap-1">
-            <span>{getAbbrAddress(walletBalance.address)}</span>
-            <ButtonCopyIcon text={walletBalance.address} />
-            <TooltipTemplate content={"link to wallet"} className="px-2 py-1">
-              <Link href={walletBalance.explorerUrl} target="_black">
-                <Image src={"/assets/icons/link.png"} width={18} height={18} alt="link" />
-              </Link>
-            </TooltipTemplate>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1">
+              <span>{getAbbrAddress(walletBalance.address)}</span>
+              <ButtonCopyIcon text={walletBalance.address} />
+              <TooltipTemplate content={"link to wallet"} className="px-2 py-1">
+                <Link href={walletBalance.explorerUrl} target="_black">
+                  <Image src={"/assets/icons/link.png"} width={18} height={18} alt="link" />
+                </Link>
+              </TooltipTemplate>
+            </div>
+            <span className="text-primary">{totalAmount === 0 ? "" : totalAmount.toFixed(3) + "$"}</span>
           </div>
         </button>
         <div className="p-2 text-[#e5e7ebc9]">
@@ -528,6 +555,9 @@ const MainNavbar = () => {
       >
 
         <div className="flex justify-end p-2">
+          <div className="w-full flex justify-center">
+            <span className="text-xl text-primary">{getFilteredWalletUSDBalance(filteredBalanceData || []).toFixed(4)}$</span>
+          </div>
           <button onClick={closeModal}>
             <X className="w-7 h-7 p-0.5 bg-primary rounded-full font-bold text-black hover:bg-primary-dark transition-colors duration-300" />
           </button>

@@ -16,15 +16,41 @@ import { updateTransactionData } from "@/redux_slice/slice/noWalletSlice/transac
 import { deleteHistory } from "@/redux_slice/slice/noWalletSlice/historySlice";
 
 interface HistoryPopProps {
-  startConfirming: (transactionId: string) => Promise<void>;
+  startConfirming: (transactionId: string, isHistory: boolean) => Promise<void>;
 }
 
 const NoWalletHistoryPopup: React.FC<HistoryPopProps> = ({ startConfirming }) => {
   const dispatch = useDispatch();
   const { history } = useAppSelector((state) => state.history);
   const { isConfirming } = useAppSelector((state) => state.rate)
-  const [filteredData, setFilteredData] = useState<TransactionData[]>([])
+  const [filteredData, setFilteredData] = useState<TransactionData[]>([]);
+  const confirmIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [search, setSearch] = useState<string>("");
+
+
+  const startHistoryConfirming = async (transactionId: string) => {
+
+    // Start polling for confirmation
+    console.log("start confirming with transactionId", transactionId);
+
+    dispatch(updateConfirming({ isConfirming: true }));
+
+    // Clear any existing interval before starting a new one
+    if (confirmIntervalRef.current) {
+      clearInterval(confirmIntervalRef.current);
+    }
+
+    confirmIntervalRef.current = setInterval(async () => {
+      const ConfirmedData = await fetchConfirm(transactionId);
+      dispatch(updateTransactionData({ transactionData: ConfirmedData }));
+
+      if (ConfirmedData?.status === "success" || ConfirmedData?.status === "overdue" || ConfirmedData?.status === "refunded") {
+        clearInterval(confirmIntervalRef.current!);
+        dispatch(updateConfirming({ isConfirming: false }));
+        confirmIntervalRef.current = null;
+      }
+    }, 5000); // Poll every 5 seconds (adjust as needed)
+  };
 
   useEffect(() => {
     const tempTransactionData = history.filter((historyData) =>
@@ -90,7 +116,7 @@ const NoWalletHistoryPopup: React.FC<HistoryPopProps> = ({ startConfirming }) =>
           </button>
         </div>
         <button
-          onClick={() => startConfirming(requestId)}
+          onClick={() => startConfirming(requestId, true)}
           className="flex w-full items-center justify-between disabled:opcity-80 hover:opacity-80"
           disabled={isConfirming}>
           {tokenContainer(fromCoin.coinCode, fromCoin.network, fromCoin.icon)}

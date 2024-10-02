@@ -15,7 +15,7 @@ import QrCodeGenerator from "../common/qrGenerator";
 const AddressesCard = () => {
   const dispatch = useDispatch();
   const { fromCurrency, toCurrency } = useAppSelector((state) => state.currency);
-  const { recipientAddress, recipientAddressError, transactionData } = useAppSelector((state) => state.transaction);
+  const { recipientAddress, recipientAddressError, transactionData, isHistoryLoading } = useAppSelector((state) => state.transaction);
   const { rateResult, isConfirming } = useAppSelector((state) => state.rate);
   const depositAddress = useAppSelector((state) => state.transaction.transactionData?.depositAddress);
   const [steps, setSteps] = useState<string[]>([]);
@@ -79,7 +79,7 @@ const AddressesCard = () => {
           id="__controls"
           className="border-b-[0.1px] border-[#333] border-solid"
         >
-          <h1 className="text-2xl mb-4 px-4">{!isConfirming ? "Addresses" : "Confirmation"}</h1>
+          <h1 className="text-2xl mb-4 px-4">{isConfirming ? "Confirmation" : (isHistoryLoading ? "History" : "Addresses")}</h1>
         </div >
         <div className="relative">
           {/* <ShadowDecoration /> */}

@@ -15,11 +15,11 @@ const FlexRoutesCard: React.FC<FlexRoutesCardProps> = ({ isWalletConnected }) =>
         !isInProcess &&
         isRoutesFetched &&
         !isRouteProcess &&
-        <div className={`${isSwapMade || isInProcess ? "w-1/3" : "w-full max-w-[550px]"}`}>
+        <div className={`${isSwapMade || isInProcess ? "w-1/3" : "max-w-[550px] md:w-full md:max-w-[650px]"}`}>
           <RoutesCard isWalletConnected={isWalletConnected} />
         </div>
       ) :
-      (wallet === WALLET.NONE && (rateResult !== undefined && !isLoading && rateResult?.message === null) && <div className="w-full max-w-[600px]"><AddressesCard /></div>)
+      (wallet === WALLET.NONE && (rateResult !== undefined && !isLoading && rateResult?.message === null) && <div className="min-w-[375px] md:w-full md:max-w-[600px]"><AddressesCard /></div>)
   );
 };
 export default FlexRoutesCard;
