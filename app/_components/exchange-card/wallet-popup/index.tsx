@@ -113,7 +113,7 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
     return (
       <button key={`wallet-${index}`} className="flex flex-col min-w-[125px] items-center justify-center p-2 rounded-lg disabled:cursor-not-allowed hover:opacity-80"
         style={{ backgroundColor: BgColorSet[walletData.state] }}
-        onClick={() => walletClick(walletData)}
+        onClick={() => walletClick(walletData).catch(console.log)}
         disabled={filterLoading}>
         <Image src={walletData.image} alt={`@{index}'s wallet`} width={45}
           height={45} />

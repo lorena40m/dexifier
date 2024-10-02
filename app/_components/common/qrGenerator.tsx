@@ -47,8 +47,15 @@ const QrCodeGenerator: React.FC<QrCodeGeneratorProps> = ({ text }) => {
 
   return (
     <div className='relative h-[18px]'>
+
       <div className={`absolute bottom-[30px] right-[20px] ${isVisible ? "flex" : "hidden"}`}>
-        <canvas ref={canvasRef} />
+        <div className='relative'>
+          <div className='absolute top-[55px] right-[55px] rounded-full bg-black p-1'>
+            <Image src={"/assets/icons/logo-qr.png"} width={30} height={30} alt='logo-qr' />
+          </div>
+          <canvas ref={canvasRef} />
+        </div>
+
       </div>
       <TooltipTemplate content={"QR Code"}>
         <button onClick={toggleQRCode}>

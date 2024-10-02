@@ -7,7 +7,7 @@ import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { createTransaction, fetchConfirm, getCurrencies, getRate } from "@/app/api/noWallet-api"
 import { useAppSelector } from "@/redux_slice/provider"
 import CustomLoader from "../common/loader"
-import { updateTransactionData, updateAddressError, updateTransactionLoading, setConfirmIntervalId } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
+import { updateTransactionData, updateAddressError, updateTransactionLoading, setConfirmIntervalId, updateHistoryLoading } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
 import { useDispatch } from "react-redux"
 import ToggleButton from "../common/toggleButton"
 import { toastError } from "@/lib/utils"
@@ -34,13 +34,15 @@ const NoWallet: FC<NoWalletProps> = () => {
     transactionData,
     confirmIntervalId,
     recipientAddressError,
-    isTransactionLoading
+    isTransactionLoading,
+    isHistoryLoading
   } = useAppSelector((state) => state.transaction);
   const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
   const { wallet } = useAppSelector((state) => state.settings);
   const { isRouteProcess, isRoutesFetched } = useAppSelector(
     (state) => state.routes
   );
+  const [isHistory, setIsHistory] = useState<boolean>(false);
   const transactionIdRef = useRef<string>(""); // To store transaction ID for confirming
   const confirmIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -72,7 +74,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         clearInterval(confirmIntervalRef.current);
       }
     };
-  }, [isConfirming, transactionData]);
+  }, []);
 
 
   useEffect(() => {
@@ -85,15 +87,30 @@ const NoWallet: FC<NoWalletProps> = () => {
     }
   }, [transactionDataMemo])
 
-  const startConfirming = async (transactionId: string) => {
+  const startConfirming = async (transactionId: string, isHistory = false) => {
+
     // Start polling for confirmation
-    console.log("start confirming");
+    console.log("start confirming with transactionId", transactionId);
 
     dispatch(updateConfirming({ isConfirming: true }));
 
     // Clear any existing interval before starting a new one
     if (confirmIntervalRef.current) {
       clearInterval(confirmIntervalRef.current);
+    }
+    if (isHistory) {
+      const ConfirmedData = await fetchConfirm(transactionId);
+      dispatch(updateTransactionData({ transactionData: ConfirmedData }));
+      dispatch(updateHistoryLoading({ isHistoryLoading: true }));
+
+      if (ConfirmedData?.status === "success" || ConfirmedData?.status === "overdue" || ConfirmedData?.status === "refunded") {
+        clearInterval(confirmIntervalRef.current!);
+        dispatch(updateConfirming({ isConfirming: false }));
+        confirmIntervalRef.current = null;
+        return
+      }
+    } else {
+      dispatch(updateHistoryLoading({ isHistoryLoading: false }));
     }
 
     confirmIntervalRef.current = setInterval(async () => {
@@ -120,7 +137,13 @@ const NoWallet: FC<NoWalletProps> = () => {
     if (isConfirming) {
       stopConfirming().catch(console.log);
     } else {
-      createTransactionHandler().catch(console.log);
+      if (isHistoryLoading) {
+        dispatch(updateTransactionData({ transactionData: undefined }));
+        dispatch(updateAddressError({ recipientAddressError: { isError: false, error: "" } }));
+        dispatch(updateHistoryLoading({ isHistoryLoading: false }));
+      } else {
+        createTransactionHandler().catch(console.log);
+      }
     }
   };
 
@@ -321,7 +344,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         </div>
         {rateResult && <div className="flex justify-center"><span className="text-error text-sm">{rateResult.message || ""}</span></div>}
         {buttonTemplate(
-          isConfirming ? "Stop Confirmation" : "Exchange Now",
+          isConfirming ? "Stop Confirmation" : isHistoryLoading ? "Return to Swap" : "Exchange Now",
           <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
           isLoading || isTransactionLoading,
           isLoading ||

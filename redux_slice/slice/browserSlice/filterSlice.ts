@@ -10,9 +10,9 @@ const initialFilterList: {
 } = {
   filterWalletList: [],
   filterChainList: [],
-  isHideSmallBalance: false,
+  isHideSmallBalance: true,
   isHideEmptyWallet: false,
-  isHideUnsupportedToken: false,
+  isHideUnsupportedToken: true,
   filterLoading: false
 }
 

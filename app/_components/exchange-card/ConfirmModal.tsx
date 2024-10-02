@@ -6,6 +6,7 @@ import { ConnectedWallet, updateRequiredChain, updateSelectedWallets } from '@/r
 import { X } from 'lucide-react';
 import { ChangeEvent, FC, useEffect, useState } from 'react';
 import Modal from 'react-modal';
+import { Styles } from 'react-modal';
 import { useDispatch } from 'react-redux';
 import { getAbbrAddress, getAmountFromString } from '@/app/utils/catch-data';
 import { WalletType } from '@rango-dev/wallets-shared';
@@ -16,20 +17,53 @@ import { toastError } from '@/lib/utils';
 import ShadowDecoration from '../common/shadowDecoration';
 import { ConfirmMessage } from '@/app/types/interface';
 import ButtonCopyIcon from '../common/coypButtonIcon';
+import ReactModal from 'react-modal';
 
-const customStyles = {
+// const customStyles = {
+//   overlay: {
+//     backgroundColor: '#000000cc',
+//     zIndex: '30'
+//   },
+//   content: {
+//     maxWidth: '560px',
+//     maxHeight: '80vh',
+//     top: '0',
+//     right: '0',
+//     transform: `translate(calc(50vw - 280px), 15vh)`,
+//   },
+// };
+
+const customStyles: Styles = {
   overlay: {
     backgroundColor: '#000000cc',
-    zIndex: '30'
+    zIndex: '30',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
-    width: '560px',
+    position: 'relative',  // 'absolute' could cause issues inside a flex container
+    top: 'auto',
+    left: 'auto',
+    right: 'auto',
+    bottom: 'auto',
     maxHeight: '80vh',
-    top: '0',
-    right: '0',
-    transform: `translate(calc(50vw - 280px), 15vh)`,
+    width: '90vw',  // Full width on smaller screens
+    maxWidth: '560px',  // For larger screens
+    padding: '1.5rem',
+    margin: 'auto',  // Centering inside the flex container
+    borderRadius: '15px',
+    overflow: 'auto',
   },
 };
+
+
+
 interface ConfirmModalProps {
   isConfirmModalOpen: boolean;
   closeConfirmModal: () => void;
@@ -63,6 +97,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
   const [selectedWalletsList, setSelectedWalletsList] = useState<SelectedWalletListProps[]>([]);
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
   const { connectedWallets, refOfConnectButton } = useAppSelector((state) => state.wallet);
+  const { filterLoading } = useAppSelector((state) => state.filter);
   const { customAddress, confirmResponse } = useAppSelector((state) => state.swap);
   const lastNumber = selectedRoute?.swaps.length;
 
@@ -223,7 +258,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
 
   useEffect(() => {
     if (selectedWalletsList.length > 0) {
-      confirmWallet();
+      confirmWallet().then().catch(console.log);
     }
   }, [selectedWalletsList, isConfirmModalOpen]);
 
@@ -258,7 +293,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                 <span className="font-bold w-full">ERROR:</span> You should connect a {chain} supported wallet
               </div>
                 <button
-                  className="flex h-[136px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-4 gap-2 hover:opacity-80"
+                  className="flex h-[124px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-2 gap-2 hover:opacity-80"
                   style={{ border: "1px", borderStyle: "solid" }}
                   onClick={() => onClickWalletButton(chain)}>
                   <span className='m-auto text-sm'>
@@ -288,7 +323,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                   )
                 })}
                 <button
-                  className="flex h-[136px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-4 gap-2 hover:opacity-80"
+                  className="flex h-[124px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-2 gap-2 hover:opacity-80"
                   style={{ border: "1px", borderStyle: "solid" }}
                   onClick={() => onClickWalletButton(chain)}>
                   <span className='m-auto text-sm'>
@@ -336,20 +371,22 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
 
     return (
       <button key={connectedWallet.walletType + chain}
-        className="flex flex-col items-center align-center m-auto rounded-lg bg-modal p-4 py-3 gap-2 hover:opacity-80"
+        className="flex flex-col items-center align-center m-auto rounded-lg bg-modal p-2 py-3 gap-2 hover:opacity-80"
         style={{ border: "1px", borderStyle: "solid", borderColor: isSelected ? "#13f187" : "" }}
         onClick={selectConfirmWallet}>
         <Image src={walletLogo || ""}
           alt="button-icon"
-          width={54}
-          height={54} />
-        <div className="text-[#bbbbbb] text-lg flex flex-col items-center align-center">
+          width={48}
+          height={48} />
+        <div className="text-[#bbbbbb] text-sm flex flex-col items-center align-center">
           <span>
             {connectedWallet.walletType}
           </span>
-          <span className="flex items-center text-sm gap-1">
+          <span className="flex items-center text-[10px] md:text-xs gap-1">
             <span>{getAbbrAddress(connectedWallet.address)}</span>
-            <ButtonCopyIcon text={connectedWallet.address} />
+            <div className='w-[12px] h-[12px] md:w-[22px], md:h-[22px] flex items-center'>
+              <ButtonCopyIcon text={connectedWallet.address} />
+            </div>
           </span>
         </div>
       </button>
@@ -364,7 +401,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       onRequestClose={closeConfirmModalHandler}
       contentLabel="Example Modal"
       style={customStyles}
-      className="bg-gradient-to-b from-[#001109] to-[#072919] border rounded-3xl border-seperator z-30 p-6"
+      className="bg-gradient-to-b from-[#001109] to-[#072919] border rounded-3xl border-seperator z-30 p-6 max-w-[90vw] sm:max-w-[560px] mx-auto"
     >
       <div className="flex justify-between border-b border-[#5f5f5f] p-2 pt-0">
         <div className="text-2xl font-bold p-2 ">
@@ -375,22 +412,27 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           <X className="w-7 h-7 p-0.5 bg-primary rounded-full font-bold text-black hover:bg-primary-dark transition-colors duration-300" />
         </button>
       </div>
-      {
-        selectedRoute && lastNumber && <div className="text-sm font-bold text-center py-2">Confirm Swap &nbsp;
-          <span className="text-[#bbbbbb] text-lg">
-            {parseFloat(selectedRoute.swaps[0].fromAmount).toFixed(2)} &nbsp;
-          </span>
-          {selectedRoute.swaps[0].from.symbol} [{selectedRoute.swaps[0].from.blockchain}] to &nbsp;
-          <span className="text-[#bbbbbb] text-lg"> {parseFloat(selectedRoute.swaps[lastNumber - 1].toAmount).toFixed(2)} &nbsp;</span>
-          {selectedRoute.swaps[lastNumber - 1].to.symbol} [{selectedRoute.swaps[lastNumber - 1].to.blockchain}]
-        </div>
-      }
+      <div className='flex items-center justify-around'>
+        {
+          selectedRoute && lastNumber && <div className="text-sm font-bold text-center py-2">Confirm Swap &nbsp;
+            <span className="text-[#bbbbbb] text-lg">
+              {parseFloat(selectedRoute.swaps[0].fromAmount).toFixed(2)} &nbsp;
+            </span>
+            {selectedRoute.swaps[0].from.symbol} [{selectedRoute.swaps[0].from.blockchain}] to &nbsp;
+            <span className="text-[#bbbbbb] text-lg"> {parseFloat(selectedRoute.swaps[lastNumber - 1].toAmount).toFixed(2)} &nbsp;</span>
+            {selectedRoute.swaps[lastNumber - 1].to.symbol} [{selectedRoute.swaps[lastNumber - 1].to.blockchain}]
+          </div>
+        }
+        <button onClick={() => confirmWallet()}>
+          <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
+        </button>
+      </div>
       <div className="relative">
-        {!loading && <ShadowDecoration />}
+        {!(loading || filterLoading) && <ShadowDecoration />}
         <div className="overflow-auto bg-[#0625175c] pl-2 py-2"
           style={{ height: `calc(72vh - 200px)` }}>
           {
-            loading ?
+            loading || filterLoading ?
               <div className="flex items-center justify-center min-h-[30vh]">
                 <CustomLoader />
               </div> :
@@ -408,7 +450,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                 )
               }))
           }
-          <div className="flex flex-col" style={{ visibility: loading ? "hidden" : "visible" }}>
+          <div className="flex flex-col" style={{ visibility: loading || filterLoading ? "hidden" : "visible" }}>
             {
               confirmResponse?.error &&
               <span className="text-error font-bold text-xs flex flex-col items-center tracking-wide mb-2">
@@ -434,11 +476,11 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
 
 
       <div className="flex">
-        {!loading &&
+        {!(loading || filterLoading) &&
           <button
             className={`border border-[#13f187] w-[150px] h-[50px] rounded-lg m-auto mt-3 ${error ? "opacity-70" : "hover:opacity-80"}`}
-            style={{ backgroundColor: loading ? "" : "#13f187" }}
-            disabled={error}
+            style={{ backgroundColor: loading || filterLoading ? "" : "#13f187" }}
+            disabled={error || confirmResponse?.result === null || confirmResponse?.result === undefined}
             onClick={closeModalAndContinueHandler}
           >
             <span className="text-xl text-black font-bold">Continue</span></button>}
