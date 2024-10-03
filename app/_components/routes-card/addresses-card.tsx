@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { useAppSelector } from "@/redux_slice/provider";
 import { useDispatch } from "react-redux";
 import { updateAddressError, updateRecipientAddress, updateTransactionData } from "@/redux_slice/slice/noWalletSlice/transactionSlice";
-import ButtonCopyIcon from "../common/coypButtonIcon";
+import ButtonCopyIcon from "../common/coyp-button-icon";
 import { formatReadableDate } from "@/app/utils/catch-data";
-import StatusBar from "../common/statusBar";
-import ImageWrapper from "../common/imageWrapper";
+import StatusBar from "../common/status-bar";
+import ImageWrapper from "../common/image-wrapper";
 import CustomLoader from "../common/loader";
-import QrCodeGenerator from "../common/qrGenerator";
+import QrCodeGenerator from "../common/qr-generator";
 
 const AddressesCard = () => {
   const dispatch = useDispatch();

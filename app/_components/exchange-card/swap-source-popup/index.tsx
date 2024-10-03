@@ -6,8 +6,8 @@ import React, { Suspense } from "react";
 import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
 import CustomLoader from "../../common/loader";
-import ImageWrapper from "../../common/imageWrapper";
-import FallBackImage from "../../common/fallBackImage";
+import ImageWrapper from "../../common/image-wrapper";
+import FallBackImage from "../../common/fall-backImage";
 
 const SwapSourcePopup: React.FC<{
   blockchains: Blockchain[];

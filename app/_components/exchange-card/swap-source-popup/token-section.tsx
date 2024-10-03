@@ -12,10 +12,10 @@ import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { DialogClose } from "@/components/ui/dialog";
 import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
-import ShadowDecoration from "../../common/shadowDecoration";
-import ImageWrapper from "../../common/imageWrapper";
+import ShadowDecoration from "../../common/shadow-decoration";
+import ImageWrapper from "../../common/image-wrapper";
 import { getAbbrAddress, getAmountFromString, getContrastRatio } from "@/app/utils/catch-data";
-import FallBackImage from "../../common/fallBackImage";
+import FallBackImage from "../../common/fall-backImage";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;

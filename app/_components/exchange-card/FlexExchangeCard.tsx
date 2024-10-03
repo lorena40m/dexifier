@@ -5,8 +5,6 @@ import NoWallet from "../no-wallet/Nowallet";
 
 
 const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }) => {
-  const { isSwapMade, isInProcess } = useAppSelector((state) => state.swap);
-  const { isRoutesFetched, isRouteProcess } = useAppSelector((state) => state.routes);
   const { wallet } = useAppSelector((state) => state.settings);
 
   return (
@@ -17,7 +15,7 @@ const FlexExchangeCard: React.FC<FlexExchangeCardProps> = ({ isWalletConnected }
         //   : isRoutesFetched && !isRouteProcess
         //     ? "w-full max-w-[480px]"
         //     : "min-w-[650px]"} 
-        `max-w-[600px] min-w-[375px] md:min-w-[600px]`}
+        `w-full md:w-full md:max-w-[650px]`}
     >
       {wallet === WALLET.BROWSE ? <ExchangeCard isWalletConnected={isWalletConnected} /> : <NoWallet isWalletConnected={isWalletConnected} />}
     </div>

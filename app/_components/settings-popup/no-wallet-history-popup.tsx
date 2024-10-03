@@ -6,7 +6,6 @@ import TooltipTemplate from "../common/tooltip-template";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector } from "@/redux_slice/provider";
-import { SwapStatus } from "rango-types";
 import { TransactionCoin, TransactionData } from "@/app/types/noWalletInterface";
 import { formatReadableDate } from "@/app/utils/catch-data";
 import { useDispatch } from "react-redux";

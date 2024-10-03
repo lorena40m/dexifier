@@ -128,7 +128,7 @@ const HistoryPopup = () => {
     toToken: TokenData,
     requestId: string,
   ) => (
-    <Link href={`https://explorer.rango.exchange/swap/${requestId}`} target="_blank">
+    <Link href={`${process.env.NEXT_PUBLIC_DEXIFIER_EXPLORER}/swap/${requestId}`} target="_blank">
       <div className="mb-6 p-4 border border-seperator rounded-3xl hover:opacity-70 bg-[#1dc17317] text-sm">
         <div className="mb-4 flex items-center justify-between capitalize">
           <h3>{date}</h3>

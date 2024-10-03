@@ -16,8 +16,8 @@ import {
   sortQuotesBy,
 } from "@/app/utils/catch-data";
 import TooltipTemplate from "../common/tooltip-template";
-import ShadowDecoration from "../common/shadowDecoration";
-import ImageWrapper from "../common/imageWrapper";
+import ShadowDecoration from "../common/shadow-decoration";
+import ImageWrapper from "../common/image-wrapper";
 
 interface TagPanelProps {
   tags: Tag[];

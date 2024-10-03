@@ -14,9 +14,9 @@ import { confirmRoute } from '@/app/api/rango-api';
 import { BlockchainValidationStatus, ConfirmRouteRequest } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';
-import ShadowDecoration from '../common/shadowDecoration';
+import ShadowDecoration from '../common/shadow-decoration';
 import { ConfirmMessage } from '@/app/types/interface';
-import ButtonCopyIcon from '../common/coypButtonIcon';
+import ButtonCopyIcon from '../common/coyp-button-icon';
 import ReactModal from 'react-modal';
 
 // const customStyles = {
