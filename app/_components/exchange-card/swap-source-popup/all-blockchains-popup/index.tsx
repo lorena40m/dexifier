@@ -20,7 +20,7 @@ import {
 } from "@/redux_slice/slice/browserSlice/routeSlice";
 import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
 import { resetQutoteData } from "@/redux_slice/slice/browserSlice/quoteDataSlice";
-import ShadowDecoration from "@/app/_components/common/shadowDecoration";
+import ShadowDecoration from "@/app/_components/common/shadow-decoration";
 
 const AllBlockchainsPopup = ({
   data,

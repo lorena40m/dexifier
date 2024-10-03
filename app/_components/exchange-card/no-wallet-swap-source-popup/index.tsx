@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
 import CustomLoader from "../../common/loader";
-import ImageWrapper from "../../common/imageWrapper";
+import ImageWrapper from "../../common/image-wrapper";
 import { CurrencyResponse } from "@/app/types/noWalletInterface";
 
 const SwapSourcePopup: React.FC<{

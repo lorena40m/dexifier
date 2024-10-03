@@ -13,9 +13,8 @@ import { resetSwap, updateSwapMade, updateSwapStatus } from "@/redux_slice/slice
 import { useDispatch } from "react-redux";
 import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { resetRoute } from "@/redux_slice/slice/browserSlice/routeSlice";
-import ButtonCopyIcon from "../common/coypButtonIcon";
-import ShadowDecoration from "../common/shadowDecoration";
-import ImageWrapper from "../common/imageWrapper";
+import ButtonCopyIcon from "../common/coyp-button-icon";
+import ImageWrapper from "../common/image-wrapper";
 import TooltipTemplate from "../common/tooltip-template";
 import Link from "next/link";
 

@@ -1,17 +1,16 @@
-import { RiZzzFill } from "react-icons/ri"
-import NoWalletInput from "../common/noWalletInput"
+import NoWalletInput from "../common/no-wallet-input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { Blockchain, WALLET } from "@/app/types/interface"
+import { WALLET } from "@/app/types/interface"
 import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { createTransaction, fetchConfirm, getCurrencies, getRate } from "@/app/api/noWallet-api"
 import { useAppSelector } from "@/redux_slice/provider"
 import CustomLoader from "../common/loader"
-import { updateTransactionData, updateAddressError, updateTransactionLoading, setConfirmIntervalId, updateHistoryLoading } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
+import { updateTransactionData, updateAddressError, updateTransactionLoading, updateHistoryLoading } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
 import { useDispatch } from "react-redux"
-import ToggleButton from "../common/toggleButton"
+import ToggleButton from "../common/toggle-button"
 import { toastError } from "@/lib/utils"
-import { CurrencyResponse, CurrencyType } from "@/app/types/noWalletInterface"
+import { CurrencyResponse } from "@/app/types/noWalletInterface"
 import { updateConfirming, updateLoadingState, updateRateResult } from "@/redux_slice/slice/noWalletSlice/rateSlice"
 import { setExchangeMode } from "@/redux_slice/slice/browserSlice/routeSlice"
 import { Currency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice"
@@ -32,7 +31,6 @@ const NoWallet: FC<NoWalletProps> = () => {
   const {
     recipientAddress,
     transactionData,
-    confirmIntervalId,
     recipientAddressError,
     isTransactionLoading,
     isHistoryLoading

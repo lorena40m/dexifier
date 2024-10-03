@@ -6,7 +6,7 @@ import { useWalletList } from "./wallet/useWalletList";
 
 
 export default function Home() {
-  const { list, handleClick, error, disconnectConnectingWallets } = useWalletList({})
+  const { list } = useWalletList({})
   const connectedWallets = list.filter(
     (wallet) => wallet.state === "connected",
   );

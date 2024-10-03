@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import CustomCryptoField from "../common/InputField";
+import CustomCryptoField from "../common/input-field";
 import SettingsPopup from "../settings-popup/settings-popup";
 import HistoryPopup from "../settings-popup/history-popup";
 import CustomLoader from "../common/loader";
@@ -12,7 +12,6 @@ import {
   getBestRoutes,
   getBlockchains,
 } from "@/app/api/rango-api";
-import { RiZzzFill } from "react-icons/ri";
 import { toastError } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import {
@@ -36,17 +35,12 @@ import { setButtonRef, updateRequiredChain } from "@/redux_slice/slice/browserSl
 import ConfirmModal from "./ConfirmModal";
 import {
   BestRouteResponse,
-  CreateTransactionRequest,
-  CreateTransactionValidation,
-  UserSettings
 } from "rango-types/mainApi";
 import { useManager } from "@rango-dev/queue-manager-react";
 import { calculatePendingSwap, cancelSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from "@/app/manager/QueueManager";
 import { PendingSwapSettings } from "@/app/wallet/types/swap";
 import { getPendingSwaps } from "@/app/utils/queue";
-import NoWallet from "../no-wallet/Nowallet";
-import NoWalletInput from "../common/noWalletInput";
 import { updateManner } from "@/redux_slice/slice/settingsSlice";
 
 export enum WALLET {
