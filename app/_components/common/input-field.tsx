@@ -139,21 +139,33 @@ const CustomCryptoField: React.FC<Props> = ({
         const balances = await Promise.all(
           allChainAddresses.map(async (walletAddress) => {
             const result = await getBananceOfToken(walletAddress, blockchain, symbol, address);
+
             if (result.balance === null || result.balance === "0") {
               return 0;
             } else {
-              const num = BigInt(result.balance);
-              const divisor = BigInt(10 ** decimals);
+              const num = BigInt(result.balance); // BigInt for large token balances
+              const divisor = BigInt(10 ** decimals); // Handle the decimals properly
               const integerPart = num / divisor;
               const remainder = num % divisor;
+              // Convert fractional part to correct length based on decimals
               let fractionalPart = remainder.toString().padStart(decimals, "0");
-              fractionalPart = fractionalPart.slice(0, 2);
-              let tokenPrice = integerPart.toString() + "." + fractionalPart;
+              if (decimals > 0) {
+                fractionalPart = fractionalPart.slice(0, 2); // Adjust this based on how many decimal places you need to show
+              } else {
+                fractionalPart = "0";
+              }
+              // Handle the case for very small balances that could round to zero
+              let tokenPrice = integerPart.toString();
+              if (decimals > 0) {
+                tokenPrice += "." + fractionalPart;
+              }
+              // Remove trailing zeros after the decimal point, if any
               tokenPrice = tokenPrice.replace(/\.?0+$/, "");
               return parseFloat(tokenPrice);
             }
           })
         );
+
 
         const tokenTotalPrice = balances.reduce((total, balance) => total + balance, 0);
         setTokenBalance(tokenTotalPrice.toString());

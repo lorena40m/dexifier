@@ -407,33 +407,33 @@ const MainNavbar = () => {
               <span className="sr-only">Open main menu</span>
               {/* Hamburger Icon */}
               <svg
-                className={`${isOpen ? "hidden" : "block"} h-6 w-6`}
+                className={`${isOpen ? "hidden" : "block"} h-8 w-8`}
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                stroke="currentColor"
+                stroke="white"
                 aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
               {/* Close Icon */}
               <svg
-                className={`${isOpen ? "block" : "hidden"} h-6 w-6`}
+                className={`${isOpen ? "block" : "hidden"} h-8 w-8`}
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                stroke="currentColor"
+                stroke="white"
                 aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
+                  strokeWidth={3}
                   d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
@@ -443,20 +443,24 @@ const MainNavbar = () => {
           <div className="flex-1 flex items-center justify-center md:items-stretch md:justify-start">
             <div className="flex-shrink-0">
               <Link href="/">
-                <Image
-                  className="block md:hidden "
-                  src="/assets/logo.png"
-                  alt="Logo"
-                  width={142.5}
-                  height={32}
-                />
-                <Image
-                  className="hidden md:block "
-                  src="/assets/logo.png"
-                  alt="Logo"
-                  width={285}
-                  height={64}
-                />
+                <div className="w-[200px] h-[45px]">
+                  <Image
+                    className="block md:hidden "
+                    src="/assets/logo.png"
+                    alt="Logo"
+                    width={200}
+                    height={80}
+                  />
+                </div>
+                <div className="">
+                  <Image
+                    className="hidden md:block "
+                    src="/assets/logo.png"
+                    alt="Logo"
+                    width={285}
+                    height={64}
+                  />
+                </div>
               </Link>
             </div>
           </div>
@@ -525,7 +529,7 @@ const MainNavbar = () => {
       {/* Mobile dropdown animation */}
       <div
         className={`${isOpen ? "block" : "hidden"
-          } md:hidden absolute top-[6rem] bg-black inset-x-0 bg-gray-100 z-10`}
+          } md:hidden absolute top-[6rem] inset-x-0 bg-modal backdrop-filter backdrop-blur-sm z-10`}
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="main-menu"
@@ -537,8 +541,8 @@ const MainNavbar = () => {
               href={link.path}
               onClick={() => setIsOpen(false)}
               className={`${pathname === link.path
-                ? "bg-blue-50 text-primary font-bold"
-                : "hover:bg-blue-50 hover:text-blue-500 text-gray-900"
+                ? "text-primary font-bold"
+                : "hover:bg-blue-50 hover:text-blue-500 text-white"
                 } block px-3 py-2 rounded-md text-[22px] font-medium`}
             >
               {link.text}

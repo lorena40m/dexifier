@@ -236,10 +236,10 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
   // render part
 
   return ((
-    <div className="relative bg-modal w-full min-h-[570px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator backdrop-filter backdrop-blur-lg shadow-lg">
+    <div className="relative bg-modal w-full min-h-[570px] pb-2 pt-6 md:pt-[1.8125rem] px-4 md:px-[1.1875rem] rounded-3xl border border-seperator backdrop-filter backdrop-blur-lg shadow-lg">
 
       <div className="z-0 w-full">
-        <h1 className="text-2xl mb-4">Routes</h1>
+        <h1 className="text-2xl mb-2 md:mb-4">Routes</h1>
 
         <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
           {optionsButton("Recommended", 0)}

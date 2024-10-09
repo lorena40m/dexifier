@@ -299,13 +299,13 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
   return (
     <div
-      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 py-2 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
       <div
         id="__controls"
         className="border-b-[0.1px] border-[#333] border-solid"
       >
-        <div className="flex flex-wrap justify-between items-center gap-4 p-4">
+        <div className="flex flex-wrap justify-between items-center md:gap-4 gap-1 md:p-4 p-1 pb-3">
           <div className="flex gap-4 justify-center md:justify-start items-center">
             <Button
               variant="outline"
@@ -349,8 +349,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
 
       <div
-        className={`${"mx-auto max-w-[95%] p-4"
-          } my-6 flex flex-col gap-3 justify-evenly`}
+        className={`mx-auto max-w-[95%] md:p-4  my-6 flex flex-col md:gap-3 gap-1 justify-evenly`}
       >
         <CustomCryptoField
           blockchains={blockchains}

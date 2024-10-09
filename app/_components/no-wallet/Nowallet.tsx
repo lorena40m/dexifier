@@ -265,14 +265,14 @@ const NoWallet: FC<NoWalletProps> = () => {
 
   return (
     <div
-      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-6 py-2 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 md:py-2 py-1 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
 
       <div
         id="__controls"
         className="border-b-[0.1px] border-[#333] border-solid"
       >
-        <div className="flex flex-wrap justify-between items-center gap-4 p-4">
+        <div className="flex flex-wrap justify-between items-center md:gap-4 md:p-4 p-2">
           <div className="flex gap-4 justify-center md:justify-start items-center">
             <Button
               variant="outline"
@@ -310,7 +310,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         </div>
       </div>
 
-      <div className="flex flex-col justify-evenly p-4 my-6 gap-3 w-[95%] mx-auto ">
+      <div className="flex flex-col justify-evenly md:p-4 p-1 my-6 md:gap-3 gap-1 w-[95%] mx-auto ">
         <NoWalletInput
           currencies={currencies}
           label="You send"

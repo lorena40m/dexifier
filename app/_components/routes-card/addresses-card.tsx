@@ -72,7 +72,7 @@ const AddressesCard = () => {
   };
 
   return ((
-    <div className="relative bg-modal w-full min-h-[570px] pb-2 pt-[1.8125rem] px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
+    <div className="relative bg-modal w-full min-h-[570px] pb-2 pt-[1.8125rem] px-2 md:px-[1.1875rem] rounded-3xl border border-seperator bg-black bg-opacity-5 backdrop-filter backdrop-blur-lg shadow-lg">
 
       <div className="z-0 w-full">
         <div
@@ -87,7 +87,7 @@ const AddressesCard = () => {
             {rateResult && <div className="flex justify-center pt-6">
               <div className="flex items-center gap-2 m-auto">
                 <div
-                  className="bg-transparent flex items-center justify-center gap-[.5625rem] text-sm"
+                  className="bg-transparent flex items-center justify-center md:gap-[.5625rem] gap-1 text-sm"
                 >
                   {fromCurrency.icon && (
                     <div className="relative">
@@ -104,7 +104,7 @@ const AddressesCard = () => {
                   )}
 
                   {fromCurrency.code !== "" && (
-                    <div className="flex items-center gap-2 ">
+                    <div className="flex items-center md:text-[16px] text-[11px] gap-1 md:gap-2 ">
                       <span>{transactionData?.amount || rateResult.fromAmount}</span>
                       <span>{fromCurrency.code}</span>
 
@@ -120,7 +120,7 @@ const AddressesCard = () => {
                 </div>
 
                 <div
-                  className="bg-transparent flex items-center justify-center gap-[.5625rem] text-sm"
+                  className="bg-transparent flex items-center justify-center md:gap-[.5625rem] gap-1 text-sm"
                 >
                   {toCurrency.icon && (
                     <div className="relative">
@@ -137,7 +137,7 @@ const AddressesCard = () => {
                   )}
 
                   {toCurrency.code !== "" && (
-                    <div className="flex items-center gap-2 ">
+                    <div className="flex items-center md:text-[16px] text-[11px] gap-1 md:gap-2 ">
                       <span>{transactionData?.amountTo || rateResult.toAmount}</span>
                       <span>{toCurrency.code}</span>
 
