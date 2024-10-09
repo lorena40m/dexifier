@@ -17,6 +17,7 @@ import { setBlockchains } from "./slice/browserSlice/blockchainSlice";
 import { useWalletProviders } from "@/app/wallet/useWalletProviders";
 import { WidgetConfig } from "@/app/wallet/types";
 import QueueManager from "@/app/manager/QueueManager";
+import { FilterProvider } from "@/app/providers/FilterProvider";
 
 type ProviderProps = {
   children: ReactNode;
@@ -77,7 +78,9 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
       onUpdateState={onUpdateState}
       autoConnect={false}>
       <QueueManager apiKey={config.apiKey}>
-        {children}
+        <FilterProvider >
+          {children}
+        </FilterProvider>
       </QueueManager>
     </WalletProvider>
   )

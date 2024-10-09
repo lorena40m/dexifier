@@ -246,7 +246,7 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                       )}
                     </span>
                     <ButtonCopyIcon text={selectedRoute?.requestId} />
-                    <Link href={`https://explorer.rango.exchange/swap/${selectedRoute?.requestId}`} target="_blank">
+                    <Link href={`https://explorer.dexifier.com/swap/${selectedRoute?.requestId}`} target="_blank">
                       <Image src={"/assets/icons/search-list.png"} width={22} height={22} alt="explorer" />
                     </Link>
                   </div>
@@ -285,17 +285,17 @@ const SwapDetailsCard = ({ isWalletConnected }: { isWalletConnected: boolean }) 
                     return (
                       <div key={index} className="mt-4">
                         <div className="grid grid-cols-11">
-                          <SwapSteps className={"col-span-3"} swapData={swap} isFrom={true} />
+                          <SwapSteps className={"md:col-span-3 col-span-4"} swapData={swap} isFrom={true} />
 
-                          <div className="relative col-span-3 border-t border-dashed w-full mt-[12px]" >
-                            <div className="absolute top-[-10px] right-[45%]">
+                          <div className="relative md:col-span-3 col-span-1 border-t border-dashed w-full mt-[12px]" >
+                            <div className="absolute top-[-10px] right-[10%] md:right-[40%]">
                               <TooltipTemplate content={swap.swapperId}>
                                 <Image src={swap.swapperLogo} width={21} height={21} alt="swapLogo" />
                               </TooltipTemplate>
                             </div>
 
                           </div>
-                          <SwapSteps className={"col-span-3"} swapData={swap} isFrom={false} />
+                          <SwapSteps className={"md:col-span-3 col-span-4"} swapData={swap} isFrom={false} />
 
                           <div className="text-white/50 ml-2 col-span-2">
                             {swap && <StepState swap={pendingSwap} currentStep={index} />}

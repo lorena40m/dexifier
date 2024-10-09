@@ -67,9 +67,6 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
     } else {
       await handleClick(walletData.type);
     }
-    if (fromTokneValue !== undefined) {
-      dispatch(updateTokenValue({ isFromToken: true, value: fromTokneValue.toString() }));
-    }
     // error && toastError(error)
     console.log("error from wailet", error);
 
