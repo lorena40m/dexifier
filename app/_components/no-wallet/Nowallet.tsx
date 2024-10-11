@@ -265,7 +265,7 @@ const NoWallet: FC<NoWalletProps> = () => {
 
   return (
     <div
-      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 md:py-2 py-1 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 md:py-2 py-1 md:pt-6 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
 
       <div
@@ -310,7 +310,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         </div>
       </div>
 
-      <div className="flex flex-col justify-evenly md:p-4 p-1 my-6 md:gap-3 gap-1 w-[95%] mx-auto ">
+      <div className="flex flex-col justify-evenly md:p-4 my-6 md:gap-3 gap-1 w-[95%] mx-auto ">
         <NoWalletInput
           currencies={currencies}
           label="You send"

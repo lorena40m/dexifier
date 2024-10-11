@@ -16,6 +16,7 @@ import ShadowDecoration from "../../common/shadow-decoration";
 import ImageWrapper from "../../common/image-wrapper";
 import { getAbbrAddress, getAmountFromString, getContrastRatio } from "@/app/utils/catch-data";
 import FallBackImage from "../../common/fall-backImage";
+import { useTokenList } from "@/app/providers/TokenProvider";
 
 const TokenSection: React.FC<{
   selectedBlockchain: Blockchain | null;
@@ -25,6 +26,7 @@ const TokenSection: React.FC<{
 
   // redux hook
   const dispatch = useAppDispatch();
+  const { tokenList } = useTokenList();
 
   const storedToken: Token = useSelector((state: RootState) =>
     isFromToken ? state?.tokens?.fromToken : state?.tokens?.toToken
@@ -96,29 +98,45 @@ const TokenSection: React.FC<{
         assetAmount += parseFloat(getAmountFromString(balance.amount.amount, balance.amount.decimals))
       });
     })
-    return { usdAmount: tokenAmount.toFixed(2), assetsAmount: assetAmount.toFixed(2) }
+    return { usdAmount: tokenAmount.toFixed(2), assetsAmount: assetAmount.toFixed(4) }
   }
 
   const selectedBlockchainMemo = useMemo(() => selectedBlockchain, [selectedBlockchain]);
 
   //  use Effect
   useEffect(() => {
-    if (selectedBlockchain && selectedBlockchain !== null) {
-      setLoading(true);
-      getBlockchainTokens(selectedBlockchain!.name)
-        .then((tokens) => {
+    const tokenLister = async () => {
+      if (selectedBlockchain && selectedBlockchain !== null) {
+        setLoading(true);
+        try {
+          const tokens = tokenList.filter((tokens) => tokens.blockchain === selectedBlockchain!.name);
           const sortedTokens = filteredTokens(tokens);
-
           setTokenData(sortedTokens);
           setFilteredData(sortedTokens);
           setDisplayData(sortedTokens.slice(0, itemsToShow));
-        })
-        .catch((err) => {
+        }
+        catch (err) {
           console.log(err);
-        }).finally(() => {
-          setLoading(false);
-        });
+        }
+        setLoading(false);
+
+        // getBlockchainTokens(selectedBlockchain!.name)
+        //   .then((tokens) => {
+        //     const sortedTokens = filteredTokens(tokens);
+
+        //     setTokenData(sortedTokens);
+        //     setFilteredData(sortedTokens);
+        //     setDisplayData(sortedTokens.slice(0, itemsToShow));
+        //   })
+        //   .catch((err) => {
+        //     console.log(err);
+        //   }).finally(() => {
+        //     setLoading(false);
+        //   });
+      }
     }
+
+    tokenLister().catch(console.log)
     setItemsToShow(INITIALNUMBER);
   }, [selectedBlockchainMemo]);
 
@@ -184,7 +202,7 @@ const TokenSection: React.FC<{
         onClick={() => {
           if (!status) {
             const tempSelectedToken = tokenData.filter(
-              (tok) => tok.address === id && tok.symbol === symbol && tok.name === name
+              (token) => token.address === id && token.symbol === symbol && token.name === name
             )[0];
 
             dispatch(

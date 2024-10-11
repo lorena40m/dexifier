@@ -34,6 +34,15 @@ export async function getBlockchainTokens(blockchainName: string) {
   return tokens;
 }
 
+export async function getAllTokens() {
+  const data: AxiosResponse = await axiosBrowserClient.get(
+    `/meta?apiKey=` +
+    process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
+  );
+  const tokens = data.data.tokens as Token[];
+  return tokens;
+}
+
 export async function getCompactBlockchainTokens() {
   const data: AxiosResponse = await axiosBrowserClient.get(
     `/meta/compact?apiKey=` + process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC

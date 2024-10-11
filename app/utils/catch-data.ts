@@ -162,7 +162,7 @@ export const getAmountFromString = (amount: string, decimals: number) => {
     const integerPart = num / divisor;
     const remainder = num % divisor;
     let fractionalPart = remainder.toString().padStart(decimals, "0");
-    fractionalPart = fractionalPart.slice(0, 2);
+    fractionalPart = fractionalPart.slice(0, 4);
     let tokenPrice = integerPart.toString() + "." + fractionalPart;
     tokenPrice = tokenPrice.replace(/\.?0+$/, "");
     return tokenPrice;
