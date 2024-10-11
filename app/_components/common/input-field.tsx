@@ -150,7 +150,7 @@ const CustomCryptoField: React.FC<Props> = ({
               // Convert fractional part to correct length based on decimals
               let fractionalPart = remainder.toString().padStart(decimals, "0");
               if (decimals > 0) {
-                fractionalPart = fractionalPart.slice(0, 2); // Adjust this based on how many decimal places you need to show
+                fractionalPart = fractionalPart.slice(0, 4); // Adjust this based on how many decimal places you need to show
               } else {
                 fractionalPart = "0";
               }
@@ -175,7 +175,7 @@ const CustomCryptoField: React.FC<Props> = ({
       }
     };
 
-    fetchBalances();
+    fetchBalances().catch(console.log);
   }, [selectedFromTokenDataMemo]);
 
   //Event Function

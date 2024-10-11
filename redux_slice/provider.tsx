@@ -18,6 +18,7 @@ import { useWalletProviders } from "@/app/wallet/useWalletProviders";
 import { WidgetConfig } from "@/app/wallet/types";
 import QueueManager from "@/app/manager/QueueManager";
 import { FilterProvider } from "@/app/providers/FilterProvider";
+import { TokenListProvider } from "@/app/providers/TokenProvider";
 
 type ProviderProps = {
   children: ReactNode;
@@ -51,7 +52,7 @@ const WalletStateProvider: FC<ProviderProps> = ({ children }) => {
 
   const config: WidgetConfig = {
     apiKey: "30a7dc74-0886-4c5d-bc18-dc04e6280a96",
-    title: "Dexifier_alpha",
+    title: "Dexifier_beta",
     walletConnectProjectId: "489c5034628c45947388bc9a0ef2ea03",
     enableCentralizedSwappers: true,
     externalWallets: false,
@@ -95,7 +96,9 @@ export const StateProvider: FC<ProviderProps> = ({ children }) => {
       <PersistGate loading={null} persistor={persistor}>
         <WalletStateProvider>
           <ButtonRefProvider>
-            {children}
+            <TokenListProvider >
+              {children}
+            </TokenListProvider>
           </ButtonRefProvider>
         </WalletStateProvider>
       </PersistGate>

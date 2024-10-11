@@ -288,7 +288,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
         : "bg-primary hover:bg-primary-dark text-black"
         } ${isRoutesFetched ? "w-full" : "w-full md:max-w-[75%] lg:max-w-[67%]"
-        } font-semibold h-[3.125rem] mx-auto mt-[55px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+        } font-semibold h-[3.125rem] mx-auto md:mt-[54px] mt-[56px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
       variant={"default"}
       onClick={() => onClick()}
       disabled={disabled}
@@ -305,7 +305,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         id="__controls"
         className="border-b-[0.1px] border-[#333] border-solid"
       >
-        <div className="flex flex-wrap justify-between items-center md:gap-4 gap-1 md:p-4 p-1 pb-3">
+        <div className="flex flex-wrap justify-between items-center md:gap-4 gap-1 md:p-4 p-2 pb-2">
           <div className="flex gap-4 justify-center md:justify-start items-center">
             <Button
               variant="outline"
