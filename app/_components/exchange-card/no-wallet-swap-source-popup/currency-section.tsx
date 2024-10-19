@@ -1,19 +1,15 @@
 import Search from "../../common/search";
 import Image from "next/image";
 import CustomLoader from "../../common/loader";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
-import { Blockchain, RootState, Token } from "@/app/types/interface";
 import { toastSuccess } from "@/lib/utils";
-import { useDispatch, useSelector } from "react-redux";
-import { resetToken, updateToken } from "@/redux_slice/slice/browserSlice/tokenSlice";
-import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "@/redux_slice/provider";
 import { DialogClose } from "@/components/ui/dialog";
-import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
 import ShadowDecoration from "../../common/shadow-decoration";
 import ImageWrapper from "../../common/image-wrapper";
-import { getAbbrAddress } from "@/app/utils/catch-data";
 import { resetCurrency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice";
 import { resetRate } from "@/redux_slice/slice/noWalletSlice/rateSlice";
 import { CurrencyResponse, CurrencyType, Networks } from "@/app/types/noWalletInterface";
@@ -155,7 +151,7 @@ const CurrencySection: React.FC<{
               >
                 <div>
                   <span className="text-base px-1">{code}</span>
-                  <span className={`text-[14px] font-bold opacity-70`}>
+                  <span className={`hidden md:flex text-[14px] font-bold opacity-70`}>
                     ({name})
                   </span>
                 </div>

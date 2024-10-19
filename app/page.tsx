@@ -12,7 +12,7 @@ export default function Home() {
   );
   const isWalletConnected = connectedWallets.length === 0 ? false : true;
   return (
-    <main className="h-screen p-4 pt-32 w-full flex flex-wrap gap-y-5 justify-center items-center gap-x-5 bg-[url('/assets/background.png')] bg-cover">
+    <main className="min-h-screen p-4 pt-32 w-full flex flex-wrap gap-y-5 justify-center items-center gap-x-5 bg-[url('/assets/background.png')] bg-cover">
 
       <FlexSwapCard isWalletConnected={isWalletConnected} />
 

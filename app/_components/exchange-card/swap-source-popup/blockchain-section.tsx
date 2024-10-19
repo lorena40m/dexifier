@@ -10,9 +10,7 @@ import {
 } from "@/redux_slice/slice/browserSlice/blockchainSlice";
 import AllBlockchainsPopup from "./all-blockchains-popup";
 import { resetToken } from "@/redux_slice/slice/browserSlice/tokenSlice";
-import { resetRoute, updateRouteFetched } from "@/redux_slice/slice/browserSlice/routeSlice";
-import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
-import { resetQutoteData } from "@/redux_slice/slice/browserSlice/quoteDataSlice";
+import { updateRouteFetched } from "@/redux_slice/slice/browserSlice/routeSlice";
 import { useAppSelector } from "@/redux_slice/provider";
 
 const BlockchainSection: React.FC<{
@@ -21,7 +19,6 @@ const BlockchainSection: React.FC<{
   isFromBlockchain: boolean;
 }> = ({ blockchains, selectedBlockchain, isFromBlockchain }) => {
   const dispatch = useDispatch();
-  const { isRoutesFetched } = useAppSelector((state) => state.routes);
 
   const updateBlockchain = (blockchain: Blockchain) => {
     if (isFromBlockchain) {
@@ -31,10 +28,6 @@ const BlockchainSection: React.FC<{
       dispatch(updateToBlockchain({ blockchain }));
       dispatch(resetToken({ isFromToken: false }));
     }
-    // if (!isRoutesFetched) {
-    //   dispatch(resetRoute());
-    //   dispatch(resetSwap());
-    // }
     dispatch(updateRouteFetched({ isRouteFetched: false }));
   };
 
@@ -46,8 +39,8 @@ const BlockchainSection: React.FC<{
   ) => (
     <div
       className={`px-1 py-2.5 flex items-center justify-center border rounded-3xl bg-transparent hover:bg-white/5 transition-colors duration-300 cursor-pointer ${selectedBlockchain?.chainId === id
-          ? "border-primary"
-          : "border-seperator"
+        ? "border-primary"
+        : "border-seperator"
         }`}
       onClick={() => onClick()}
       key={`${id}-${name}`}

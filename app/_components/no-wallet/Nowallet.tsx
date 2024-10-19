@@ -253,7 +253,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
         : "bg-primary hover:bg-primary-dark text-black"
         } ${false ? "w-full" : "w-full md:max-w-[75%] lg:max-w-[67%]"
-        } font-semibold h-[3.125rem] mx-auto mt-5 text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+        } font-semibold h-[3.125rem] mx-auto mt-[20px] md:mt-[10px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
       variant={"default"}
       onClick={() => onClick()}
       disabled={disabled}
@@ -265,7 +265,7 @@ const NoWallet: FC<NoWalletProps> = () => {
 
   return (
     <div
-      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 md:py-2 py-1 md:pt-6 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
+      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 py-2 md:pt-6 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
     >
 
       <div
@@ -273,7 +273,7 @@ const NoWallet: FC<NoWalletProps> = () => {
         className="border-b-[0.1px] border-[#333] border-solid"
       >
         <div className="flex flex-wrap justify-between items-center md:gap-4 md:p-4 p-2">
-          <div className="flex gap-4 justify-center md:justify-start items-center">
+          <div className="flex gap-2 md:gap-4 justify-center md:justify-start items-center">
             <Button
               variant="outline"
               size={"sm"}
@@ -284,7 +284,7 @@ const NoWallet: FC<NoWalletProps> = () => {
                 : { backgroundColor: "transparent" }
               }
               onClick={() => dispatch(updateManner({ wallet: WALLET.NONE }))}
-              disabled={isInProcess || isSwapMade || isRouteProcess}
+              disabled={isLoading || isTransactionLoading}
             >
               No Wallet
             </Button>
@@ -298,7 +298,7 @@ const NoWallet: FC<NoWalletProps> = () => {
                 : { backgroundColor: "transparent" }
               }
               onClick={() => dispatch(updateManner({ wallet: WALLET.BROWSE }))}
-              disabled={isInProcess || isSwapMade || isRouteProcess}
+              disabled={isLoading || isTransactionLoading}
             >
               Browser Wallet
             </Button>

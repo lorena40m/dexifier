@@ -1,8 +1,7 @@
+import React, { Suspense } from "react";
 import PopupTemplate from "../../common/popup-template";
 import TokenSection from "./currency-section";
 import Image from "next/image";
-import React, { Suspense } from "react";
-import { Blockchain } from "@/app/types/interface";
 import { useAppSelector } from "@/redux_slice/provider";
 import CustomLoader from "../../common/loader";
 import ImageWrapper from "../../common/image-wrapper";
@@ -21,7 +20,7 @@ const SwapSourcePopup: React.FC<{
 
   const triggerButton = (
     <button
-      className="md:w-[150px] w-[80px] bg-transparent focus:ring-0 border-none focus:ring-offset-0 focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0 flex items-center justify-center gap-[.5625rem] text-sm disabled:cursor-not-allowed disabled:opacity-50"
+      className="md:w-[150px] w-[100px] bg-transparent focus:ring-0 border-none focus:ring-offset-0 focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0 flex items-center justify-center gap-[.5625rem] text-sm disabled:cursor-not-allowed disabled:opacity-40"
       disabled={false}
     >
       {selectedCurrency.icon && (

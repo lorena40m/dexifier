@@ -23,11 +23,11 @@ const ToggleButton = () => {
         />
       </div>
       <div className="flex items-center space-x-2">
-        <span className={`text-lg font-semibold ${isFixed ? 'text-white' : 'text-gray-400'}`}>
+        <span className={`text-md md:text-lg font-semibold ${isFixed ? 'text-white' : 'text-gray-400'}`}>
           Fixed Rate
         </span>
         <span className="text-gray-400">or</span>
-        <span className={`text-lg font-semibold ${!isFixed ? 'text-white' : 'text-gray-400'}`}>
+        <span className={`text-md md:text-lg font-semibold ${!isFixed ? 'text-white' : 'text-gray-400'}`}>
           Floating Rate
         </span>
       </div>

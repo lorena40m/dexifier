@@ -114,30 +114,12 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       return
     }
 
-    // const userSettings: UserSettings = {
-    //   slippage: settings.slippage.toString(),
-    //   infiniteApprove: false
-    // }
-
     const swapSettings: PendingSwapSettings = {
       slippage: settings.slippage.toString(),
       disabledSwappersGroups: undefined,
     };
 
     const proceedAnyway = true;
-
-    // const validations: CreateTransactionValidation = {
-    //   balance: false,
-    //   fee: false,
-    //   approve: false
-    // }
-
-    // const swapRequest: CreateTransactionRequest = {
-    //   requestId: selectedRoute?.requestId,
-    //   step: 1,
-    //   userSettings: userSettings,
-    //   validations: validations,
-    // };
 
     const inputAmount = fromToken.value;
 
@@ -158,27 +140,6 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         { id: confirmSwapResult.requestId }
       );
     }
-
-    // const createResponse = await createMultiStepTransaction(swapRequest);
-    // console.log("create swap response", createResponse);
-    // if (createResponse.transaction && createResponse.transaction.type === TransactionType.EVM && !createResponse.transaction.isApprovalTx) {
-    //   const approveResponse = await checkApproval(selectedRoute?.requestId);
-    //   console.log("approve", approveResponse);
-    //   const reCreateResponse = await createMultiStepTransaction(swapRequest);
-    //   console.log("reCreate swap response", reCreateResponse);
-    // }
-
-    // const checkRequest: CheckTxStatusRequest = {
-    //   requestId: selectedRoute?.requestId || "",
-    //   step: 1,
-    //   txId: "",
-    // }
-    // const checkStatusResponse = await checkStatus(checkRequest);
-    // console.log("check status response", checkStatusResponse);
-
-    // .finally(() =>
-    //   dispatch(updateSwapStatus({ isInProcess: false }))
-    // );
   }
 
   //use Effect
@@ -306,7 +267,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         className="border-b-[0.1px] border-[#333] border-solid"
       >
         <div className="flex flex-wrap justify-between items-center md:gap-4 gap-1 md:p-4 p-2 pb-2">
-          <div className="flex gap-4 justify-center md:justify-start items-center">
+          <div className="flex gap-2 md:gap-4 justify-center md:justify-start items-center">
             <Button
               variant="outline"
               size={"sm"}

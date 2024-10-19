@@ -31,6 +31,7 @@ input[type="number"]::-webkit-inner-spin-button {
   background: transparent;
   border-left: 1px #ffffff4d solid;
 }
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -47,6 +48,7 @@ input::-webkit-inner-spin-button {
   border-right-color: #13f187;
   animation: l15 1s infinite linear;
 }
+
 .loader::before,
 .loader::after {
   content: "";
@@ -56,10 +58,12 @@ input::-webkit-inner-spin-button {
   border-radius: 50%;
   animation: l15 2s infinite;
 }
+
 .loader::after {
   margin: 8px;
   animation-duration: 3s;
 }
+
 @keyframes l15 {
   100% {
     transform: rotate(1turn);
