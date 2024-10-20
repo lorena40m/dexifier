@@ -162,7 +162,7 @@ const AddressesCard = () => {
                   style={{ outline: "none" }}
                   disabled={isConfirming}
                 />
-                <button className="border border-primary text-primary rounded-lg p-1 disabled:cursor-not-allowed disabled:opacity-80" disabled={isConfirming} onClick={pasteFromClipboard}>paste</button>
+                <button className="border border-primary text-primary rounded-lg p-1 disabled:cursor-not-allowed disabled:opacity-40" disabled={isConfirming} onClick={pasteFromClipboard}>paste</button>
               </div>
 
               {recipientAddress === "" ? <span className="text-primary text-sm">Enter the Recipient Address first !</span>

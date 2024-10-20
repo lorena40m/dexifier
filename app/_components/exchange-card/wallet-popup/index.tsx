@@ -3,15 +3,11 @@ import PopupTemplate from "../../common/popup-template"
 import TooltipTemplate from "../../common/tooltip-template";
 import Image from "next/image";
 import { useWalletList } from "@/app/wallet/useWalletList";
-import { WalletInfoWithNamespaces, WalletState } from "@/app/wallet/types";
+import { WalletInfoWithNamespaces } from "@/app/wallet/types";
 import Search from "../../common/search";
-import { useSearchParams } from "next/navigation";
-import { forwardRef, useActionState, useEffect, useMemo, useState } from "react";
+import { forwardRef, useEffect, useMemo, useState } from "react";
 import { useWallets } from "@rango-dev/wallets-react";
-import { toastError } from "@/lib/utils";
-import { TokenAmountType } from "@/app/types/interface"
 import { useDispatch } from "react-redux";
-import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { useAppSelector } from "@/redux_slice/provider";
 import ShadowDecoration from "../../common/shadow-decoration";
 

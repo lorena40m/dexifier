@@ -3,7 +3,7 @@
 import Image from "next/image";
 import PopupTemplate from "@/app/_components/common/popup-template";
 import Search from "@/app/_components/common/search";
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Blockchain } from "@/app/types/interface";
@@ -15,11 +15,8 @@ import {
 import { toastSuccess } from "@/lib/utils";
 import { resetToken } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import {
-  resetRoute,
   updateRouteFetched,
 } from "@/redux_slice/slice/browserSlice/routeSlice";
-import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
-import { resetQutoteData } from "@/redux_slice/slice/browserSlice/quoteDataSlice";
 import ShadowDecoration from "@/app/_components/common/shadow-decoration";
 
 const AllBlockchainsPopup = ({
@@ -32,9 +29,6 @@ const AllBlockchainsPopup = ({
   isFromBlockchain: boolean;
 }) => {
   const dispatch = useAppDispatch();
-  const { isRoutesFetched } = useAppSelector(
-    (state) => state.routes
-  );
 
   const selectedBlockchain = useAppSelector((state) =>
     isFromBlockchain
@@ -52,10 +46,6 @@ const AllBlockchainsPopup = ({
       dispatch(updateToBlockchain({ blockchain }));
       dispatch(resetToken({ isFromToken: false }));
     }
-    // if (!isRoutesFetched) {
-    //   dispatch(resetRoute());
-    //   dispatch(resetSwap());
-    // }
     dispatch(updateRouteFetched({ isRouteFetched: false }));
     toastSuccess(`${blockchain.name}'s selected as the blockchain`);
   };

@@ -3,7 +3,6 @@ import { InstallObjects } from "@rango-dev/wallets-shared";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useDispatch } from "react-redux";
-import { tree } from "next/dist/build/templates/app-page";
 import { BlockchainMeta } from "rango-types";
 import { updateFilterChain, updateFilterEmptyWallet, updateFilterSmallBalance, updateFilterUnsupportedToken, updateFilterWallet } from "@/redux_slice/slice/browserSlice/filterSlice";
 import { useAppSelector } from "@/redux_slice/provider";

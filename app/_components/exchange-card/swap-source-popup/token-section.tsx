@@ -3,14 +3,12 @@ import Image from "next/image";
 import CustomLoader from "../../common/loader";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
-import { getBlockchainTokens } from "@/app/api/rango-api";
 import { Blockchain, RootState, Token } from "@/app/types/interface";
 import { toastSuccess } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { resetToken, updateToken } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { DialogClose } from "@/components/ui/dialog";
-import { resetSwap } from "@/redux_slice/slice/browserSlice/swapSlice";
 import TooltipTemplate from "../../common/tooltip-template";
 import ShadowDecoration from "../../common/shadow-decoration";
 import ImageWrapper from "../../common/image-wrapper";
@@ -32,11 +30,6 @@ const TokenSection: React.FC<{
     isFromToken ? state?.tokens?.fromToken : state?.tokens?.toToken
   );
 
-  const oppositeToken = useAppSelector((state) =>
-    !isFromToken ? state?.tokens?.fromToken : state?.tokens?.toToken
-  );
-
-  const { isRoutesFetched } = useAppSelector((state) => state.routes);
   const savedRouteData = useAppSelector((state) => state.quoteData);
   const { walletBalances } = useAppSelector((state) => state.wallet);
 
@@ -211,10 +204,6 @@ const TokenSection: React.FC<{
                 isFromToken,
               })
             );
-            // if (isRoutesFetched) {
-            //   dispatch(resetRoute());
-            //   dispatch(resetSwap());
-            // }
 
             toastSuccess(`${tempSelectedToken.symbol}'s selected as token`);
           } else dispatch(resetToken({ isFromToken }));

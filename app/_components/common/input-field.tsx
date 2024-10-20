@@ -7,7 +7,6 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { getBananceOfToken, getBestRoutes } from "@/app/api/rango-api";
 import {
   getRoutes,
-  resetRoute,
   setError,
   setRouteProcess,
   setSelectedRoute,
@@ -15,8 +14,6 @@ import {
 } from "@/redux_slice/slice/browserSlice/routeSlice";
 import { toastError } from "@/lib/utils";
 import useDebounce from "@/app/utils/debounce";
-import { updateSwapStatus } from "@/redux_slice/slice/browserSlice/swapSlice";
-import { setEngine } from "crypto";
 import { sortQuotesBy } from "@/app/utils/catch-data";
 
 interface Props {

@@ -136,7 +136,7 @@ const NoWalletInput: React.FC<Props> = ({
           }
         </div>
       </div>
-      <div className={`${rateResult !== undefined && rateResult?.message !== null ? "border-error" : "border-[#695F5F]"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border  border-opacity-40 rounded-lg p-2 shadow-md max-h-[3.3125rem]`}>
+      <div className={`${rateResult !== undefined && rateResult?.message !== null ? "border-error" : "border-[#695F5F]"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border border-opacity-40 rounded-lg py-[9px] pt-[10px] shadow-md max-h-[3.3125rem]`}>
         <div className="flex items-center w-full">
           {!isFromCurrency && <span>{isFixed ? "" : "~"}</span>}
           <Input

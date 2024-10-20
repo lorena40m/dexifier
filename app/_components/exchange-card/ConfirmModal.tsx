@@ -11,27 +11,12 @@ import { useDispatch } from 'react-redux';
 import { getAbbrAddress, getAmountFromString } from '@/app/utils/catch-data';
 import { WalletType } from '@rango-dev/wallets-shared';
 import { confirmRoute } from '@/app/api/rango-api';
-import { BlockchainValidationStatus, ConfirmRouteRequest } from 'rango-types/mainApi';
+import { BlockchainValidationStatus, ConfirmRouteRequest, ConfirmRouteResponse } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';
 import ShadowDecoration from '../common/shadow-decoration';
 import { ConfirmMessage } from '@/app/types/interface';
 import ButtonCopyIcon from '../common/coyp-button-icon';
-import ReactModal from 'react-modal';
-
-// const customStyles = {
-//   overlay: {
-//     backgroundColor: '#000000cc',
-//     zIndex: '30'
-//   },
-//   content: {
-//     maxWidth: '560px',
-//     maxHeight: '80vh',
-//     top: '0',
-//     right: '0',
-//     transform: `translate(calc(50vw - 280px), 15vh)`,
-//   },
-// };
 
 const customStyles: Styles = {
   overlay: {
@@ -111,7 +96,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       if (keys.length !== 1 || selectedWalletList === undefined || selectedWalletList[key] === undefined) {
         isValid = false;
         setConfirmValidation(undefined);
-        toastError("error while confirm wallet");
+        toastError("Error while confirm wallet: Please choose wallet");
         break
       }
     }
@@ -239,6 +224,25 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
     }
   };
 
+  const isNoError = (confirmResponse: ConfirmRouteResponse | undefined) => {
+    let noError = true;
+    if (!confirmResponse?.ok) {
+      return false;
+    }
+    confirmResponse.result?.validationStatus.forEach((status) => {
+      status.wallets.forEach((wallet) => {
+        wallet.requiredAssets.forEach((asset) => {
+          if (!asset.ok) {
+            noError = false;
+            return
+          }
+        });
+      });
+    })
+
+    return noError
+  }
+
   //  useEffect part______________________________________________________________________________________________
 
   useEffect(() => {
@@ -292,7 +296,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
             {index + 1}
           </div>
           <div className="flex gap-2 items-center">
-            <span> Your {chain} wallet</span>
+            <span>Your {chain} wallet</span>
           </div>
         </div>
 
@@ -304,7 +308,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                 <span className="font-bold w-full">ERROR:</span> You should connect a {chain} supported wallet
               </div>
                 <button
-                  className="flex h-[124px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-2 gap-2 hover:opacity-80"
+                  className="flex h-[124px] w-[98px] flex-col text-center items-center align-center rounded-lg bg-modal p-2 gap-2 hover:opacity-80"
                   style={{ border: "1px", borderStyle: "solid" }}
                   onClick={() => onClickWalletButton(chain)}>
                   <span className='m-auto text-sm'>
@@ -334,7 +338,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                   )
                 })}
                 <button
-                  className="flex h-[124px] w-[100px] flex-col text-center items-center align-center rounded-lg bg-modal p-2 gap-2 hover:opacity-80"
+                  className="flex h-[124px] w-[98px] flex-col text-center items-center align-center rounded-lg bg-modal p-2 gap-2 hover:opacity-80"
                   style={{ border: "1px", borderStyle: "solid" }}
                   onClick={() => onClickWalletButton(chain)}>
                   <span className='m-auto text-sm'>
@@ -475,7 +479,7 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                 type="checkbox"
                 checked={isChecked}
                 onChange={onCheckBox} />
-              <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-60 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-90"
+              <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-30 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-95"
                 type="text"
                 placeholder={`Choose a custom ${requiredChain[requiredChain.length - 1]} address`}
                 disabled={!isChecked}
@@ -490,14 +494,15 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
       <div className="flex">
         {!(loading || filterLoading) && (isFetched && !(confirmResponse?.result === null || confirmResponse?.result === undefined) ?
           <button
-            className={`border border-[#13f187] min-w-[150px] h-[50px] rounded-lg m-auto mt-3 ${error ? "opacity-70" : "hover:opacity-80"}`}
+            className={`border border-[#13f187] min-w-[150px] h-[50px] rounded-lg m-auto mt-3 ${error ? "opacity-60" : "hover:opacity-80"}`}
             style={{ backgroundColor: loading || filterLoading ? "" : "#13f187" }}
             disabled={error || confirmResponse?.result === null || confirmResponse?.result === undefined}
             onClick={closeModalAndContinueHandler}
           >
-            <span className="text-xl px-3 text-black font-bold">Preceed Anyway</span></button> :
+            {isNoError(confirmResponse) ? <span className="text-xl px-3 text-black font-bold">Swap</span> :
+              <span className="text-xl px-3 text-black font-bold">Proceed Anyway</span>}</button> :
           <button
-            className={`border border-[#13f187] min-w-[150px] h-[50px] disabled:opacity-70 rounded-lg m-auto mt-3`}
+            className={`border border-[#13f187] min-w-[150px] h-[50px] disabled:opacity-40 rounded-lg m-auto mt-3`}
             style={{ backgroundColor: loading || filterLoading ? "" : "#13f187" }}
             disabled={isChecked && (customAddress === null || customAddress === "")}
             onClick={() => confirmWallet(customAddress).catch(console.log)}
