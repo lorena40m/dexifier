@@ -81,6 +81,9 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
   const [isFetched, setIsFetched] = useState<boolean>(false);
   const [confirmValidation, setConfirmValidation] = useState<BlockchainValidationStatus[]>()
   const [selectedWalletsList, setSelectedWalletsList] = useState<SelectedWalletListProps[]>([]);
+
+  const [showCustomAddressInput, setShowCustomAddressInput] = useState(true);
+
   const selectedRoute = useAppSelector((state) => state.routes.selectedRoute);
   const { connectedWallets, refOfConnectButton } = useAppSelector((state) => state.wallet);
   const { filterLoading } = useAppSelector((state) => state.filter);
@@ -200,6 +203,8 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
           walletType: value?.walletType || ""
         };
       });
+
+      setShowCustomAddressInput(false); // Hide the input section
 
       dispatch(updateSelectedWallets({ selectedWallets: selectedWalletObject }))
       const response = await confirmRoute(requestData);
@@ -473,19 +478,23 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
                 {confirmResponse.error}
               </span>
             }
-            <div className="flex gap-3 items-center justify-center mb-4">
-              <input className="peer w-5 h-5 checked:color-primary color-primary"
-                size={50}
-                type="checkbox"
-                checked={isChecked}
-                onChange={onCheckBox} />
-              <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-30 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-95"
-                type="text"
-                placeholder={`Choose a custom ${requiredChain[requiredChain.length - 1]} address`}
-                disabled={!isChecked}
-                onChange={(e) => setCustomAddress(e)}>
-              </input>
-            </div>
+
+            {/* Conditionally render the custom address input section */}
+            {showCustomAddressInput && (
+              <div className="flex gap-3 items-center justify-center mb-4">
+                <input className="peer w-5 h-5 checked:color-primary color-primary"
+                  size={50}
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={onCheckBox} />
+                <input className="w-[400px] bg-[#ffffff2e] text-sm p-1 opacity-30 rounded-sm border-none outline-none border border-primary focus:ring-0 peer-checked:opacity-95"
+                  type="text"
+                  placeholder={`Choose a custom ${requiredChain[requiredChain.length - 1]} address`}
+                  disabled={!isChecked}
+                  onChange={(e) => setCustomAddress(e)}>
+                </input>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -513,3 +522,4 @@ const ConfirmModal: FC<ConfirmModalProps> = ({ isConfirmModalOpen, closeConfirmM
   )
 }
 export default ConfirmModal
+//confirm modal
