@@ -517,7 +517,7 @@ const MainNavbar = () => {
                     </span>
                   </button>
                   <button
-                    className="rounded-r-full color-[#141414] bg-primary p-2 pr-3 border-l hover:opacity-80" onClick={onClickWalletButton}> more wallet</button>
+                    className="rounded-r-full color-[#141414] bg-primary p-2 pr-3 border-l hover:opacity-80" onClick={onClickWalletButton}> Add wallets</button>
                 </div>
               )
               }
