@@ -42,6 +42,7 @@ import { getWalletsForNewSwap } from "@/app/manager/QueueManager";
 import { PendingSwapSettings } from "@/app/wallet/types/swap";
 import { getPendingSwaps } from "@/app/utils/queue";
 import { updateManner } from "@/redux_slice/slice/settingsSlice";
+import { useMediaQuery } from "react-responsive"
 
 export enum WALLET {
   NONE,
@@ -53,6 +54,9 @@ interface ExchangeCardProps {
 }
 
 const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
+
+  const isMobileView = useMediaQuery ( { query: '(max-width: 767px)' });
+
   const walletSourcePopupRef = useRef<HTMLButtonElement>(null);
   const { manager } = useManager();
 
@@ -287,9 +291,9 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
               variant="outline"
               className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
                 }`}
-              style={wallet === WALLET.BROWSE
-                ? { backgroundColor: "#13F187", color: "#000" }
-                : { backgroundColor: "transparent" }
+              style={isMobileView
+                ? { backgroundColor: "#FAFAFA", color: "#A0ABBE" , borderColor: "#FAFAFA"}
+                : { backgroundColor: "#13F187", color: "#000" }
               }
               onClick={() => dispatch(updateManner({ wallet: WALLET.BROWSE }))}
               disabled={isInProcess || isSwapMade || isRouteProcess}
@@ -308,7 +312,11 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         </div>
       </div>
 
-
+      {isMobileView ? (
+      <p style={{ color: 'white', fontSize: '25px', marginTop: '3rem' , textAlign: "center" , marginBottom: '3rem'}}>
+        Browser wallet connections are not supported on mobile devices; only available on desktop.
+      </p>
+    ) : (
       <div
         className={`mx-auto max-w-[95%] md:p-4  my-6 flex flex-col md:gap-3 gap-1 justify-evenly`}
       >
@@ -401,7 +409,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
               )
           : buttonTemplate("Connect Wallet", <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />, isInProcess, handleConnectButtonClick)}
       </div>
-
+      )}
       <ConfirmModal
         isConfirmModalOpen={isConfirmModalOpen}
         closeConfirmModal={closeConfirmModal}
