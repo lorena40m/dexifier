@@ -1,28 +1,22 @@
 import NoWalletInput from "../common/no-wallet-input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { WALLET } from "@/app/types/interface"
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { createTransaction, fetchConfirm, getCurrencies, getRate } from "@/app/api/noWallet-api"
 import { useAppSelector } from "@/redux_slice/provider"
 import CustomLoader from "../common/loader"
 import { updateTransactionData, updateAddressError, updateTransactionLoading, updateHistoryLoading } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
 import { useDispatch } from "react-redux"
-import ToggleButton from "../common/toggle-button"
 import { toastError } from "@/lib/utils"
 import { CurrencyResponse } from "@/app/types/noWalletInterface"
 import { updateConfirming, updateLoadingState, updateRateResult } from "@/redux_slice/slice/noWalletSlice/rateSlice"
 import { setExchangeMode } from "@/redux_slice/slice/browserSlice/routeSlice"
 import { Currency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice"
-import HistoryPopup from "../settings-popup/no-wallet-history-popup"
-import { updateManner } from "@/redux_slice/slice/settingsSlice"
 import { addHistory } from "@/redux_slice/slice/noWalletSlice/historySlice"
+import FlexRoutesCard from "../routes-card/FlexRoutesCard"
 
-interface NoWalletProps {
-  isWalletConnected: boolean,
-}
 
-const NoWallet: FC<NoWalletProps> = () => {
+const SwapMobileView: React.FC = () => {
   const dispatch = useDispatch();
 
   const [currencies, setCurrencies] = useState<CurrencyResponse>({ count: 0, data: [] })
@@ -35,12 +29,6 @@ const NoWallet: FC<NoWalletProps> = () => {
     isTransactionLoading,
     isHistoryLoading
   } = useAppSelector((state) => state.transaction);
-  const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
-  const { wallet } = useAppSelector((state) => state.settings);
-  const { isRouteProcess, isRoutesFetched } = useAppSelector(
-    (state) => state.routes
-  );
-  const [isHistory, setIsHistory] = useState<boolean>(false);
   const transactionIdRef = useRef<string>(""); // To store transaction ID for confirming
   const confirmIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -52,7 +40,6 @@ const NoWallet: FC<NoWalletProps> = () => {
   useEffect(() => {
     getCurrencies().then((result) => {
       setCurrencies(result)
-      console.log("currencies", result);
     })
   }, [])
 
@@ -176,14 +163,11 @@ const NoWallet: FC<NoWalletProps> = () => {
 
     }
     if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "") {
-      console.log("rate fetch fail with request data error");
       return
     }
-    console.log("rateData==>", rateData);
     dispatch(updateLoadingState({ isLoading: true }));
     getRate(rateData).then((result) => {
       dispatch(updateRateResult({ rateResult: result }))
-      console.log(result);
     }).catch((error) => {
       if (error.response && error.response.status === 422) {
         const result = error.response.data
@@ -252,8 +236,8 @@ const NoWallet: FC<NoWalletProps> = () => {
       className={`${isLoading
         ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
         : "bg-primary hover:bg-primary-dark text-black"
-        } ${false ? "w-full" : "w-full md:max-w-[75%] lg:max-w-[67%]"
-        } font-semibold h-[3.125rem] mx-auto mt-[20px] md:mt-[10px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+        } ${false ? "w-full" : "w-full lg:max-w-[67%]"
+        } font-semibold h-[3.125rem] mx-auto my-12 text-base disabled:cursor-not-allowed cursor-pointer transition-colors duration-300 rounded-[10px]`}
       variant={"default"}
       onClick={() => onClick()}
       disabled={disabled}
@@ -262,97 +246,63 @@ const NoWallet: FC<NoWalletProps> = () => {
     </Button>
   );
 
-
   return (
-    <div
-      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 py-2 md:pt-6 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
-    >
-
+    <>
       <div
-        id="__controls"
-        className="border-b-[0.1px] border-[#333] border-solid"
+        className={`w-full h-full bg-primary/10 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 px-4 py-2 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg mb-5`}
       >
-        <div className="flex flex-wrap justify-between items-center md:gap-4 md:p-4 p-2">
-          <div className="flex gap-2 md:gap-4 justify-center md:justify-start items-center">
-            <Button
-              variant="outline"
-              size={"sm"}
-              className={`border-primary disabled:cursor-not-allowed rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
-                }`}
-              style={wallet === WALLET.NONE
-                ? { backgroundColor: "#13F187", color: "#000" }
-                : { backgroundColor: "transparent" }
-              }
-              onClick={() => dispatch(updateManner({ wallet: WALLET.NONE }))}
-              disabled={isLoading || isTransactionLoading}
-            >
-              No Wallet
-            </Button>
-            <Button
-              size={"sm"}
-              variant="outline"
-              className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
-                }`}
-              style={wallet === WALLET.BROWSE
-                ? { backgroundColor: "#13F187", color: "#000" }
-                : { backgroundColor: "transparent" }
-              }
-              onClick={() => dispatch(updateManner({ wallet: WALLET.BROWSE }))}
-              disabled={isLoading || isTransactionLoading}
-            >
-              Browser Wallet
-            </Button>
-          </div>
-
-          <div className="flex items-center">
-            <HistoryPopup startConfirming={startConfirming} />
-          </div>
+        <div className="flex flex-col justify-evenly my-6 gap-1 w-[95%] mx-auto">
+          <NoWalletInput
+            currencies={currencies}
+            label="You send"
+            isFromCurrency={true}
+          />
+          <Button
+            variant={"outline"}
+            className="bg-transparent self-center border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1"
+            disabled={fromCurrency.code === "" ||
+              toCurrency.code === "" ||
+              fromCurrency.network?.network === "" ||
+              fromCurrency.network?.network === undefined ||
+              toCurrency.network?.network === "" ||
+              toCurrency.network?.network === undefined
+            }
+            onClick={exchangeFromAndToCurrencies}
+          >
+            <Image
+              src={"/assets/icons/swap.png"}
+              alt="swap icon"
+              height={28}
+              width={28}
+              className="md:block hidden"
+            />
+            <Image
+              src={"/assets/icons/swap.svg"}
+              alt="swap icon"
+              height={28}
+              width={28}
+              className="md:hidden"
+            />
+          </Button>
+          <NoWalletInput currencies={currencies} isFixed={isFixed} label="You get" />
+          {rateResult && <div className="flex justify-center"><span className="text-error text-sm">{rateResult.message || ""}</span></div>}
         </div>
       </div>
-
-      <div className="flex flex-col justify-evenly md:p-4 my-6 md:gap-3 gap-1 w-[95%] mx-auto ">
-        <NoWalletInput
-          currencies={currencies}
-          label="You send"
-          isFromCurrency={true} />
-
-        <Button
-          variant={"outline"}
-          className="bg-transparent self-center cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
-          disabled={fromCurrency.code === "" ||
-            toCurrency.code === "" ||
-            fromCurrency.network?.network === "" ||
-            fromCurrency.network?.network === undefined ||
-            toCurrency.network?.network === "" ||
-            toCurrency.network?.network === undefined
-          }
-          onClick={exchangeFromAndToCurrencies}
-        >
-          <Image
-            src={"/assets/icons/swap.png"}
-            alt="swap icon"
-            height={28}
-            width={28}
-          />
-        </Button>
-
-        <NoWalletInput currencies={currencies} isFixed={isFixed} label="You get" />
-        {rateResult && <div className="flex justify-center"><span className="text-error text-sm">{rateResult.message || ""}</span></div>}
-        {buttonTemplate(
-          isConfirming ? "Stop Confirmation" : isHistoryLoading ? "Return to Swap" : "Exchange Now",
-          <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
-          isLoading || isTransactionLoading,
-          isLoading ||
-          rateResult === undefined ||
-          rateResult?.message !== null ||
-          recipientAddress === undefined ||
-          recipientAddress === "" ||
-          recipientAddressError.isError,
-          handleButtonClick
-        )}
-      </div>
-    </div>
+      <FlexRoutesCard isWalletConnected={false} />
+      {buttonTemplate(
+        isConfirming ? "Stop Confirmation" : isHistoryLoading ? "Return to Swap" : "Exchange Now",
+        <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />,
+        isLoading || isTransactionLoading,
+        isLoading ||
+        rateResult === undefined ||
+        rateResult?.message !== null ||
+        recipientAddress === undefined ||
+        recipientAddress === "" ||
+        recipientAddressError.isError,
+        handleButtonClick
+      )}
+    </>
   )
-}
-export default NoWallet
+};
 
+export default SwapMobileView;

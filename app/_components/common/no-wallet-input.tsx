@@ -24,7 +24,7 @@ const NoWalletInput: React.FC<Props> = ({
   label,
   currencies,
   isFromCurrency = false,
-  isFixed = true
+  isFixed = false,
 }) => {
 
   // redux hook
@@ -126,19 +126,19 @@ const NoWalletInput: React.FC<Props> = ({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex justify-between items-center">
-        <label className="text-lg mb-1">{label}</label>
+        <label className="md:text-lg md:font-normal text-base font-semibold mb-1">{label}</label>
 
         <div>
           {isFromCurrency && rateResult &&
             (rateResult.minAmount !== undefined && rateResult.maxAmount !== undefined ?
-              <span className="text-sm"> Min:{rateResult.minAmount}&nbsp; Max:{rateResult.maxAmount}</span> : rateResult.minAmount !== undefined ?
+              <span className="text-sm md:block hidden"> Min:{rateResult.minAmount}&nbsp; Max:{rateResult.maxAmount}</span> : rateResult.minAmount !== undefined ?
                 <span className="text-sm text-error">The minimum amount is ${rateResult.minAmount}</span> : <span className="text-sm text-error">The maximum amount is {rateResult.maxAmount}</span>)
           }
         </div>
       </div>
-      <div className={`${rateResult !== undefined && rateResult?.message !== null ? "border-error" : "border-[#695F5F]"} flex items-center justify-between bg-[#000]/30  backdrop-filter backdrop-blur-lg border border-opacity-40 rounded-lg py-[9px] pt-[10px] shadow-md max-h-[3.3125rem]`}>
+      <div className={`${rateResult !== undefined && rateResult?.message !== null ? "border-error" : "md:border-[#695F5F]/40"} flex items-center justify-between md:bg-[#000]/30 bg-primary/30 backdrop-filter backdrop-blur-lg md:border rounded-lg py-[9px] pt-[10px] shadow-md max-h-[3.3125rem]`}>
         <div className="flex items-center w-full">
-          {!isFromCurrency && <span>{isFixed ? "" : "~"}</span>}
+          {/* {!isFromCurrency && <span>{isFixed ? "" : "~"}</span>} */}
           <Input
             type="number"
             value={
@@ -150,13 +150,10 @@ const NoWalletInput: React.FC<Props> = ({
             max={42000000}
             onChange={(e) => fromInputChangeHandler(e)}
             placeholder={isFromCurrency ? "Please enter 1-42000000" : "0"}
-            className="flex-1 border-none bg-transparent focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+            className="placeholder:text-white/50 flex-1 border-none bg-transparent bg-opacity-0 focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
             style={{ outline: "none" }}
             disabled={!isFromCurrency}
           />
-          <div className="px-2">
-            {!isFromCurrency && (isFixed ? <Image src={"/assets/icons/lock-green.png"} width={25} height={25} alt="lock-green" /> : <Image src={"/assets/icons/lock-grey.png"} width={25} height={25} alt="lock-grey" />)}
-          </div>
         </div>
 
         <div className="border-l-2 border-[#ffffff33]">
