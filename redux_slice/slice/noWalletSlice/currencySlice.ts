@@ -24,7 +24,7 @@ const initialCurrencyState: { fromCurrency: Currency; toCurrency: Currency, isFi
     network: undefined
   },
 
-  isFixed: true
+  isFixed: false
 
 };
 
