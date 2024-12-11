@@ -10,7 +10,7 @@ const initialSettingsState: Settings & { wallet: WALLET } = {
   exchanges: [],
   selectedExchangesCounter: 0,
   totalExchanges: 0,
-  wallet: WALLET.BROWSE
+  wallet: WALLET.NONE
 };
 
 export const settingsSlice = createSlice({
