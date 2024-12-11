@@ -1,10 +1,11 @@
 // import type { WalletInfo } from "@/embedded/ui";
-import type { InstallObjects, Namespace, Network, WalletType } from "@rango-dev/wallets-shared";
+import type { InstallObjects, Namespace, NamespaceData, Network, WalletType } from "@rango-dev/wallets-shared";
 import { isCosmosBlockchain, isEvmBlockchain, TransactionType, type BlockchainMeta } from "rango-types";
 
 // import { WalletState, WalletState as WalletStatus } from "./ui";
 import { WalletState as ModalWalletState } from "@/app/wallet/types"
-import { EventHandler, Events, readAccountAddress, useWallets } from "@rango-dev/wallets-react";
+import { Events, useWallets } from "@rango-dev/wallets-react";
+import { legacyReadAccountAddress as readAccountAddress, LegacyEventHandler as EventHandler } from '@rango-dev/wallets-core/legacy';
 import {
   detectInstallLink,
   detectMobileScreens,
@@ -232,7 +233,7 @@ export function useWalletList(params: Params) {
         connectedWallet.chain === chain,
     );
 
-  const handleClick = async (type: WalletType, namespaces?: Namespace[]) => {
+  const handleClick = async (type: WalletType, namespaces?: NamespaceData[]) => {
     const wallet = state(type);
     try {
       if (error) {
