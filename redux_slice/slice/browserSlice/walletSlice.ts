@@ -1,7 +1,8 @@
-import { WalletAssetsBalance, WalletData } from "@/app/types/interface";
+import { WalletData } from "@/app/types/interface";
 import { Wallet, WidgetConfig } from "@/app/wallet/types";
 import { ProviderInterface } from "@rango-dev/wallets-react";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { WalletDetail } from "rango-types";
 
 export type TokenBalance = {
   chain: string;
@@ -26,14 +27,14 @@ export interface ConnectedWallet extends Wallet {
 const initialWalletList: {
   connectedWallets: ConnectedWallet[]
   selectedWallets: Wallet[]
-  walletBalances: WalletAssetsBalance[]
+  wallets: WalletDetail[]
   refOfConnectButton: HTMLButtonElement | null
   config: WidgetConfig
   providers: ProviderInterface[]
   requiredChain: string
 } = {
   connectedWallets: [],
-  walletBalances: [],
+  wallets: [],
   config: { apiKey: "" },
   providers: [],
   refOfConnectButton: null,
@@ -137,11 +138,11 @@ export const walletSlice = createSlice({
       return { ...state, requiredChain: action.payload.requiredChain };
     },
 
-    updateWalletBalances(
+    updateWallets(
       state,
-      action: PayloadAction<{ walletBalances: WalletAssetsBalance[] }>
+      action: PayloadAction<{ wallets: WalletDetail[] }>
     ) {
-      return { ...state, walletBalances: action.payload.walletBalances }
+      return { ...state, wallets: action.payload.wallets }
     },
 
     updateWalletProvider(
@@ -161,5 +162,5 @@ export const {
   setButtonRef,
   updateSelectedWallets,
   updateRequiredChain,
-  updateWalletBalances,
+  updateWallets,
 } = walletSlice.actions;

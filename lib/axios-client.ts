@@ -1,19 +1,34 @@
-import axios from "axios";
+import axios from "axios"
 
-export const axiosBrowserClient = axios.create({
+// Create axios client for Rango
+const axiosRango = axios.create({
   baseURL: process.env.NEXT_PUBLIC_RANGO_API_URL,
   headers: {
-    Accept: "*/*",
-    'Access-Control-Allow-Origin': '*'
-  },
-});
-
-export const axiosNoWalletClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_EXOLIX_API_URL,
-  headers: {
-    Accept: 'application/json',
+    'Accept': '*/*',
     'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json',
-    'Authorization': process.env.NEXT_PUBLIC_EXOLIX_API_KEY_BASIC
   },
 })
+
+// Attach Rango API Key for every request
+axiosRango.interceptors.request.use((config) => {
+  config.params = config.params || {}
+
+  config.params['apiKey'] = process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
+
+  return config
+}, (error) => {
+  return Promise.reject(error)
+})
+
+// Create axios client for Exolix
+const axiosExolix = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_EXOLIX_API_URL,
+  headers: {
+    'Accept': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
+    'Authorization': process.env.NEXT_PUBLIC_EXOLIX_API_KEY_BASIC,
+  },
+})
+
+export { axiosRango, axiosExolix }

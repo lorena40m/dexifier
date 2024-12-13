@@ -10,7 +10,7 @@ import { Styles } from 'react-modal';
 import { useDispatch } from 'react-redux';
 import { getAbbrAddress, getAmountFromString } from '@/app/utils/catch-data';
 import { WalletType } from '@rango-dev/wallets-shared';
-import { confirmRoute } from '@/app/api/rango-api';
+import { confirmRoute } from '@/app/api/rango';
 import { BlockchainValidationStatus, ConfirmRouteRequest, ConfirmRouteResponse } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
 import { toastError } from '@/lib/utils';

@@ -4,7 +4,7 @@ import { Blockchain, Result, RouteData, Token } from "@/app/types/interface";
 import { updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { getBananceOfToken, getBestRoutes } from "@/app/api/rango-api";
+import { getTokenBalance, getBestMultiRoutes } from "@/app/api/rango";
 import {
   getRoutes,
   setError,
@@ -15,6 +15,7 @@ import {
 import { toastError } from "@/lib/utils";
 import useDebounce from "@/app/utils/debounce";
 import { sortQuotesBy } from "@/app/utils/catch-data";
+import { MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, SwapResult } from "rango-types/mainApi";
 
 interface Props {
   label: string;
@@ -63,9 +64,9 @@ const CustomCryptoField: React.FC<Props> = ({
 
   //fetch route funtion
   const refetchRoutes = () => {
-    const routeData: RouteData = {
+    const routeData: MultiRouteRequest = {
       ...savedRouteData,
-      amount: selectedTokenData.fromToken.value,
+      amount: selectedTokenData.fromToken.value?.toString() || '0',
       from: {
         blockchain: selectedTokenData.fromToken.blockchain,
         symbol: selectedTokenData.fromToken.symbol,
@@ -82,7 +83,6 @@ const CustomCryptoField: React.FC<Props> = ({
       routeData.from.blockchain == "" ||
       routeData.to.blockchain == "" ||
       routeData.amount == "" ||
-      routeData.amount == 0 ||
       routeData.amount == undefined ||
       isExchangeButtonClicked
     ) {
@@ -91,11 +91,11 @@ const CustomCryptoField: React.FC<Props> = ({
     }
     console.log("newRouteFromInput:", routeData);
     dispatch(setRouteProcess({ isRouteProcess: true }));
-    getBestRoutes(routeData)
-      .then((data) => {
+    getBestMultiRoutes(routeData)
+      .then((data: MultiRouteResponse) => {
         const sortedResults = sortQuotesBy(
           "RECOMMENDED",
-          data.results as Result[]
+          data.results as MultiRouteSimulationResult[]
         );
         dispatch(setSelectedRoute({ route: sortedResults[0] }));
         dispatch(getRoutes({ routes: sortedResults }));
@@ -135,9 +135,9 @@ const CustomCryptoField: React.FC<Props> = ({
       try {
         const balances = await Promise.all(
           allChainAddresses.map(async (walletAddress) => {
-            const result = await getBananceOfToken(walletAddress, blockchain, symbol, address);
+            const result = await getTokenBalance({walletAddress, blockchain, symbol, address});
 
-            if (result.balance === null || result.balance === "0") {
+            if (!result.balance) {
               return 0;
             } else {
               const num = BigInt(result.balance); // BigInt for large token balances
@@ -185,7 +185,7 @@ const CustomCryptoField: React.FC<Props> = ({
     dispatch(updateTokenValue({ isFromToken, value: String(amount) }));
   }
 
-  const calculateUSDPrice = (selectedToken: Token, isFromToken: boolean, selectedRoute: Result | undefined) => {
+  const calculateUSDPrice = (selectedToken: Token, isFromToken: boolean, selectedRoute: MultiRouteSimulationResult | undefined) => {
     if (selectedRoute === undefined || selectedToken.value === undefined || selectedToken.usdPrice === null) {
       return 0;
     }

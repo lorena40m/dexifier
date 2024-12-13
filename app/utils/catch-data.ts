@@ -1,11 +1,12 @@
 import { useAppSelector } from "@/redux_slice/provider";
-import { getCompactBlockchainTokens } from "../api/rango-api";
+import { getCompactBlockchainTokens } from "../api/rango";
 import {
   NewPreferenceType,
   PreferenceType,
   Result,
   Token,
 } from "../types/interface";
+import { MultiRouteSimulationResult, SwapResult } from "rango-types/mainApi";
 import BigNumber from "bignumber.js";
 import { PendingSwap, PendingSwapNetworkStatus, PendingSwapStep } from "rango-types";
 import { StepDetailsProps } from "../wallet/interface";
@@ -52,7 +53,7 @@ function getUsdPrice(
   return token?.usdPrice || null;
 }
 
-function getUsdFeeOfStep(step: Result, allTokens: Token[]): BigNumber {
+function getUsdFeeOfStep(step: SwapResult, allTokens: Token[]): BigNumber {
   let totalFeeInUsd = ZERO;
   for (let i = 0; i < step.fee.length; i++) {
     const fee = step.fee[i];
@@ -176,7 +177,7 @@ export const getAbbrAddress = (address: string) => {
   return address.slice(0, 4) + "..." + address.slice(-4)
 }
 
-export const catchDataFromQuote = (quote: Result, tokens: Token[]) => {
+export const catchDataFromQuote = (quote: MultiRouteSimulationResult, tokens: Token[]) => {
   const totalTime = roundedSecondsToString(totalArrivalTime(quote?.swaps));
   const totalFee = getTotalFeeInUsd(quote?.swaps ?? [], tokens);
   const fee = numberToString(
@@ -189,10 +190,10 @@ export const catchDataFromQuote = (quote: Result, tokens: Token[]) => {
 
 export const sortQuotesBy = (
   strategy: PreferenceType,
-  quotes: Result[]
-): Result[] => {
+  quotes: MultiRouteSimulationResult[]
+): MultiRouteSimulationResult[] => {
   return [...quotes].sort((quote1, quote2) => {
-    const getScore = (route: Result, strategy: string) =>
+    const getScore = (route: MultiRouteSimulationResult, strategy: string) =>
       route.scores?.find((score) => score.preferenceType === strategy)?.score ??
       0;
 
@@ -385,8 +386,7 @@ export function getContrastRatio(hex1: string, hex2: string) {
   return result > minContrast
 }
 
-export function formatReadableDate(isoDate: string) {
-  const date = new Date(isoDate);
+export function formatReadableDate(date: Date) {
   return date.toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',

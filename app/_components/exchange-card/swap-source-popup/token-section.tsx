@@ -31,7 +31,7 @@ const TokenSection: React.FC<{
   );
 
   const savedRouteData = useAppSelector((state) => state.quoteData);
-  const { walletBalances } = useAppSelector((state) => state.wallet);
+  const { wallets } = useAppSelector((state) => state.wallet);
 
   // react state
   const [tokenData, setTokenData] = useState<Token[]>([]);
@@ -45,10 +45,10 @@ const TokenSection: React.FC<{
   function filteredTokens(tokens: Token[]): Token[] {
     try {
       return tokens.sort((a, b) => {
-        if (isSameToken(storedToken, a) && !isSameToken(storedToken, b)) {
+        if (isSame(storedToken, a) && !isSame(storedToken, b)) {
           return -1;
         }
-        if (!isSameToken(storedToken, a) && isSameToken(storedToken, b)) {
+        if (!isSame(storedToken, a) && isSame(storedToken, b)) {
           return 1;
         }
         if (a.address === null && b.address !== null) {
@@ -73,10 +73,8 @@ const TokenSection: React.FC<{
     }
   }
 
-  function isSameToken(aToken: Token, bToken: Token): boolean {
-    return aToken?.address === bToken.address &&
-      aToken?.name === bToken.name &&
-      aToken?.symbol === bToken.symbol
+  function isSame(a: Object, b: Object): boolean {
+    return JSON.stringify(a) === JSON.stringify(b);
   }
 
   const getTokenAmount = (address: string | null, symbol: string) => {
@@ -85,9 +83,9 @@ const TokenSection: React.FC<{
     }
     let tokenAmount = 0;
     let assetAmount = 0;
-    walletBalances.filter((walletBalance) => walletBalance.blockChain === selectedBlockchain?.name).map((walletBalance) => {
-      walletBalance.balances.filter((balance) => balance.asset.symbol === symbol && balance.asset.address === address).forEach((balance) => {
-        tokenAmount += (balance.usdAmount || 0);
+    wallets.filter((wallet) => wallet.blockChain === selectedBlockchain?.name).map((wallet) => {
+      wallet.balances?.filter((balance) => balance.asset.symbol === symbol && balance.asset.address === address).forEach((balance) => {
+        tokenAmount += 0;
         assetAmount += parseFloat(getAmountFromString(balance.amount.amount, balance.amount.decimals))
       });
     })
@@ -178,24 +176,17 @@ const TokenSection: React.FC<{
   };
 
   const tokenTemplate = (
-    blockchainName: string,
-    isPopular: boolean,
-    id: string | null,
-    symbol: string,
-    name: string,
-    imageSrc: string,
-    address: string | null,
-    status: boolean = false,
-    index: number
+    token: Token
   ) => {
+    const selected = isSame(storedToken, token);
     return (
       <DialogClose
-        className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${status ? "border-primary" : "border-seperator"
+        className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${selected ? "border-primary" : "border-seperator"
           }`}
         onClick={() => {
-          if (!status) {
+          if (!selected) {
             const tempSelectedToken = tokenData.filter(
-              (token) => token.address === id && token.symbol === symbol && token.name === name
+              (token) => token.address === token.address && token.symbol === token.symbol && token.name === token.name
             )[0];
 
             dispatch(
@@ -208,13 +199,13 @@ const TokenSection: React.FC<{
             toastSuccess(`${tempSelectedToken.symbol}'s selected as token`);
           } else dispatch(resetToken({ isFromToken }));
         }}
-        key={`${id}-${name}-${index}`}
+        key={token.address}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center justify-center gap-6 capitalize">
             <ImageWrapper>
               <FallBackImage
-                src={imageSrc}
+                src={token.image}
                 height={37}
                 width={37}
                 alt="Token Icon"
@@ -226,12 +217,12 @@ const TokenSection: React.FC<{
 
             <div className="flex flex-col">
               <TooltipTemplate
-                content={name}
+                content={token.name}
                 className="!-mb-1"
-                key={`${index}-${name}`}
+                key={token.address}
               >
                 <div>
-                  <span className="text-base px-1">{symbol}</span>
+                  <span className="text-base px-1">{token.symbol}</span>
                   {/* <div>
                 textShadow: "1px 0px 1px #ffffff" 
                 </div> */}
@@ -241,22 +232,22 @@ const TokenSection: React.FC<{
                 </div>
               </TooltipTemplate>
               <TooltipTemplate
-                content={address || "null"}>
+                content={token.address || "null"}>
                 <span className="text-[12px] opacity-40">
-                  {address === null
+                  {token.address === null
                     ? "null"
-                    : getAbbrAddress(address)}
+                    : getAbbrAddress(token.address)}
                 </span>
               </TooltipTemplate>
             </div>
           </div>
           <div className="flex gap-3 items-center">
             <div className="flex flex-col">
-              <span className="text-sm">{parseFloat(getTokenAmount(address, symbol)?.assetsAmount || "0") > 0 && getTokenAmount(address, symbol)?.assetsAmount + " " + symbol}</span>
-              <span className="text-sm text-border">{parseFloat(getTokenAmount(address, symbol)?.usdAmount || "0") > 0 && getTokenAmount(address, symbol)?.usdAmount + "$"}</span>
+              <span className="text-sm">{parseFloat(getTokenAmount(token.address, token.symbol)?.assetsAmount || "0") > 0 && getTokenAmount(token.address, token.symbol)?.assetsAmount + " " + token.symbol}</span>
+              <span className="text-sm text-border">{parseFloat(getTokenAmount(token.address, token.symbol)?.usdAmount || "0") > 0 && getTokenAmount(token.address, token.symbol)?.usdAmount + "$"}</span>
             </div>
-            {isPopular ? <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" /> : <div className="w-[25px] h-[25px]" />}
-            {status ? (
+            {token.isPopular ? <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" /> : <div className="w-[25px] h-[25px]" />}
+            {selected ? (
               <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
             ) : (
               <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
@@ -281,15 +272,7 @@ const TokenSection: React.FC<{
             <div ref={scrollContainerRef} className="max-h-[35vh] pe-2.5 overflow-y-auto pb-2.5">
               {loading ? <CustomLoader /> : displayData && displayData.map((token, index) => {
                 return (tokenTemplate(
-                  token.blockchain,
-                  token.isPopular,
-                  token.address,
-                  token.symbol,
-                  token.name,
-                  token.image,
-                  token.address,
-                  isSameToken(storedToken, token),
-                  index
+                  token
                 ))
               }
               )}

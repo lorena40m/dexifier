@@ -2,7 +2,7 @@
 import BridgeExchangeTemplate from "./bridge-exchage-template";
 import React, { ReactNode, useEffect, useState } from "react";
 import { BridgeEnum } from "@/app/types/interface";
-import { getExchanges } from "@/app/api/rango-api";
+import { getExchanges } from "@/app/api/rango";
 import { useAppDispatch } from "@/redux_slice/provider";
 import { updateTotalExchanges } from "@/redux_slice/slice/settingsSlice";
 import { SwapperMetaExtended } from "rango-sdk/lib/types";

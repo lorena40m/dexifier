@@ -1,5 +1,5 @@
 import { createContext, useContext, ReactNode, useState } from "react";
-import { Token, WALLET } from "../types/interface";
+import { Token } from "rango-types/mainApi";
 
 // Define the type for the context
 interface TokenListContextType {

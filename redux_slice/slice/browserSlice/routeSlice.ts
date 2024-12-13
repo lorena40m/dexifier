@@ -1,13 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Result } from "@/app/types/interface";
+import { MultiRouteSimulationResult } from "rango-types/mainApi";
 
 const initialRouteState: {
   isExchangeButtonClicked: boolean;
   isError: boolean;
   isRoutesFetched: boolean;
   isRouteProcess: boolean;
-  selectedRoute: Result | undefined;
-  routes: Result[];
+  selectedRoute: MultiRouteSimulationResult | undefined;
+  routes: MultiRouteSimulationResult[];
 } = {
   isExchangeButtonClicked: false,
   isError: false,
@@ -21,10 +21,10 @@ export const routeSlice = createSlice({
   name: "routes",
   initialState: initialRouteState,
   reducers: {
-    getRoutes(state, action: PayloadAction<{ routes: Result[] }>) {
+    getRoutes(state, action: PayloadAction<{ routes: MultiRouteSimulationResult[] }>) {
       return { ...state, routes: action.payload.routes };
     },
-    setSelectedRoute(state, action: PayloadAction<{ route: Result }>) {
+    setSelectedRoute(state, action: PayloadAction<{ route: MultiRouteSimulationResult }>) {
       return { ...state, selectedRoute: action.payload.route };
     },
     setRouteProcess(state, action: PayloadAction<{ isRouteProcess: boolean }>) {

@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Result, RouteData } from "@/app/types/interface";
+import { BestRouteRequest } from "rango-types/mainApi";
 
-const initialRouteState: RouteData = {
+const initialRouteState: BestRouteRequest = {
   from: {
     blockchain: "",
     symbol: "",
@@ -12,9 +13,9 @@ const initialRouteState: RouteData = {
     symbol: "",
     address: null,
   },
-  amount: 0,
+  amount: '0',
   connectedWallets: [],
-  slippage: 1,
+  slippage: '1',
   selectedWallets: {},
   swapperGroups: [],
   swappersGroupsExclude: false,
@@ -24,7 +25,7 @@ export const quoteDataSlice = createSlice({
   name: "quoteData",
   initialState: initialRouteState,
   reducers: {
-    setQuotedata(state, action: PayloadAction<{ quoteData: RouteData }>) {
+    setQuotedata(state, action: PayloadAction<{ quoteData: BestRouteRequest }>) {
       return { ...action.payload.quoteData };
     },
     updateQuoteData(

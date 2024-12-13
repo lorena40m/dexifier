@@ -1,4 +1,5 @@
 import { WalletType } from "@rango-dev/wallets-shared";
+import { Token as RangoToken, WalletDetail as RangoWalletDetail } from "rango-types/mainApi";
 
 export interface RootState {
   tokens: { fromToken: Token; toToken: Token };
@@ -60,19 +61,7 @@ export interface Blockchain {
   enabled: boolean;
   info: BlockchainInfo | null;
 }
-export interface Token {
-  blockchain: string;
-  symbol: string;
-  image: string;
-  address: string | null;
-  usdPrice: number | null;
-  decimals: number;
-  name: string;
-  isPopular: boolean;
-  isSecondaryCoin: boolean;
-  coinSource: string | null;
-  coinSourceUrl: string | null;
-  supportedSwappers?: string[];
+export interface Token extends RangoToken {
   value?: TokenAmountType;
 }
 
@@ -125,25 +114,6 @@ export interface TokenBalance {
   error: string | null;
   errorCode: number | null;
   traceId: number | null;
-}
-
-export interface WalletAssetsBalance {
-  blockChain: string,
-  address: string,
-  failed: boolean,
-  explorerUrl: string,
-  balances: {
-    asset: {
-      blockchain: string,
-      symbol: string,
-      address: string | null
-    },
-    amount: {
-      amount: string,
-      decimals: number
-    }
-    usdAmount?: number
-  }[]
 }
 
 export interface Settings {

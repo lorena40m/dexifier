@@ -9,9 +9,9 @@ import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Blockchain, RouteData, Token, Result } from "@/app/types/interface";
 import {
-  getBestRoutes,
+  getBestMultiRoutes,
   getBlockchains,
-} from "@/app/api/rango-api";
+} from "@/app/api/rango";
 import { toastError } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import {
@@ -34,7 +34,12 @@ import WalletSourcePopup from "./wallet-popup";
 import { setButtonRef, updateRequiredChain } from "@/redux_slice/slice/browserSlice/walletSlice";
 import ConfirmModal from "./ConfirmModal";
 import {
+  BestRouteRequest,
   BestRouteResponse,
+  MultiRouteRequest,
+  MultiRouteResponse,
+  MultiRouteSimulationResult,
+  SimulationResult,
 } from "rango-types/mainApi";
 import { useManager } from "@rango-dev/queue-manager-react";
 import { calculatePendingSwap, cancelSwap } from "@rango-dev/queue-manager-rango-preset";
@@ -177,9 +182,9 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   };
 
   const refetchRoutes = async (tempToToken: Token, tempFromToken: Token) => {
-    const routeData: RouteData = {
+    const routeData: MultiRouteRequest = {
       ...savedRouteData,
-      amount: tempToToken.value,
+      amount: tempToToken.value?.toString() || '0',
       from: tempToToken,
       to: tempFromToken,
     };
@@ -187,18 +192,17 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
       routeData.from.blockchain == "" ||
       routeData.to.blockchain == "" ||
       routeData.amount == "" ||
-      routeData.amount == 0 ||
       routeData.amount == undefined
     ) {
       return;
     }
     console.log("newRouteFromInput:", routeData);
     dispatch(setRouteProcess({ isRouteProcess: true }));
-    await getBestRoutes(routeData)
-      .then((data) => {
+    await getBestMultiRoutes(routeData)
+      .then((data: MultiRouteResponse) => {
         const sortedResults = sortQuotesBy(
           "RECOMMENDED",
-          data.results as Result[]
+          data.results as MultiRouteSimulationResult[]
         );
         dispatch(setSelectedRoute({ route: sortedResults[0] }));
         dispatch(getRoutes({ routes: sortedResults }));
@@ -328,7 +332,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
 
         <Button
           variant={"outline"}
-          className="bg-transparent self-center disabled:cursor-not-allowed cursor-default border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1 cursor-pointer"
+          className="bg-transparent self-center disabled:cursor-not-allowed border-[#333] mt-6 rounded-full h-[54px] w-[54px] p-1"
           disabled={fromToken.blockchain === "" ||
             toToken.blockchain === "" ||
             fromToken.symbol === "" ||

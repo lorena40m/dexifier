@@ -1,7 +1,7 @@
 "use client";
 import BridgeExchangeTemplate from "./bridge-exchage-template";
 import React, { ReactNode, useEffect, useState } from "react";
-import { getBridges } from "@/app/api/rango-api";
+import { getBridges } from "@/app/api/rango";
 import { Bridge, BridgeEnum, Exchange } from "@/app/types/interface";
 import { useAppDispatch } from "@/redux_slice/provider";
 import { updateTotalBridges } from "@/redux_slice/slice/settingsSlice";

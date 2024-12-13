@@ -2,13 +2,13 @@ import NoWalletInput from "../common/no-wallet-input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react"
-import { createTransaction, fetchConfirm, getCurrencies, getRate } from "@/app/api/noWallet-api"
+import { createTransaction, getTxInfo, getCurrencies, getRate } from "@/app/api/exolix"
 import { useAppSelector } from "@/redux_slice/provider"
 import CustomLoader from "../common/loader"
 import { updateTransactionData, updateAddressError, updateTransactionLoading, updateHistoryLoading } from "@/redux_slice/slice/noWalletSlice/transactionSlice"
 import { useDispatch } from "react-redux"
 import { toastError } from "@/lib/utils"
-import { CurrencyResponse } from "@/app/types/noWalletInterface"
+import { CurrencyResponse, RateRequest, TxRequest } from "@/app/types/noWalletInterface"
 import { updateConfirming, updateLoadingState, updateRateResult } from "@/redux_slice/slice/noWalletSlice/rateSlice"
 import { setExchangeMode } from "@/redux_slice/slice/browserSlice/routeSlice"
 import { Currency, updateCurrency } from "@/redux_slice/slice/noWalletSlice/currencySlice"
@@ -84,7 +84,7 @@ const SwapMobileView: React.FC = () => {
       clearInterval(confirmIntervalRef.current);
     }
     if (isHistory) {
-      const ConfirmedData = await fetchConfirm(transactionId);
+      const ConfirmedData = await getTxInfo(transactionId);
       dispatch(updateTransactionData({ transactionData: ConfirmedData }));
       dispatch(updateHistoryLoading({ isHistoryLoading: true }));
 
@@ -99,7 +99,7 @@ const SwapMobileView: React.FC = () => {
     }
 
     confirmIntervalRef.current = setInterval(async () => {
-      const ConfirmedData = await fetchConfirm(transactionId);
+      const ConfirmedData = await getTxInfo(transactionId);
       dispatch(updateTransactionData({ transactionData: ConfirmedData }));
 
       if (ConfirmedData?.status === "success" || ConfirmedData?.status === "overdue" || ConfirmedData?.status === "refunded") {
@@ -153,13 +153,13 @@ const SwapMobileView: React.FC = () => {
   }
 
   const refetchRates = (tempToCurrency: Currency, tempFromCurrency: Currency) => {
-    const rateData = {
+    const rateData: RateRequest = {
       coinFrom: tempToCurrency.code,
       networkFrom: tempToCurrency.network?.network || "",
       coinTo: tempFromCurrency.code,
       networkTo: tempFromCurrency.network?.network || "",
       amount: tempToCurrency.value,
-      rateType: isFixed ? "fixed" : "floating"
+      rateType: isFixed ? 'fixed' : 'float'
 
     }
     if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "") {
@@ -184,7 +184,7 @@ const SwapMobileView: React.FC = () => {
   };
 
   const createTransactionHandler = async () => {
-    const transactionRequest = {
+    const txRequest: TxRequest = {
       coinFrom: fromCurrency.code,
       networkFrom: fromCurrency.network?.network,
       coinTo: toCurrency.code,
@@ -192,13 +192,13 @@ const SwapMobileView: React.FC = () => {
       amount: parseFloat(fromCurrency.value),
       withdrawalAmount: rateResult?.toAmount,
       withdrawalAddress: recipientAddress,
-      withdrawalExtralId: "",
-      rateType: isFixed ? "fixed" : "floating",
+      withdrawalExtraId: "",
+      rateType: isFixed ? 'fixed' : 'float',
       refundAddress: undefined,
       refundExtraId: ""
     }
     dispatch(updateTransactionLoading({ isTransactionLoading: true }))
-    createTransaction(transactionRequest)
+    createTransaction(txRequest)
       .then((result) => {
 
         try {

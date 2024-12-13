@@ -4,9 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
 import { setSelectedRoute } from "@/redux_slice/slice/browserSlice/routeSlice";
 import {
-  Result,
-  Swap,
-  Tag,
   NewPreferenceType,
   Token,
 } from "@/app/types/interface";
@@ -18,9 +15,10 @@ import {
 import TooltipTemplate from "../common/tooltip-template";
 import ShadowDecoration from "../common/shadow-decoration";
 import ImageWrapper from "../common/image-wrapper";
+import { MultiRouteSimulationResult, RouteTag, SwapResult } from "rango-types/mainApi";
 
 interface TagPanelProps {
-  tags: Tag[];
+  tags: RouteTag[];
   className: string;
   info: { totalTime: string; fee: string | undefined };
 }
@@ -35,7 +33,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
 
   // react state
   const [selectedOption, setSelectedOption] = useState<number>(0);
-  const [sortedRoutes, setSortedRoutes] = useState<Result[]>(routes.routes);
+  const [sortedRoutes, setSortedRoutes] = useState<MultiRouteSimulationResult[]>(routes.routes);
 
   // use Memo
 
@@ -44,7 +42,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
     const changedStrategy = customStrategy("Recommended");
     const sortedResult = sortQuotesBy(
       changedStrategy,
-      routes.routes as Result[]
+      routes.routes as MultiRouteSimulationResult[]
     );
     setSortedRoutes(sortedResult);
   }, []);
@@ -60,7 +58,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
         const changedStrategy = customStrategy(text as NewPreferenceType);
         const sortedResult = sortQuotesBy(
           changedStrategy,
-          routes.routes as Result[]
+          routes.routes as MultiRouteSimulationResult[]
         );
         setSortedRoutes(sortedResult);
         setSelectedOption(id);
@@ -111,7 +109,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
             {info.totalTime}
           </div>
         </div>
-        {tags.map((tag: Tag, index: number) => {
+        {tags.map((tag: RouteTag, index: number) => {
           return (
             tag.label != "Recommended" && (
               <div
@@ -131,7 +129,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
     );
   };
 
-  const singleRouteContainer = (route: Result, tokens: Token[]) => {
+  const singleRouteContainer = (route: MultiRouteSimulationResult, tokens: Token[]) => {
     const calculatedInfo = catchDataFromQuote(route, tokens);
     return (
       <button
@@ -144,7 +142,7 @@ const RoutesCard = ({ isWalletConnected }: { isWalletConnected: boolean }) => {
         disabled={isInProcess || isSwapMade}
         style={{ clipPath: "border-box" }}
       >
-        {route.swaps.map((singleNode: Swap, index: number) => {
+        {route.swaps.map((singleNode: SwapResult, index: number) => {
           const isEven = index % 2 == 0;
           const containerClasses =
             "min-w-fit flex flex-col items-center justify-start gap-y-1.5";

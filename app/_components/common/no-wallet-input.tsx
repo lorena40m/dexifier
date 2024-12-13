@@ -7,11 +7,11 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import useDebounce from "@/app/utils/debounce";
 
 import { updateCurrencyValue } from "@/redux_slice/slice/noWalletSlice/currencySlice";
-import { getRate } from "@/app/api/noWallet-api";
+import { getRate } from "@/app/api/exolix";
 import { updateLoadingState, updateRateResult } from "@/redux_slice/slice/noWalletSlice/rateSlice";
 import { toastError } from "@/lib/utils";
 import { updateAddressError, updateTransactionData } from "@/redux_slice/slice/noWalletSlice/transactionSlice";
-import { CurrencyResponse } from "@/app/types/noWalletInterface";
+import { CurrencyResponse, RateRequest } from "@/app/types/noWalletInterface";
 
 interface Props {
   label: string;
@@ -50,14 +50,13 @@ const NoWalletInput: React.FC<Props> = ({
   //fetch route funtion
   const getRateData = () => {
 
-    const rateData = {
+    const rateData: RateRequest = {
       coinFrom: selectedCurrencyData.fromCurrency.code,
       networkFrom: selectedCurrencyData.fromCurrency.network?.network || "",
       coinTo: selectedCurrencyData.toCurrency.code,
       networkTo: selectedCurrencyData.toCurrency.network?.network || "",
       amount: selectedCurrency.value,
-      rateType: isFixed ? "fixed" : "floating"
-
+      rateType: isFixed ? 'fixed' : 'float'
     }
     if (rateData.coinFrom === "" || rateData.coinTo === "" || rateData.amount === "0" || rateData.amount === "" || !isFromCurrency || isConfirming || isExchangeButtonClicked) {
       console.log("rate fetch fail with request data error");

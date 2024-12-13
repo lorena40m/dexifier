@@ -1,13 +1,13 @@
-import { axiosNoWalletClient } from "@/lib/axios-client";
+import { axiosExolix } from "@/lib/axios-client";
 import { AxiosResponse } from "axios";
-import { CurrencyResponse, RateResponse, TransacionRequest, TransactionData } from "../types/noWalletInterface";
+import { CurrencyResponse, RateRequest, RateResponse, TxRequest, ExTxInfo } from "../types/noWalletInterface";
 
 export async function getCurrencies(): Promise<CurrencyResponse> {
   let count: number;
   let remainder: number;
   let currencies: CurrencyResponse;
 
-  const data: AxiosResponse = await axiosNoWalletClient.get(
+  const data: AxiosResponse = await axiosExolix.get(
     "/currencies?page=1&size=100&withNetworks=true"
   );
   const firstCurrencies = data.data as CurrencyResponse;
@@ -25,7 +25,7 @@ export async function getCurrencies(): Promise<CurrencyResponse> {
   //   for (let i = 1; i <= count; i++) {
   //     const pageSize = (i === count && remainder > 0) ? remainder : 100; // Handle remainder on the last page
 
-  //     const tempdata: AxiosResponse = await axiosNoWalletClient.get(
+  //     const tempdata: AxiosResponse = await axiosExolix.get(
   //       `/currencies?page=${i + 1}&size=${pageSize}&withNetworks=true`
   //     );
 
@@ -47,48 +47,28 @@ export async function getCurrencies(): Promise<CurrencyResponse> {
 }
 
 
-export async function getRate({ coinFrom, networkFrom, coinTo, networkTo, amount, rateType }: {
-  coinFrom: string,
-  networkFrom: string,
-  coinTo: string,
-  networkTo: string,
-  amount: string,
-  rateType: string
-}
+export async function getRate(
+  request: RateRequest
 ): Promise<RateResponse> {
-  const data: AxiosResponse = await axiosNoWalletClient.get(
-    `/rate?coinFrom=${coinFrom}&coinTo=${coinTo}&networkFrom=${networkFrom}&networkTo=${networkTo}&amount=${amount}&rateType=${rateType}`
-  );
+  const data: AxiosResponse = await axiosExolix.get('/rate', {
+    params: request
+  });
   const rateResponse = data.data as RateResponse
-  console.log("rateResponse==>", rateResponse);
-
   return rateResponse;
 }
 
 export async function createTransaction(
-  transactionRequest:
-    TransacionRequest
-
-): Promise<TransactionData> {
-  const data: AxiosResponse = await axiosNoWalletClient.post(
-    "/transactions", transactionRequest
-  );
-  const transactionResponse = data.data as TransactionData;
-
-  console.log("transactionResponse==>", transactionResponse)
-
-  return transactionResponse
+  request: TxRequest
+): Promise<ExTxInfo> {
+  const data: AxiosResponse = await axiosExolix.post('/transactions', request);
+  const transactionResponse = data.data as ExTxInfo;
+  return transactionResponse;
 }
 
-export async function fetchConfirm(
-  transactionId: string
-): Promise<TransactionData> {
-  const data: AxiosResponse = await axiosNoWalletClient.get(
-    `/transactions/${transactionId}`
-  );
-  const confirmResponse = data.data as TransactionData;
-
-  console.log("confirmResponse==>", confirmResponse)
-
+export async function getTxInfo(
+  txId: string
+): Promise<ExTxInfo> {
+  const data: AxiosResponse = await axiosExolix.get(`/transactions/${txId}`);
+  const confirmResponse = data.data as ExTxInfo;
   return confirmResponse
 }

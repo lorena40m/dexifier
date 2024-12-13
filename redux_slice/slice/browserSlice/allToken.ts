@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Token } from "@/app/types/interface";
+import { Token } from "rango-types/mainApi";
 
 const initialTokenState: { tokens: Token[] } = {
   tokens: [
@@ -16,7 +16,6 @@ const initialTokenState: { tokens: Token[] } = {
       coinSource: "",
       coinSourceUrl: "",
       supportedSwappers: [""],
-      value: "",
     },
   ],
 };

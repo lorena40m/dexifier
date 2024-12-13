@@ -7,7 +7,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import type { TypedUseSelectorHook } from "react-redux";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "./store";
-import { getBlockchains, getCompactBlockchainTokens } from "@/app/api/rango-api";
+import { getBlockchains, getCompactBlockchainTokens } from "@/app/api/rango";
 import { setAllToken } from "./slice/browserSlice/allToken";
 import { matchAndGenerateProviders, ProvidersOptions } from "@/app/wallet/utils/providers";
 import { Provider as WalletProvider } from "@rango-dev/wallets-react"

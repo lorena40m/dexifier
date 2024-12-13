@@ -3,7 +3,7 @@ import ExchangeCard from "./ExchangeCard";
 import { FlexExchangeCardProps, WALLET } from "@/app/types/interface";
 import NoWallet from "../no-wallet/Nowallet";
 import { useEffect } from "react";
-import { getAllTokens } from "@/app/api/rango-api";
+import { getAllTokens } from "@/app/api/rango";
 import { useTokenList } from "@/app/providers/TokenProvider";
 
 
