@@ -61,11 +61,45 @@ const CurrencySection: React.FC<{
     return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, [loading, itemsToShow, filteredData]);
 
+  const filterCurrency = (currencies: CurrencyType[], term: string) => {
+    // Return all if no search term
+    if (term === '') return currencies;
+
+    return currencies.filter((currency) => {
+
+      // Check if the term matches the code or name
+      const codeMatchExact = currency.code.toLowerCase() === term;
+      const codeMatchPosition = currency.code.toLowerCase().indexOf(term);
+
+      const nameMatchExact = currency.name.toLowerCase() === term;
+      const nameMatchPosition = currency.name.toLowerCase().indexOf(term);
+
+      (currency as any).searchPriority = 
+        +codeMatchExact * 100 +
+        +nameMatchExact * 50 +
+        +(codeMatchPosition === 0) * 10 +
+        +(codeMatchPosition > 0) * 5 + 
+        +(nameMatchPosition === 0) * 5 +
+        +(nameMatchPosition > 0) * 2
+      
+      if((currency as any).searchPriority > 0) return true;
+
+      // Check if the term matches networks
+      let networkMatch = false;
+      if (currency.networks) {
+        currency.networks = currency.networks.filter((network) => {
+          networkMatch = network.network.toLowerCase().includes(term) ||
+            network.name.toLowerCase().includes(term);
+          return networkMatch;
+        });
+      }
+
+      return networkMatch;
+    }).sort((a: any, b: any) => b.searchPriority - a.searchPriority);
+  } 
+
   useEffect(() => {
-    const filteredTokens = currencies.data.filter((currency) =>
-      currency.name.toLowerCase().includes(search.toLowerCase()) ||
-      currency.code.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredTokens = filterCurrency(structuredClone(currencies.data), search.toLowerCase());
     setFilteredData(filteredTokens);
     setDisplayData(filteredTokens.slice(0, itemsToShow));
   }, [search, itemsToShow, currencies]);
@@ -134,7 +168,7 @@ const CurrencySection: React.FC<{
           <div className="flex items-center justify-center gap-6 capitalize">
             <ImageWrapper>
               <Image
-                src={icon}
+                src={icon || '/assets/wallets/default.png'}
                 height={37}
                 width={37}
                 alt="Token Icon"
