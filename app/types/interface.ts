@@ -451,9 +451,7 @@ export type UserWalletBlockchain = {
 export interface FlexSwapCardProps {
   isWalletConnected: boolean;
 }
-export interface FlexExchangeCardProps {
-  isWalletConnected: boolean;
-}
+
 export interface FlexRoutesCardProps {
   isWalletConnected: boolean;
 }

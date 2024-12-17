@@ -169,7 +169,7 @@ const HistoryPopup = () => {
   return (
     <PopupTemplate title={"History"} triggerButton={triggerButton}>
       <>
-        <Search search={search} setSearch={setSearch} />
+        <Search value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="max-h-[55vh] overflow-y-auto pe-3">
 
           {filteredData.length !== 0 && filteredData.map((transaction, index) => (

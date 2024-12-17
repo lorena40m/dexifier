@@ -30,7 +30,6 @@ import {
 import { updateFromBlockchain, updateToBlockchain } from "@/redux_slice/slice/browserSlice/blockchainSlice";
 import { updateToken, updateTokenValue } from "@/redux_slice/slice/browserSlice/tokenSlice";
 import { sortQuotesBy } from "@/app/utils/catch-data";
-import WalletSourcePopup from "./wallet-popup";
 import { setButtonRef, updateRequiredChain } from "@/redux_slice/slice/browserSlice/walletSlice";
 import ConfirmModal from "./ConfirmModal";
 import {
@@ -48,18 +47,20 @@ import { PendingSwapSettings } from "@/app/wallet/types/swap";
 import { getPendingSwaps } from "@/app/utils/queue";
 import { updateManner } from "@/redux_slice/slice/settingsSlice";
 import { useMediaQuery } from "react-responsive"
+import { useWalletList } from "@/app/wallet/useWalletList";
 
 export enum WALLET {
   NONE,
   BROWSE,
 }
 
-interface ExchangeCardProps {
-  isWalletConnected: boolean;
-}
-
-const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
-
+const SwapCard: React.FC = () => {
+  const { list } = useWalletList({})
+  const connectedWallets = list.filter(
+    (wallet) => wallet.state === "connected",
+  );
+  const isWalletConnected = connectedWallets.length === 0 ? false : true;
+  
   const isMobileView = useMediaQuery ( { query: '(max-width: 767px)' });
 
   const walletSourcePopupRef = useRef<HTMLButtonElement>(null);
@@ -267,55 +268,7 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
   );
 
   return (
-    <div
-      className={`w-full h-full bg-modal bg-opacity-5 border-[#AAA] backdrop-filter backdrop-blur-lg border-opacity-20 md:px-6 px-4 py-2 pt-6 border-[0.15px] border-solid rounded-[2rem] shadow-lg`}
-    >
-      <div
-        id="__controls"
-        className="border-b-[0.1px] border-[#333] border-solid"
-      >
-        <div className="flex flex-wrap justify-between items-center md:gap-4 gap-1 md:p-4 p-2 pb-2">
-          <div className="flex gap-2 md:gap-4 justify-center md:justify-start items-center">
-            <Button
-              variant="outline"
-              size={"sm"}
-              className={`border-primary disabled:cursor-not-allowed rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
-                }`}
-              style={wallet === WALLET.NONE
-                ? { backgroundColor: "#13F187", color: "#000" }
-                : { backgroundColor: "transparent" }
-              }
-              onClick={() => dispatch(updateManner({ wallet: WALLET.NONE }))}
-              disabled={isInProcess || isSwapMade || isRouteProcess}
-            >
-              No Wallet
-            </Button>
-            <Button
-              size={"sm"}
-              variant="outline"
-              className={`border-primary rounded-full ${isRoutesFetched ? "md:px-4" : "md:px-10"
-                }`}
-              style={isMobileView
-                ? { backgroundColor: "#FAFAFA", color: "#A0ABBE" , borderColor: "#FAFAFA"}
-                : { backgroundColor: "#13F187", color: "#000" }
-              }
-              onClick={() => dispatch(updateManner({ wallet: WALLET.BROWSE }))}
-              disabled={isInProcess || isSwapMade || isRouteProcess}
-            >
-              Browser Wallet
-            </Button>
-          </div>
-
-          <div className="flex items-center">
-            <SettingsPopup />
-
-            <HistoryPopup />
-
-            <WalletSourcePopup ref={walletSourcePopupRef} />
-          </div>
-        </div>
-      </div>
-
+    <>
       {isMobileView ? (
       <p style={{ color: 'white', fontSize: '25px', marginTop: '3rem' , textAlign: "center" , marginBottom: '3rem'}}>
         Browser wallet connections are not supported on mobile devices; only available on desktop.
@@ -418,8 +371,8 @@ const ExchangeCard: React.FC<ExchangeCardProps> = ({ isWalletConnected }) => {
         isConfirmModalOpen={isConfirmModalOpen}
         closeConfirmModal={closeConfirmModal}
         closeModalAndContinue={closeModalAndContinue} />
-    </div>
+    </>
   );
 };
 
-export default ExchangeCard;
+export default SwapCard;

@@ -67,7 +67,7 @@ const AllBlockchainsPopup = ({
       }
     >
       <>
-        <Search search={search} setSearch={setSearch} />
+        <Search value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="relative w-full">
           <ShadowDecoration />
           <DialogClose className="ml-2 overflow-y-auto max-h-[50vh] w-full pe-3">

@@ -265,7 +265,7 @@ const TokenSection: React.FC<{
         <div>Select blockchain first!</div>
       ) : (
         <>
-          <Search search={search} setSearch={setSearch} />
+          <Search value={search} onChange={(e) => setSearch(e.target.value)} />
           <div
             className="relative"
           >

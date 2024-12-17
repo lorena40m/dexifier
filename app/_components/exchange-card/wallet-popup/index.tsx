@@ -118,7 +118,7 @@ const WalletSourcePopup = forwardRef<HTMLButtonElement>((props, ref) => {
 
   return (
     <PopupTemplate title={<span>Connect <span className="text-primary">{requiredChain}</span> Wallets</span>} triggerButton={triggerButton}>
-      <Search search={search} setSearch={setSearch} />
+      <Search value={search} onChange={(e) => setSearch(e.target.value)} />
       <div className="relative w-full">
         <ShadowDecoration />
         <div className="max-h-[60vh] flex flex-wrap justify-center overflow-auto gap-2 pr-1">

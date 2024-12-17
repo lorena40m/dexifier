@@ -473,7 +473,7 @@ const MainNavbar = () => {
           </button>
         </div>
 
-        <Search search={search} setSearch={setSearch} />
+        <Search value={search} onChange={(e) => setSearch(e.target.value)} />
         <div className="flex justify-between pb-2">
           <div className="w-[40%]">
             <WalletSelector walletOptions={mappedWallets} />

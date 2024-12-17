@@ -79,7 +79,7 @@ const BridgeExchangeTemplate = ({
       }
     >
       <>
-        <Search search={search} setSearch={setSearch} />
+        <Search value={search} onChange={(e) => setSearch(e.target.value)} />
 
         <div className="mb-6 pe-[.2188rem] flex justify-end items-center">
           <button
@@ -143,7 +143,7 @@ const BridgeExchangeTemplate = ({
       }
     >
       <>
-        <Search search={search} setSearch={setSearch} />
+        <Search value={search} onChange={(e) => setSearch(e.target.value)} />
 
         <div className="mb-6 pe-[.2188rem] flex justify-end items-center">
           <button

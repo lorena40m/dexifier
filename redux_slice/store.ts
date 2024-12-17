@@ -11,11 +11,7 @@ import { routeSlice } from "./slice/browserSlice/routeSlice";
 import { settingsSlice } from "./slice/settingsSlice";
 import { swapSlice } from "./slice/browserSlice/swapSlice";
 import { walletSlice } from "./slice/browserSlice/walletSlice";
-import { currencySlice } from "./slice/noWalletSlice/currencySlice";
-import { rateSlice } from "./slice/noWalletSlice/rateSlice";
 import { filterSlice } from "./slice/browserSlice/filterSlice";
-import { transactionSlice } from "./slice/noWalletSlice/transactionSlice";
-import { historySlice } from "./slice/noWalletSlice/historySlice";
 
 // Configuration for redux-persist
 const persistConfig = {
@@ -34,11 +30,7 @@ const rootReducer = combineReducers({
   allToken: alltokenSlice.reducer,
   quoteData: quoteDataSlice.reducer,
   wallet: walletSlice.reducer,
-  currency: currencySlice.reducer,
-  rate: rateSlice.reducer,
   filter: filterSlice.reducer,
-  transaction: transactionSlice.reducer,
-  history: historySlice.reducer
 });
 
 // Persist the root reducer

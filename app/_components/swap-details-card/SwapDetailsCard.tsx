@@ -17,9 +17,10 @@ import ButtonCopyIcon from "../common/coyp-button-icon";
 import ImageWrapper from "../common/image-wrapper";
 import TooltipTemplate from "../common/tooltip-template";
 import Link from "next/link";
+import { SwapResult } from "rango-types/mainApi";
 
 interface SwapTokenProps {
-  swapData: Swap,
+  swapData: SwapResult,
   isFrom: boolean,
   className?: string
 }

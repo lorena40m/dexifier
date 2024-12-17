@@ -17,7 +17,7 @@ const config = {
         "primary-dark": "#0FBD6B",
         black: "#000000",
         white: "#FFFFFF",
-        seperator: "#5F5F5F",
+        separator: "#5F5F5F",
         paragraph: "#F2F2F2",
         border: "#5f5f5f",
         error: "#f44336",
