@@ -25,8 +25,7 @@ const SwapContext: React.Context<SwapContextType | undefined> = createContext<Sw
 
 const DEFAULT_SETTINS: Settings = {
   slippage: '1',
-  bridges: [],
-  exchanges: [],
+  swappers: [],
   infiniteApproval: false,
 }
 

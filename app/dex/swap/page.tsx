@@ -1,8 +1,8 @@
 "use client";
 
-import RouteCard from "@/app/_components/exchange-card/RouteCard";
-import SwapCard from "@/app/_components/exchange-card/SwapCard";
-import SwapDetailsCard from "@/app/_components/exchange-card/SwapDetailsCard";
+import RouteCard from "@/app/_components/swap/RouteCard";
+import SwapCard from "@/app/_components/swap/SwapCard";
+import SwapDetailsCard from "@/app/_components/swap/SwapDetailsCard";
 import { useSwap } from "@/app/providers/SwapProvider";
 
 export default function SwapPage() {

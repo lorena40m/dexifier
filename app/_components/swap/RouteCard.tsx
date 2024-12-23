@@ -218,8 +218,9 @@ const RouteCard = () => {
     <div className="relative max-w-[650px] min-h-[540px] w-full h-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg flex flex-col gap-4">
       <h1 className="text-2xl">Routes</h1>
       <div className="flex flex-wrap items-center gap-x-3">
-        {Object.values(PREFERENCE).map(value => (
+        {Object.values(PREFERENCE).map((value, index) => (
           <button
+            key={index}
             className={`px-3.5 py-1.5 border border-primary rounded-full text-xs font-medium leading-[.9rem] transition-colors duration-300 ${preference === value
               ? "bg-primary text-black"
               : "bg-transparent text-white hover:bg-white/10 "

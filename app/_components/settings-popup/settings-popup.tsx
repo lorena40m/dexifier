@@ -2,8 +2,6 @@
 
 import PopupTemplate from "../common/popup-template";
 import Image from "next/image";
-import BridgesPopup from "./bridges-popup";
-import ExchangePopup from "./exchange-popup";
 import TooltipTemplate from "../common/tooltip-template";
 import React, { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,14 +10,17 @@ import { CiCircleInfo } from "react-icons/ci";
 import { Switch } from "@/components/ui/switch";
 import { useSwap } from "@/app/providers/SwapProvider";
 import { useWidget } from "@rango-dev/widget-embedded";
-import { SwapperMeta } from "rango-types/mainApi";
+import { SwapperMeta, SwapperType } from "rango-types/mainApi";
+import SwapperModal from "./SwapperModal";
 
 const SettingsPopup = () => {
   const { settings, setSettings } = useSwap();
   const { meta } = useWidget();
   const { swappers } = meta;
-  const bridges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('BRIDGE'))
-  const exchanges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('DEX'))
+
+  function countSwappersByType (swappers: SwapperMeta[], type: SwapperType): number {
+    return swappers.filter((swapper: SwapperMeta) => swapper.types.includes(type)).length
+  }
 
   const [isSlippageCustom, setIsSlippageCustom] = useState<boolean>(false);
   const [showSlippageDetails, setShowSlippageDetails] =
@@ -138,7 +139,10 @@ const SettingsPopup = () => {
         </div>
 
         <div>
-          <BridgesPopup>
+          <SwapperModal
+            title={"Bridges"}
+            type={"BRIDGE"}
+          >
             {optionsDiv(
               <Image
                 src={"/assets/settings/bridges.png"}
@@ -151,15 +155,18 @@ const SettingsPopup = () => {
 
               <div className="flex items-center gap-2.5">
                 <h2>
-                  {settings.bridges.length}/
-                  {bridges.length}
+                  {countSwappersByType(settings.swappers, 'BRIDGE')}/
+                  {countSwappersByType(swappers, 'BRIDGE')}
                 </h2>
                 <IoIosArrowForward size={22} />
               </div>
             )}
-          </BridgesPopup>
+          </SwapperModal>
 
-          <ExchangePopup>
+          <SwapperModal
+            title={"Exchanges"}
+            type={'DEX'}
+          >
             {optionsDiv(
               <Image
                 src={"/assets/settings/exchange.png"}
@@ -172,13 +179,13 @@ const SettingsPopup = () => {
 
               <div className="flex items-center gap-2.5">
                 <h2>
-                  {settings.exchanges.length}/
-                  {exchanges.length}
+                  {countSwappersByType(settings.swappers, 'DEX')}/
+                  {countSwappersByType(swappers, 'DEX')}
                 </h2>
                 <IoIosArrowForward size={22} />
               </div>
             )}
-          </ExchangePopup>
+          </SwapperModal>
 
           {optionsDiv(
             <Image

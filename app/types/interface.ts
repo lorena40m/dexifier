@@ -1,5 +1,5 @@
 import { WalletType } from "@rango-dev/wallets-shared";
-import { Token as RangoToken, WalletDetail as RangoWalletDetail } from "rango-types/mainApi";
+import { Token as RangoToken, WalletDetail as RangoWalletDetail, SwapperMeta } from "rango-types/mainApi";
 
 export interface RootState {
   tokens: { fromToken: Token; toToken: Token };
@@ -115,8 +115,7 @@ export interface TokenBalance {
 
 export interface Settings {
   slippage: string;
-  bridges: string[];
-  exchanges: string[];
+  swappers: SwapperMeta[];
   infiniteApproval: boolean;
 }
 

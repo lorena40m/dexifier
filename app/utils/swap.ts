@@ -76,8 +76,6 @@ export function createQuoteRequestBody(params: {
       addresses: [wallet.address],
     });
   });
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   const requestBody: BestRouteRequest = {
     amount: inputAmount.toString(),
     affiliateRef: affiliateRef ?? undefined,
@@ -328,7 +326,6 @@ export function getSwapMessages(
   if (networkWarningState) {
     message = pendingSwap.networkStatusExtraMessage || '';
     detailedMessage = pendingSwap.networkStatusExtraMessageDetail || '';
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
     switch (currentStep?.networkStatus) {
       case PendingSwapNetworkStatus.WaitingForConnectingWallet:
         message = message || i18n.t('Waiting for connecting wallet');

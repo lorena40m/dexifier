@@ -42,8 +42,8 @@ const WalletSelect: React.FC<SingleConfirmWalletProps> = ({ index, chain, wallet
           setWallet(requiredWallets.find(wallet => wallet.walletType === value))
         }}
       >
-        {requiredWallets.map((wallet: ConnectedWallet) => (
-          <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType}
+        {requiredWallets.map((wallet: ConnectedWallet, index: number) => (
+          <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType} key={index}
             className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30'
           >
             <div className='flex justify-center'>
