@@ -1,15 +1,13 @@
-import { useAppSelector } from "@/redux_slice/provider";
-import { getCompactBlockchainTokens } from "../api/rango";
 import {
   NewPreferenceType,
   PreferenceType,
-  Result,
   Token,
 } from "../types/interface";
 import { MultiRouteSimulationResult, SwapResult } from "rango-types/mainApi";
 import BigNumber from "bignumber.js";
 import { PendingSwap, PendingSwapNetworkStatus, PendingSwapStep } from "rango-types";
-import { StepDetailsProps } from "../wallet/interface";
+import { StepDetailsProps } from "@rango-dev/ui";
+import { i18n } from '@lingui/core';
 
 const ZERO = new BigNumber(0);
 const GAS_FEE_MIN_DECIMALS = 2;
@@ -170,10 +168,8 @@ export const getAmountFromString = (amount: string, decimals: number) => {
   }
 }
 
-export const getAbbrAddress = (address: string) => {
-  if (address == null) {
-    return "null"
-  }
+export const getAbbrAddress = (address: string | null) => {
+  if(!address) return 'null'
   return address.slice(0, 4) + "..." + address.slice(-4)
 }
 
@@ -243,23 +239,23 @@ export const customStrategy = (strategy: NewPreferenceType): PreferenceType => {
 };
 
 const daysOfWeek = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
+  i18n.t('Sunday'),
+  i18n.t('Monday'),
+  i18n.t('Tuesday'),
+  i18n.t('Wednesday'),
+  i18n.t('Thursday'),
+  i18n.t('Friday'),
+  i18n.t('Saturday'),
 ];
 
 export function timeSince(millisecond: number) {
   const date = new Date(millisecond);
   const day = date.getDate();
-  const month = date.toLocaleString("default", { month: "long" });
+  const month = date.toLocaleString('default', { month: 'long' });
   const year = date.getFullYear();
   const isToday = date.getDay() === new Date().getDay();
   const formattedDate = isToday
-    ? "Today"
+    ? i18n.t('Today')
     : `${daysOfWeek[date.getDay()]} ${day} ${month} ${year}`;
 
   return `${formattedDate}, ${new Date(millisecond).toLocaleTimeString()}`;

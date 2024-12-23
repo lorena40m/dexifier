@@ -7,13 +7,9 @@ import React, { ReactNode, useState } from "react";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { Bridge, BridgeEnum, Exchange } from "@/app/types/interface";
-import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
-import {
-  toggleSelectAllBridges,
-  toggleSelectAllExchanges,
-  updateBridges,
-  updateExchanges,
-} from "@/redux_slice/slice/settingsSlice";
+import { useSwap } from "@/app/providers/SwapProvider";
+import { useWidget } from "@rango-dev/widget-embedded";
+import { SwapperMeta } from "rango-types/mainApi";
 
 const BridgeExchangeTemplate = ({
   title,
@@ -28,8 +24,11 @@ const BridgeExchangeTemplate = ({
   exhangeData?: Exchange[];
   children: ReactNode;
 }) => {
-  const dispatch = useAppDispatch();
-  const settings = useAppSelector((state) => state.settings);
+  const { settings, setSettings } = useSwap();
+  const { meta } = useWidget();
+  const { swappers } = meta;
+  const bridges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('BRIDGE'))
+  const exchanges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('DEX'))
 
   const [search, setSearch] = useState<string>("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -84,11 +83,11 @@ const BridgeExchangeTemplate = ({
         <div className="mb-6 pe-[.2188rem] flex justify-end items-center">
           <button
             className="bg-transparent border-none text-sm hover:text-primary transition-colors duration-300"
-            onClick={() =>
-              dispatch(toggleSelectAllBridges({ bridges: data as Bridge[] }))
-            }
+            onClick={() => {
+              setSettings(prev => ({ ...prev, bridges: bridges.map((bridge: SwapperMeta) => bridge.id) }))
+            }}
           >
-            {settings.selectedBridgesCounter === settings.totalBridges
+            {settings.bridges.length === bridges.length
               ? "Deselect All"
               : "Select All"}
           </button>
@@ -103,7 +102,9 @@ const BridgeExchangeTemplate = ({
                 <div
                   key={item.id}
                   className="pb-[.875rem] mb-6 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
-                  onClick={() => dispatch(updateBridges({ bridgeID: item.id }))}
+                  onClick={() => {
+                    setSettings(prev => ({ ...prev, bridges: [...new Set([...(prev.bridges), item.id])] }))
+                  }}
                 >
                   <div className="flex gap-[.875rem]">
                     <Image
@@ -148,15 +149,11 @@ const BridgeExchangeTemplate = ({
         <div className="mb-6 pe-[.2188rem] flex justify-end items-center">
           <button
             className="bg-transparent border-none text-sm hover:text-primary transition-colors duration-300"
-            onClick={() =>
-              dispatch(
-                toggleSelectAllExchanges({
-                  exchanges: exhangeData as Exchange[],
-                })
-              )
-            }
+            onClick={() => {
+              setSettings(prev => ({ ...prev, exchanges: exchanges.map((exchange: SwapperMeta) => exchange.id) }))
+            }}
           >
-            {settings.selectedExchangesCounter === settings.totalExchanges
+            {settings.exchanges.length === exchanges.length
               ? "Deselect All"
               : "Select All"}
           </button>
@@ -171,9 +168,9 @@ const BridgeExchangeTemplate = ({
                 <div
                   key={item.id}
                   className="pb-[.875rem] mb-6 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
-                  onClick={() =>
-                    dispatch(updateExchanges({ exchangeId: item.id }))
-                  }
+                  onClick={() => {
+                    setSettings(prev => ({ ...prev, exchanges: [...new Set([...(prev.exchanges), item.id])] }))
+                  }}
                 >
                   <div className="flex gap-[.875rem]">
                     <Image

@@ -8,7 +8,7 @@ export const getPendingSwaps = (manager: Manager | undefined) => {
   const result: PendingSwapWithQueueID[] = [];
 
   manager?.getAll().forEach((q, id) => {
-    const storage = q.list?.getStorage() as SwapStorage;
+    const storage = q.list.getStorage() as SwapStorage;
 
     if (storage?.swapDetails) {
       result.push({
@@ -19,6 +19,6 @@ export const getPendingSwaps = (manager: Manager | undefined) => {
   });
 
   return result.sort(
-    (a, b) => Number(b.swap.creationTime) - Number(a.swap.creationTime),
+    (a, b) => Number(b.swap.creationTime) - Number(a.swap.creationTime)
   );
 };

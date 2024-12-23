@@ -1,27 +1,19 @@
 "use client";
 import BridgeExchangeTemplate from "./bridge-exchage-template";
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode } from "react";
 import { BridgeEnum } from "@/app/types/interface";
-import { getExchanges } from "@/app/api/rango";
-import { useAppDispatch } from "@/redux_slice/provider";
-import { updateTotalExchanges } from "@/redux_slice/slice/settingsSlice";
-import { SwapperMetaExtended } from "rango-sdk/lib/types";
+import { useWidget } from "@rango-dev/widget-embedded";
+import { SwapperMeta } from "rango-types/mainApi";
 
 const ExchangePopup = ({ children }: { children: ReactNode }) => {
-  const dispatch = useAppDispatch();
-  const [exchangesData, setExchangesData] = useState<SwapperMetaExtended[]>([]);
-  useEffect(() => {
-    getExchanges().then((data) => {
-      console.log("SwapperMetaExtended", data);
+  const { meta } = useWidget();
+  const { swappers } = meta;
+  const exchanges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('DEX'))
 
-      setExchangesData(data);
-      dispatch(updateTotalExchanges({ value: data?.length }));
-    });
-  }, [dispatch]);
   return (
     <BridgeExchangeTemplate
       title="Exchanges"
-      exhangeData={exchangesData}
+      exhangeData={exchanges}
       type={BridgeEnum.EXCHANGE}
     >
       {children}

@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import ButtonCopyIcon from "../common/coyp-button-icon";
-import { formatReadableDate } from "@/app/utils/catch-data";
 import StatusBar from "../common/status-bar";
 import CustomLoader from "../common/loader";
 import QrCodeGenerator from "../common/qr-generator";
@@ -19,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { formatReadableDate } from "@/app/utils";
 
 const AddressesCard = () => {
   const { rateData, txData, withdrawalAddress, setWithdrawalAddress, currencyFrom, currencyTo } = useExchange();

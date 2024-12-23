@@ -21,10 +21,7 @@ export type NewPreferenceType =
   | "Cheapest";
 
 export type TokenAmountType = number | string;
-export interface CryptoCurrency {
-  code: string;
-  name: string;
-}
+
 interface BlockchainInfo {
   infoType: string;
   chainName: string;
@@ -117,13 +114,9 @@ export interface TokenBalance {
 }
 
 export interface Settings {
+  slippage: string;
   bridges: string[];
-  selectedBridgesCounter: number;
-  totalBridges: number;
   exchanges: string[];
-  selectedExchangesCounter: number;
-  totalExchanges: number;
-  slippage: number;
   infiniteApproval: boolean;
 }
 
@@ -485,9 +478,4 @@ export enum ConfirmMessage {
   'FEE' = "transaction fee",
   'FEE_AND_INPUT_ASSET' = "transaction fee and swap amount",
   'INPUT_ASSET' = "swap amount for transacion"
-}
-
-export enum WALLET {
-  NONE,
-  BROWSE,
 }

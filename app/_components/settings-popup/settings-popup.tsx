@@ -5,21 +5,21 @@ import Image from "next/image";
 import BridgesPopup from "./bridges-popup";
 import ExchangePopup from "./exchange-popup";
 import TooltipTemplate from "../common/tooltip-template";
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowForward } from "react-icons/io";
 import { CiCircleInfo } from "react-icons/ci";
 import { Switch } from "@/components/ui/switch";
-import { useAppDispatch, useAppSelector } from "@/redux_slice/provider";
-import {
-  updateInfiniteApproval,
-  updateSlippage,
-} from "@/redux_slice/slice/settingsSlice";
+import { useSwap } from "@/app/providers/SwapProvider";
+import { useWidget } from "@rango-dev/widget-embedded";
+import { SwapperMeta } from "rango-types/mainApi";
 
 const SettingsPopup = () => {
-  const dispatch = useAppDispatch();
-  const settings = useAppSelector((state) => state.settings);
-  const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
+  const { settings, setSettings } = useSwap();
+  const { meta } = useWidget();
+  const { swappers } = meta;
+  const bridges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('BRIDGE'))
+  const exchanges = swappers.filter((swapper: SwapperMeta) => swapper.types.includes('DEX'))
 
   const [isSlippageCustom, setIsSlippageCustom] = useState<boolean>(false);
   const [showSlippageDetails, setShowSlippageDetails] =
@@ -30,7 +30,6 @@ const SettingsPopup = () => {
   const triggerButton = (
     <Button
       className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
-      disabled={isInProcess || isSwapMade}
     >
       <TooltipTemplate content="Settings" className="!mb-1">
         <Image
@@ -43,14 +42,17 @@ const SettingsPopup = () => {
     </Button>
   );
 
-  const percentageBox = (text: string, value: number, className = "") => (
+  const percentageBox = (text: string, value: string, className = "") => (
     <button
-      className={`${className} ${settings.slippage == value
+      className={`${className} ${settings.slippage === value
         ? "border-primary text-primary"
         : "border-seperator text-white"
         } text-sm sm:text-base border hover:border-primary-dark hover:text-primary-dark rounded-[.5625rem] cursor-pointer flex items-center justify-center w-1/4 xs:w-[4.25rem] h-[3.375rem] transition-colors duration-300`}
       onClick={() => {
-        dispatch(updateSlippage({ value }));
+        setSettings(prev => ({
+          ...prev,
+          slippage: value,
+        }))
         setIsSlippageCustom(false);
       }}
     // onClick={() => setSlippageTolerance(value)}
@@ -69,10 +71,10 @@ const SettingsPopup = () => {
       setIsSlippageCustom(true);
     else setIsSlippageCustom(false);
 
-    dispatch(updateSlippage({ value: updatedValue }));
-
-    // setCustomSlippageTolerance(updatedValue);
-    // setSlippageTolerance(null);
+    setSettings(prev => ({
+      ...prev,
+      slippage: value
+    }))
   };
 
   const optionsDiv = (
@@ -117,9 +119,9 @@ const SettingsPopup = () => {
         </h1>
 
         <div className="flex flex-wrap items-center justify-between mb-6 gap-3">
-          {percentageBox("0.5%", 0.5)}
-          {percentageBox("1%", 1)}
-          {percentageBox("3%", 3)}
+          {percentageBox("0.5%", '0.5')}
+          {percentageBox("1%", '1')}
+          {percentageBox("3%", '3')}
 
           <input
             type="number"
@@ -149,8 +151,8 @@ const SettingsPopup = () => {
 
               <div className="flex items-center gap-2.5">
                 <h2>
-                  {settings.selectedBridgesCounter ?? 0}/
-                  {settings.totalBridges ?? 0}
+                  {settings.bridges.length}/
+                  {bridges.length}
                 </h2>
                 <IoIosArrowForward size={22} />
               </div>
@@ -170,8 +172,8 @@ const SettingsPopup = () => {
 
               <div className="flex items-center gap-2.5">
                 <h2>
-                  {settings.selectedExchangesCounter ?? 0}/
-                  {settings.totalExchanges ?? 0}
+                  {settings.exchanges.length}/
+                  {exchanges.length}
                 </h2>
                 <IoIosArrowForward size={22} />
               </div>
@@ -208,9 +210,12 @@ const SettingsPopup = () => {
             <Switch
               id="infinite-approval"
               checked={settings.infiniteApproval}
-              onCheckedChange={(value) =>
-                dispatch(updateInfiniteApproval({ value }))
-              }
+              onCheckedChange={(value) => {
+                setSettings(prev => ({
+                  ...prev,
+                  infiniteApproval: value,
+                }))
+              }}
             />
           )}
         </div>

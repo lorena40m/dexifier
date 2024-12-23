@@ -1,4 +1,4 @@
-import { axiosExolix } from "@/lib/axios-client";
+import { axiosExolix } from "@/lib/axios";
 import { AxiosResponse } from "axios";
 import { RateRequest, RateResponse, TxRequest, ExTxInfo, Currency, CurrencyResponse, Network } from "../types/exolix";
 

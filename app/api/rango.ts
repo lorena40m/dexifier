@@ -1,4 +1,4 @@
-import { axiosRango } from "@/lib/axios-client";
+import { axiosRango } from "@/lib/axios";
 import {
   DiagnosticMessage,
 } from "../types/interface";
@@ -23,11 +23,13 @@ import {
   MultiRouteRequest,
   MultiRouteResponse,
   WalletDetail,
+  Asset,
 } from "rango-types/mainApi";
 import {
   SwapRequest,
   SwapResponse,
 } from "rango-types/basicApi";
+import { toastError } from "@/lib/utils";
 
 export async function getBlockchains(): Promise<BlockchainMeta[]> {
   const response: AxiosResponse = await axiosRango.get('/meta/blockchains');
@@ -113,7 +115,17 @@ export async function getWalletBalance(
   return wallets;
 }
 
-function handleError(error: unknown): DiagnosticMessage {
+export async function getTokenData(
+  asset: Asset
+): Promise<Token> {
+  const response: AxiosResponse = await axiosRango.get('meta/custom-token', {
+    params: asset
+  });
+  const { token }: { token: Token } = response.data;
+  return token;
+}
+
+function handleError(error: unknown): string {
   const defaultError: DiagnosticMessage = {
     status: "error",
     message: "An unknown error occurred",
@@ -134,7 +146,7 @@ function handleError(error: unknown): DiagnosticMessage {
     }
   }
 
-  return defaultError;
+  return defaultError.message;
 }
 
 export async function getBestMultiRoutes(

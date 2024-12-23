@@ -5,12 +5,11 @@ import Search from "../common/search";
 import TooltipTemplate from "../common/tooltip-template";
 import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { useAppSelector } from "@/redux_slice/provider";
 import { PendingSwap, SwapStatus } from "rango-types";
 import { getPendingSwaps } from "@/app/utils/queue";
 import { useManager } from "@rango-dev/queue-manager-react";
-import { getSwapDate } from "@/app/utils/catch-data";
 import Link from "next/link";
+import { getSwapDate } from "@/app/utils/swap";
 
 interface TokenData {
   symbol: string;
@@ -55,8 +54,6 @@ const HistoryPopup = () => {
 
   const dummyData = useMemo(() => createDummyData(list), [list]);
 
-  const { isInProcess, isSwapMade } = useAppSelector((state) => state.swap);
-
   const [search, setSearch] = useState<string>("");
   const [filteredData, setFilteredData] = useState(dummyData);
 
@@ -90,7 +87,6 @@ const HistoryPopup = () => {
   const triggerButton = (
     <Button
       className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
-      disabled={isInProcess || isSwapMade}
     >
       <TooltipTemplate content="History" className="!mb-1">
         <Image
@@ -170,7 +166,7 @@ const HistoryPopup = () => {
     <PopupTemplate title={"History"} triggerButton={triggerButton}>
       <>
         <Search value={search} onChange={(e) => setSearch(e.target.value)} />
-        <div className="max-h-[55vh] overflow-y-auto pe-3">
+        <div className="max-h-[55vh] overflow-y-auto pe-3 mt-4">
 
           {filteredData.length !== 0 && filteredData.map((transaction, index) => (
             <React.Fragment key={index}>
