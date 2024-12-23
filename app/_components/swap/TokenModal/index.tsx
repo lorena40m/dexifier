@@ -41,16 +41,16 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
   const { tokens } = meta;
 
   useEffect(() => {
-    if (selectedBlockchain) setBlockChainTokens(tokens.filter((token: Token) => token.blockchain === selectedBlockchain.name))
+    if (selectedBlockchain) setBlockChainTokens(tokens.filter((token: Token) => token.blockchain === selectedBlockchain.name).sort((a, b) => b.isPopular - a.isPopular))
   }, [selectedBlockchain])
 
   useEffect(() => {
-    setFilteredTokens(blockchainTokens.filter((token: Token) => token.name?.toLowerCase().includes(search.toLowerCase())).slice(0, PAGE_SIZE))
+    setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase())).slice(0, PAGE_SIZE))
   }, [blockchainTokens, search])
 
   const fetchMoreTokens = useCallback(() => {
     page.current += 1;
-    setFilteredTokens(blockchainTokens.filter((token: Token) => token.name?.toLowerCase().includes(search.toLowerCase())).slice(0, PAGE_SIZE * page.current))
+    setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase())).slice(0, PAGE_SIZE * page.current))
   }, [blockchainTokens, search])
 
   return (

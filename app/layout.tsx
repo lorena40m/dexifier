@@ -6,6 +6,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import { WidgetConfig } from "@rango-dev/widget-embedded";
 import dynamic from "next/dynamic";
+import "react-toastify/dist/ReactToastify.css";
 
 // Dynamically import DexifierProvider for client-side rendering
 const DexifierProvider = dynamic(() => import("./DexifierProvider"), {

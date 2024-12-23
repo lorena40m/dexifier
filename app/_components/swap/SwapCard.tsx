@@ -21,25 +21,47 @@ import { useSwap } from "@/app/providers/SwapProvider";
 import TokenInput from "./TokenInput";
 import { Label } from "@/components/ui/label";
 import { debounce } from "lodash";
-import { createQuoteRequestBody } from "@/app/utils/swap";
-
-export enum WALLET {
-  NONE,
-  BROWSE,
-}
+import { createQuoteRequestBody, getPendingSwaps } from "@/app/utils/swap";
+import { useManager } from "@rango-dev/queue-manager-react";
 
 const SwapCard: React.FC = () => {
   const { wallets } = useWidget()
   const { details: connectedWallets } = wallets;
   const isWalletConnected = connectedWallets.length > 0;
 
-  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, routeData, setRouteData, selectedRoute, setSelectedRoute } = useSwap();
+  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setRouteData, selectedRoute, setSelectedRoute } = useSwap();
   const [amountFrom, setAmountFrom] = useState<string>('0');
+  const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
   const [isFetchingRoute, fetchRoute] = useTransition();
 
+  const { manager } = useManager();
+  const pendingSwaps = getPendingSwaps(manager);
+
+  const selectedSwap = confirmData?.result?.requestId
+    ? pendingSwaps.find(({ swap }) => swap.requestId === confirmData?.result?.requestId)
+    : undefined;
+  const pendingSwap = selectedSwap?.swap;
+
   useEffect(() => {
-    if(parseFloat(amountFrom)) fetchRouteDebounceHandler(amountFrom);
+    if (parseFloat(amountFrom)) fetchRouteDebounceHandler(amountFrom);
   }, [tokenFrom, tokenTo, amountFrom]);
+
+  useEffect(() => {
+    setAmountFrom('0')
+    if (!tokenFrom) return
+    setTokenFromBalance(
+      connectedWallets.reduce((total, connectedWallet) => {
+        const walletBalance = connectedWallet.balances?.reduce((sum, balance) => {
+          // Check if the balance matches the specific chain and address
+          if (balance.chain === tokenFrom.blockchain && balance.address === tokenFrom.address) {
+            return sum + parseFloat(balance.amount);
+          }
+          return sum;
+        }, 0) || 0; // Handle cases where balances might be undefined
+        return total + walletBalance;
+      }, 0)
+    );
+  }, [tokenFrom])
 
   const fetchRouteDebounceHandler = useMemo(() =>
     debounce((amount: string) => {
@@ -101,6 +123,17 @@ const SwapCard: React.FC = () => {
         <div className="w-full flex flex-col justify-evenly gap-3">
           <div className="flex justify-between items-end">
             <Label htmlFor="tokenFrom" className="text-lg">From</Label>
+            {isWalletConnected && tokenFrom && <div>
+              <Label className="text-sm">
+                Balance: {tokenFromBalance ? `${tokenFromBalance} ${tokenFrom.symbol}` : '_'}
+              </Label>
+              {tokenFromBalance > 0 &&
+                <div className="flex gap-1 justify-end">
+                  <button className="hover:opacity-80 text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.25).toString())}>25%</button><span>|</span>
+                  <button className="hover:opacity-80 text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.5).toString())}>50%</button><span>|</span>
+                  <button className="hover:opacity-80 text-sm" onClick={() => setAmountFrom(tokenFromBalance.toString())}>Max</button>
+                </div>}
+            </div>}
           </div>
           <TokenInput
             type="number"
@@ -135,25 +168,20 @@ const SwapCard: React.FC = () => {
             disabled
             token={tokenTo}
             setToken={setTokenTo}
+            value={selectedRoute ? selectedRoute.outputAmount : 0}
           />
         </div>
       </CardContent>
       <CardFooter>
         {isWalletConnected ?
-          isFetchingRoute ?
+          isFetchingRoute || pendingSwap ?
             <Button
-              className={`${isFetchingRoute
-                ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
-                : "bg-primary hover:bg-primary-dark text-black"
-                } w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto mt-[20px] md:mt-[10px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+              className={`bg-transparent text-primary border border-seperator hover:bg-black/30 w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto mt-[20px] md:mt-[10px] text-xl transition-colors duration-300`}
               onClick={handleAction}
-              disabled={isFetchingRoute || !selectedRoute}
+              disabled={true}
             >
-              {isFetchingRoute ?
-                < CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
-                :
-                'Swap Now'
-              }
+              {pendingSwap && 'Swapping'}
+              < CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
             </Button>
             :
             <ConfirmModal>

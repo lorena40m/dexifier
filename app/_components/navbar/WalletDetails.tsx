@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { BlockchainMeta } from "rango-types/mainApi";
+import { BlockchainMeta, Token } from "rango-types/mainApi";
 import Search from "../common/search";
 import Image from "next/image"
 import ButtonCopyIcon from "../common/coyp-button-icon";
@@ -21,6 +21,8 @@ import { X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { getAbbrAddress } from "@/app/utils";
+import { TokenBalance } from "@rango-dev/widget-embedded/dist/store/wallets";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 enum MORE_SETTINGS {
   HIDE_SMALL_BALANCE = "Hide small balances",
@@ -60,13 +62,13 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
   const { meta, wallets } = useWidget();
   const { details: connectedWallets } = wallets;
   const { list } = useWalletList({});
-  const { blockchains } = meta;
+  const { blockchains, tokens } = meta;
   const walletTypes = Array.from(new Set(connectedWallets.map(wallet => wallet.walletType)))
     .map(walletType => list.find(wallet => wallet.type === walletType))
     .filter((wallet): wallet is WalletInfoWithExtra => wallet !== undefined)
 
-  const getTokenBalanceInUSD = (token: any) => {
-    return parseFloat(token.rawAmount) * (token.usdPrice ?? 0);
+  const getTokenBalanceInUSD = (token: TokenBalance) => {
+    return parseFloat(token.amount) * (token.usdPrice ?? 0);
   }
 
   const getWalletBalanceInUSD = (wallets: ConnectedWallet[]) => {
@@ -82,9 +84,8 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
 
   useEffect(() => {
     setFilteredWallets(structuredClone(connectedWallets).filter(wallet => {
-      const walletBalance = getWalletBalanceInUSD([wallet]);
       // Exclude wallets with zero balance if 'isHideEmptyWallet' is true
-      if (moreSettingsMemo.includes(MORE_SETTINGS.HIDE_EMPTY_WALLET) && !walletBalance) return false;
+      if (moreSettingsMemo.includes(MORE_SETTINGS.HIDE_EMPTY_WALLET) && !wallet.balances?.length) return false;
       // Exclude wallets with unselected chains and wallet types
       if (!selectedChainsMemo.includes(wallet.chain) || !selectedWalletTypesMemo.includes(wallet.walletType)) return false;
       // Filter wallets with search term
@@ -95,7 +96,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
       }
       // Exclude tokens with small balance in the wallet if 'isHideSmallBalance' is true
       if (moreSettingsMemo.includes(MORE_SETTINGS.HIDE_SMALL_BALANCE) && wallet.balances) {
-        wallet.balances = wallet.balances.filter(async (balance) => getTokenBalanceInUSD(balance) > 0.1)
+        wallet.balances = wallet.balances.filter((balance) => getTokenBalanceInUSD(balance) > 1)
       }
       return true;
     }).sort((a, b) => getWalletBalanceInUSD([b]) - getWalletBalanceInUSD([a])));
@@ -111,69 +112,15 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
     return list.find(detail => detail.type === wallet.walletType)?.image;
   }
 
+  const getTokenIcon = (token: TokenBalance) => {
+    return tokens.find((tk: Token) => tk.blockchain === token.chain && tk.address === token.address).image;
+  }
+
   useEffect(() => {
     setSelectedWalletTypes(walletTypes)
     setSelectedChains(blockchains)
     setMoreSettings([MORE_SETTINGS.HIDE_SMALL_BALANCE, MORE_SETTINGS.HIDE_UNSUPPORTED_TOKEN])
   }, [])
-
-  const SubWallet: React.FC<any> = ({ wallet }: { wallet: ConnectedWallet }) => {
-    const [isOpen, setIsOpen] = useState<boolean>(wallet === null);
-    const balanceInUSD = getWalletBalanceInUSD([wallet]);
-    return (
-      <div className="pr-2">
-        <button className="flex justify-between items-center text-sm border border-primary hover:opacity-80 p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <div className="flex text-lg font-bold items-center" >
-            <div className="mr-2">
-              <Image src={"/assets/icons/arrow.png"}
-                className={`transition-transform duration-500 ease-in-out ${!isOpen ? 'rotate-0' : 'rotate-180'}`}
-                width={20}
-                height={20}
-                alt={"arrow"}
-              />
-            </div>
-            <Image src={getWalletIcon(wallet) || "/assets/wallet/default"} width={28} height={28} alt={wallet.chain} className="mr-2" />
-            {wallet.chain}
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1">
-              <span>{getAbbrAddress(wallet.address)}</span>
-              <ButtonCopyIcon text={wallet.address} />
-              <TooltipTemplate content={"link to wallet"} className="px-2 py-1">
-                <Link href={wallet.explorerUrl ?? '#'} target="_black">
-                  <Image src={"/assets/icons/link.png"} width={18} height={18} alt="link" />
-                </Link>
-              </TooltipTemplate>
-            </div>
-            <span className="text-primary">{balanceInUSD && balanceInUSD.toFixed(3) + "$" || ""}</span>
-          </div>
-        </button>
-        <div className="p-2 text-[#e5e7ebc9]">
-          {wallet && wallet.balances && isOpen && (wallet.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : wallet.balances.map((balance: any, index: number) => {
-            return (
-              <div key={index} className="flex justify-between items-center border-b border-b-[#13F18738] py-2">
-                <div className="flex items-center">
-                  <div className="p-3">
-                    <Image src={balance.logo || "/assets/tokens/default.png"} width={34} height={34} alt={"token Icon"} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-md text-[#FFFFFF]">{balance.symbol}</span>
-                    <span className="text-xs  text-[#717171] font-bold">{balance.chain}</span>
-                  </div>
-                </div>
-                <div className="flex flex-col mr-3">
-                  <span>{balance.rawAmount}</span>
-                  <span className="text-xs">{getTokenBalanceInUSD(balance).toFixed(2)} $</span>
-                </div>
-              </div>
-            )
-          }))}
-        </div>
-      </div>
-    )
-  }
 
   return (
     <Sheet>
@@ -252,7 +199,14 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
         <ScrollArea className="flex-1">
           <div className="h-full">
             {filteredWallets.map((wallet, index) => (
-              <SubWallet key={index} wallet={wallet} />
+              <SubWallet
+                key={index}
+                wallet={wallet}
+                getWalletBalanceInUSD={getWalletBalanceInUSD}
+                getTokenBalanceInUSD={getTokenBalanceInUSD}
+                getWalletIcon={getWalletIcon}
+                getTokenIcon={getTokenIcon}
+              />
             ))}
           </div>
         </ScrollArea>
@@ -260,5 +214,78 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
     </Sheet>
   );
 };
+
+const SubWallet: React.FC<any> = ({
+  wallet,
+  getWalletBalanceInUSD,
+  getTokenBalanceInUSD,
+  getWalletIcon,
+  getTokenIcon
+}: {
+  wallet: ConnectedWallet,
+  getWalletBalanceInUSD: (wallets: ConnectedWallet[]) => number,
+  getTokenBalanceInUSD: (token: TokenBalance) => number,
+  getWalletIcon: (wallet: ConnectedWallet) => string,
+  getTokenIcon: (wallets: TokenBalance) => string,
+}) => {
+  const [isOpen, setIsOpen] = useState<boolean>(wallet === null);
+  const balanceInUSD = getWalletBalanceInUSD([wallet]);
+  return (
+    <div className="pr-2">
+      <button className="flex justify-between items-center text-sm border border-primary hover:opacity-80 p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex text-lg font-bold items-center" >
+          <div className="mr-2">
+            <Image src={"/assets/icons/arrow.png"}
+              className={`transition-transform duration-500 ease-in-out ${!isOpen ? 'rotate-0' : 'rotate-180'}`}
+              width={20}
+              height={20}
+              alt={"arrow"}
+            />
+          </div>
+          <Image src={getWalletIcon(wallet) || "/assets/wallet/default"} width={28} height={28} alt={wallet.chain} className="mr-2" />
+          {wallet.chain}
+        </div>
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1">
+            <span>{getAbbrAddress(wallet.address)}</span>
+            <ButtonCopyIcon text={wallet.address} />
+            <TooltipTemplate content={"link to wallet"} className="px-2 py-1">
+              <Link href={wallet.explorerUrl ?? '#'} target="_black">
+                <Image src={"/assets/icons/link.png"} width={18} height={18} alt="link" />
+              </Link>
+            </TooltipTemplate>
+          </div>
+          <span className="text-primary">{balanceInUSD && balanceInUSD.toFixed(3) + "$" || ""}</span>
+        </div>
+      </button>
+      <div className="p-2 text-[#e5e7ebc9]">
+        {wallet && wallet.balances && isOpen && (wallet.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : wallet.balances.map((balance: any, index: number) => {
+          return (
+            <div key={index} className="flex justify-between items-center border-b border-b-[#13F18738] py-2">
+              <div className="flex items-center">
+                <div className="p-3">
+                  <Avatar>
+                    <AvatarImage src={getTokenIcon(balance)} />
+                    <AvatarFallback>{balance.symbol}</AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-md text-[#FFFFFF]">{balance.symbol}</span>
+                  <span className="text-xs  text-[#717171] font-bold">{balance.chain}</span>
+                </div>
+              </div>
+              <div className="flex flex-col mr-3">
+                <span>{balance.amount}</span>
+                <span className="text-xs">{getTokenBalanceInUSD(balance).toFixed(2)} $</span>
+              </div>
+            </div>
+          )
+        }))}
+      </div>
+    </div>
+  )
+}
 
 export default WalletDetails;

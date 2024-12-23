@@ -80,7 +80,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
     );
 
     const has = (asset: WalletRequiredAssets) => {
-      return `${Number(asset.currentAmount.amount) / Number(asset.currentAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`
+      return `${Number(asset.currentAmount.amount) / Number(10 ** asset.currentAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`
     }
 
     const need = (asset: WalletRequiredAssets) => {
@@ -118,7 +118,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         })
 
       const swap = calculatePendingSwap(
-        "1000",
+        confirmSwapResult?.requestAmount || '0',
         confirmSwapResult,
         getWalletsForNewSwap(selectedWallets),
         settings,

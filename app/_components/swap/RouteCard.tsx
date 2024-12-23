@@ -6,7 +6,6 @@ import {
   sortQuotesBy,
 } from "@/app/utils/swap";
 import TooltipTemplate from "../common/tooltip-template";
-import ImageWrapper from "../common/image-wrapper";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { useSwap } from "@/app/providers/SwapProvider";
 import { MultiRouteSimulationResult, PreferenceType, RouteTag, SwapResult } from "rango-types/mainApi";
@@ -62,9 +61,7 @@ const RouteCard = () => {
     <>
       <div className="w-[3.125rem] h-[3.125rem] p-3 border border-white border-dashed rounded-full">
         <div className="relative">
-          <ImageWrapper>
-            <Image src={logo} width={26} height={26} alt={`${symbol}'s icon`} />
-          </ImageWrapper>
+          <Image src={logo} width={26} height={26} alt={`${symbol}'s icon`} />
           <Image
             className="absolute bottom-[-6px] left-[15px]"
             src={blockchainLogo || ""}

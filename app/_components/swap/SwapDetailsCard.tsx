@@ -7,7 +7,6 @@ import { FC, useEffect, useState } from "react";
 import { PendingSwap } from "rango-types";
 import { useManager } from "@rango-dev/queue-manager-react";
 import ButtonCopyIcon from "../common/coyp-button-icon";
-import ImageWrapper from "../common/image-wrapper";
 import TooltipTemplate from "../common/tooltip-template";
 import { SwapResult } from "rango-types/mainApi";
 import { useSwap } from "@/app/providers/SwapProvider";
@@ -133,9 +132,7 @@ const SwapDetailsCard = () => {
       <div className={`${className} flex flex-col items-center`}>
         <div className="w-[60px] h-[60px] p-3 border border-white border-dashed rounded-full">
           <div className="relative">
-            <ImageWrapper>
-              <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={35} height={35} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
-            </ImageWrapper>
+            <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={35} height={35} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
             <Image
               className="absolute bottom-[-6px] left-[20px]"
               src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
@@ -159,13 +156,11 @@ const SwapDetailsCard = () => {
     return (
       <div className={`${className} flex justify-center gap-2  items-center`}>
         <div className="relative">
-          <ImageWrapper>
-            <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
-              width={25}
-              height={25}
-              alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`}
-            />
-          </ImageWrapper>
+          <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
+            width={25}
+            height={25}
+            alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`}
+          />
           <Image
             className="absolute bottom-[-6px] left-[15px]"
             src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
@@ -198,7 +193,6 @@ const SwapDetailsCard = () => {
             </button>
           </div>
           <div className="relative">
-            {/* <ShadowDecoration /> */}
             <div className="overflow-auto h-[380px] px-3">
               <div className="mb-8 text-xs">
                 {pendingSwap && <div className="flex justify-between">
