@@ -18,8 +18,7 @@ import { useManager } from "@rango-dev/queue-manager-react";
 import DexifierButton from '../../common/button';
 import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from '@/app/utils/swap';
-import { WalletData as Wallet } from '@/app/types/interface';
-
+import { Wallet } from '@/app/types/rango';
 
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { list } = useWalletList({})

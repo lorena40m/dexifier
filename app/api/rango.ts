@@ -1,7 +1,7 @@
 import { axiosRango } from "@/lib/axios";
 import {
   DiagnosticMessage,
-} from "../types/interface";
+} from "../types/rango";
 import axios, { AxiosResponse } from "axios";
 import {
   BlockchainMeta,

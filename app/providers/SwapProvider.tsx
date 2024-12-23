@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState } from "react";
 import { ConfirmRouteResponse, MultiRouteResponse, MultiRouteSimulationResult, Token } from "rango-types/mainApi"
-import { Settings } from "../types/interface";
+import { Settings } from "../types/rango";
 
 // Define the type for the context
 interface SwapContextType {
