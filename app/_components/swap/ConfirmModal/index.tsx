@@ -121,7 +121,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
     if (confirmData && manager) {
       const confirmSwapResult = confirmData.result;
 
-      if (!confirmSwapResult) return;
+      if (!(confirmSwapResult && (confirmSwapResult as any).result)) return;
 
       const selectedWallets = [walletFrom, walletTo]
         .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { WidgetProvider, WidgetConfig } from "@rango-dev/widget-embedded";
+import QueueManager from "./providers/QueueManager";
 
 const DexifierProvider = ({
   config,
@@ -12,7 +13,9 @@ const DexifierProvider = ({
 }) => {
   return (
     <WidgetProvider config={config}>
-      {children}
+      <QueueManager apiKey={config.apiKey}>
+        {children}
+      </QueueManager>
     </WidgetProvider>
   );
 };

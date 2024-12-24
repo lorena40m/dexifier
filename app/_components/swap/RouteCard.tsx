@@ -143,7 +143,7 @@ const RouteCard = () => {
         ))}
       </div>
       <div className="overflow-y-auto lg:h-[28rem] pe-1">
-        {sortedRoutes.map((route) => singleRouteContainer(route))}  // Render each sorted route
+        {sortedRoutes.map((route) => singleRouteContainer(route))}
       </div>
     </div>
   );
