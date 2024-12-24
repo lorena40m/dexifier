@@ -1,5 +1,7 @@
+// This component displays a modal where users can select a token from a list of tokens available for a specific blockchain.
+// It supports searching, infinite scrolling for tokens, and selecting a token to be used in the application.
 import Image from "next/image";
-import React, { Dispatch, PropsWithChildren, ReactNode, SetStateAction, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import React, { Dispatch, PropsWithChildren, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { isEqual } from "lodash";
 import {
@@ -9,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import TooltipTemplate from "../../common/tooltip-template";
 import Search from "../../common/search";
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -23,41 +25,52 @@ import Blockchains from "./Blockchains";
 import { toastSuccess } from "@/lib/utils";
 import { getAbbrAddress, getContrastRatio } from "@/app/utils";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 50; // Number of tokens to load per page for infinite scrolling
 
+// Props for the TokenModal component
 interface TokenModalProps {
-  selectedToken: Token | undefined;
-  setToken: Dispatch<SetStateAction<Token | undefined>>;
+  selectedToken: Token | undefined; // The currently selected token
+  setToken: Dispatch<SetStateAction<Token | undefined>>; // Function to update the selected token
 }
 
 const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, selectedToken, setToken }) => {
-  const page = useRef<number>(1);
-  const [search, setSearch] = useState<string>('');
-  const [selectedBlockchain, setSelectedBlockchain] = useState<BlockchainMeta>();
-  const [blockchainTokens, setBlockChainTokens] = useState<Token[]>([]);
-  const [filteredTokens, setFilteredTokens] = useState<Token[]>([]);
+  const page = useRef<number>(1); // Ref to keep track of the current page for infinite scroll
+  const [search, setSearch] = useState<string>(''); // State to store the search query
+  const [selectedBlockchain, setSelectedBlockchain] = useState<BlockchainMeta>(); // State to store the selected blockchain
+  const [blockchainTokens, setBlockChainTokens] = useState<Token[]>([]); // State to store tokens filtered by blockchain
+  const [filteredTokens, setFilteredTokens] = useState<Token[]>([]); // State to store the filtered list of tokens based on search query
 
-  const { meta } = useWidget();
-  const { tokens } = meta;
+  const { meta } = useWidget(); // Fetch the metadata using the custom hook
+  const { tokens } = meta; // Extract tokens from the metadata
 
+  // Effect to filter tokens based on the selected blockchain
   useEffect(() => {
-    if (selectedBlockchain) setBlockChainTokens(tokens.filter((token: Token) => token.blockchain === selectedBlockchain.name).sort((a, b) => b.isPopular - a.isPopular))
-  }, [selectedBlockchain])
+    if (selectedBlockchain) {
+      setBlockChainTokens(tokens.filter((token: Token) => token.blockchain === selectedBlockchain.name)
+        .sort((a, b) => b.isPopular - a.isPopular)); // Sort tokens by popularity
+    }
+  }, [selectedBlockchain]);
 
+  // Effect to filter tokens based on the search query
   useEffect(() => {
-    setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase())).slice(0, PAGE_SIZE))
-  }, [blockchainTokens, search])
+    setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase()))
+      .slice(0, PAGE_SIZE)); // Limit results to the first PAGE_SIZE tokens
+  }, [blockchainTokens, search]);
 
+  // Callback to fetch more tokens when infinite scroll triggers
   const fetchMoreTokens = useCallback(() => {
-    page.current += 1;
-    setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase())).slice(0, PAGE_SIZE * page.current))
-  }, [blockchainTokens, search])
+    page.current += 1; // Increment the page number
+    setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase()))
+      .slice(0, PAGE_SIZE * page.current)); // Append more tokens to the list
+  }, [blockchainTokens, search]);
 
   return (
     <Dialog>
+      {/* Trigger to open the dialog */}
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
         <DialogHeader className="flex flex-row justify-between">
+          {/* Dialog header with title and close button */}
           <DialogTitle className="text-2xl">Swap Source</DialogTitle>
           <DialogClose>
             <X className="w-7 h-7 p-1 bg-primary rounded-full font-bold text-black hover:bg-primary-dark transition-colors duration-300" />
@@ -65,33 +78,39 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
         </DialogHeader>
         <Separator className="bg-separator" />
         <Label className="text-lg">Select Blockchain</Label>
+        {/* Display blockchain options */}
         <Blockchains selectedBlockchain={selectedBlockchain} setSelectedBlockchain={setSelectedBlockchain} />
+        {/* Show token selection if a blockchain is selected */}
         {selectedBlockchain &&
           <>
             <Label className="text-lg">Select Token</Label>
+            {/* Search input for filtering tokens */}
             <Search value={search} onChange={(e) => setSearch(e.target.value)} />
             <div id="scrollableDiv" className="max-h-72 overflow-scroll">
+              {/* Infinite Scroll for displaying tokens */}
               <InfiniteScroll
-                dataLength={filteredTokens.length}
-                next={fetchMoreTokens}
-                hasMore={true}
-                loader={undefined}
-                scrollableTarget="scrollableDiv"
+                dataLength={filteredTokens.length} // Current length of displayed tokens
+                next={fetchMoreTokens} // Fetch more tokens when scrolled to the bottom
+                hasMore={true} // Always allow fetching more tokens
+                loader={undefined} // Loader component for fetching more tokens
+                scrollableTarget="scrollableDiv" // Scroll container ID: Ref => Line 89
               >
+                {/* Map over the filtered tokens and display them */}
                 {filteredTokens.map((token, index) => {
-                  const isSelected: boolean = isEqual(token, selectedToken);
+                  const isSelected: boolean = isEqual(token, selectedToken); // Check if the token is selected
                   return (
                     <DialogClose
                       className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${isSelected ? "border-primary" : "border-seperator"
                         }`}
                       onClick={() => {
-                        setToken(token);
-                        toastSuccess(`${token.symbol}'s selected as token`);
+                        setToken(token); // Update selected token
+                        toastSuccess(`${token.symbol}'s selected as token`); // Show success message
                       }}
                       key={index}
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center justify-center gap-6 capitalize">
+                          {/* Display token logo and name */}
                           <Avatar className="size-8">
                             <AvatarImage src={token.image} />
                             <AvatarFallback>{token.symbol}</AvatarFallback>
@@ -99,7 +118,7 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
 
                           <div className="flex flex-col">
                             <TooltipTemplate
-                              content={token.name}
+                              content={token.name} // Show token name in a tooltip
                               className="!-mb-1"
                               key={`${index}-${name}`}
                             >
@@ -112,17 +131,15 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                             </TooltipTemplate>
                             <TooltipTemplate content={token.address}>
                               <span className="text-[12px] opacity-40">
-                                {getAbbrAddress(token.address)}
+                                {getAbbrAddress(token.address)} {/* Display abbreviated address */}
                               </span>
                             </TooltipTemplate>
                           </div>
                         </div>
                         <div className="flex gap-3 items-center">
-                          <div className="flex flex-col">
-                            {/* <span className="text-sm">{parseFloat(getTokenAmount(address, symbol)?.assetsAmount || "0") > 0 && getTokenAmount(address, symbol)?.assetsAmount + " " + symbol}</span>
-                    <span className="text-sm text-border">{parseFloat(getTokenAmount(address, symbol)?.usdAmount || "0") > 0 && getTokenAmount(address, symbol)?.usdAmount + "$"}</span> */}
-                          </div>
+                          {/* Display medal if token is popular */}
                           {token.isPopular ? <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" /> : <div className="w-[25px] h-[25px]" />}
+                          {/* Display check mark if the token is selected */}
                           {isSelected ? (
                             <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
                           ) : (

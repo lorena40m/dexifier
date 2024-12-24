@@ -1,5 +1,23 @@
 "use client";
-
+/**
+ * SwapCard Component
+ * 
+ * This component renders a card UI for users to perform token swaps between different cryptocurrencies. 
+ * It interacts with the Rango API to fetch the best multi-route swap options and provides a user-friendly interface 
+ * for selecting tokens, entering amounts, and confirming the swap transaction.
+ * 
+ * States and Logic:
+ * - `amountFrom`: The amount of the "from" token the user wants to swap.
+ * - `tokenFrom`: The selected token that the user is swapping from.
+ * - `tokenTo`: The selected token the user wants to swap to.
+ * - `tokenFromBalance`: The available balance of the "from" token in the connected wallet.
+ * - `isFetchingRoute`: A loading state that tracks whether a swap route is being fetched.
+ * - `fetchRoute`: A function triggered by a change in input fields to fetch the best route.
+ * - `selectedRoute`: Stores the best swap route selected by the user.
+ * - `pendingSwap`: If there is a pending swap, it is tracked to display the current state.
+ * - `fetchRouteDebounceHandler`: A debounced function to prevent excessive API calls while fetching swap routes.
+ * 
+ */
 import Image from "next/image";
 import SettingsPopup from "../settings-popup/settings-popup";
 import HistoryPopup from "../settings-popup/history-popup";
@@ -25,30 +43,36 @@ import { createQuoteRequestBody, getPendingSwaps } from "@/app/utils/swap";
 import { useManager } from "@rango-dev/queue-manager-react";
 
 const SwapCard: React.FC = () => {
-  const { wallets } = useWidget()
+  // Use custom hook to get connected wallet details
+  const { wallets } = useWidget();
   const { details: connectedWallets } = wallets;
   const isWalletConnected = connectedWallets.length > 0;
 
+  // Swap state management from the SwapProvider context
   const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setRouteData, selectedRoute, setSelectedRoute } = useSwap();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
   const [isFetchingRoute, fetchRoute] = useTransition();
 
+  // Manager for pending swaps
   const { manager } = useManager();
   const pendingSwaps = getPendingSwaps(manager);
 
+  // Find the selected swap if available
   const selectedSwap = confirmData?.result?.requestId
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmData?.result?.requestId)
     : undefined;
   const pendingSwap = selectedSwap?.swap;
 
+  // Fetch the route for swapping when amountFrom, tokenFrom, or tokenTo changes
   useEffect(() => {
     if (parseFloat(amountFrom)) fetchRouteDebounceHandler(amountFrom);
   }, [tokenFrom, tokenTo, amountFrom]);
 
+  // Update tokenFrom balance whenever tokenFrom changes or wallet balance is updated
   useEffect(() => {
-    setAmountFrom('0')
-    if (!tokenFrom) return
+    setAmountFrom('0');
+    if (!tokenFrom) return;
     setTokenFromBalance(
       connectedWallets.reduce((total, connectedWallet) => {
         const walletBalance = connectedWallet.balances?.reduce((sum, balance) => {
@@ -57,12 +81,13 @@ const SwapCard: React.FC = () => {
             return sum + parseFloat(balance.amount);
           }
           return sum;
-        }, 0) || 0; // Handle cases where balances might be undefined
+        }, 0) || 0;
         return total + walletBalance;
       }, 0)
     );
-  }, [tokenFrom])
+  }, [tokenFrom]);
 
+  // Debounced fetch for swap routes
   const fetchRouteDebounceHandler = useMemo(() =>
     debounce((amount: string) => {
       if (!(tokenFrom && tokenTo)) return;
@@ -89,6 +114,7 @@ const SwapCard: React.FC = () => {
     [tokenFrom, tokenTo]
   );
 
+  // Reverse the token pair (swap 'from' and 'to' tokens)
   const reverseTokenPair = () => {
     setTokenFrom(tokenTo);
     setTokenTo(tokenFrom);
@@ -96,7 +122,7 @@ const SwapCard: React.FC = () => {
 
   const handleAction = () => {
     if (selectedRoute) {
-
+      // Action to handle swap logic (could be a swap transaction)
     }
   }
 
@@ -121,6 +147,7 @@ const SwapCard: React.FC = () => {
       <Separator className="bg-[#AAA]/20" />
       <CardContent className="p-6 flex flex-col justify-around">
         <div className="w-full flex flex-col justify-evenly gap-3">
+          {/* Token From Section */}
           <div className="flex justify-between items-end">
             <Label htmlFor="tokenFrom" className="text-lg">From</Label>
             {isWalletConnected && tokenFrom && <div>
@@ -146,6 +173,7 @@ const SwapCard: React.FC = () => {
             setToken={setTokenFrom}
           />
 
+          {/* Reverse Swap Button */}
           <Button
             variant="outline"
             className="bg-transparent self-center border-separator mt-6 rounded-full h-12 w-12 p-3 hover:bg-primary-dark"
@@ -160,6 +188,7 @@ const SwapCard: React.FC = () => {
             />
           </Button>
 
+          {/* Token To Section */}
           <Label htmlFor="tokenTo" className="text-lg">To</Label>
           <TokenInput
             type="number"
@@ -173,6 +202,7 @@ const SwapCard: React.FC = () => {
         </div>
       </CardContent>
       <CardFooter>
+        {/* Footer Section: Handles the swap confirmation or wallet connection */}
         {isWalletConnected ?
           isFetchingRoute || pendingSwap ?
             <Button

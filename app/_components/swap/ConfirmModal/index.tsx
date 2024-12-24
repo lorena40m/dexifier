@@ -10,7 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { useSwap } from '@/app/providers/SwapProvider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { ConnectedWallet, useWalletList, useWidget } from '@rango-dev/widget-embedded';
+import { ConnectedWallet, useWidget } from '@rango-dev/widget-embedded';
 import WalletSelect from './WalletSelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -20,15 +20,18 @@ import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from '@/app/utils/swap';
 import { Wallet } from '@/app/types/rango';
 
+// ConfirmModal component for confirming a wallet before swapping assets
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
-  const { list } = useWalletList({})
-  const { meta, wallets } = useWidget();
+  const { meta } = useWidget();
   const { blockchains, tokens } = meta;
   const { manager } = useManager();
   const { selectedRoute, confirmData, setConfirmData, settings } = useSwap();
+
+  // Extract the route details for the swap (from and to tokens)
   const swapFrom = selectedRoute?.swaps.at(0);
   const swapTo = selectedRoute?.swaps.at(-1);
 
+  // State hooks for managing the modal, wallets, and custom address input
   const [open, setOpen] = useState<boolean>(false);
   const [useCustomAddr, setUseCustomAddr] = useState<boolean>(false);
   const [customAddr, setCustomAddr] = useState<string>('');
@@ -36,11 +39,13 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const [walletTo, setWalletTo] = useState<ConnectedWallet>();
   const [isConfirming, confirm] = useTransition();
 
+  // Function to handle wallet confirmation
   const confirmWallet = async () => {
-    if (useCustomAddr) {
-      if (!customAddr) return
-    } else if (!(walletFrom && walletTo)) return
+    // Ensure custom address is valid if selected
+    if (useCustomAddr && !customAddr) return;
+    if (!(walletFrom && walletTo)) return;
 
+    // Perform the confirmation when ready
     confirm(async () => {
       const selectedWallets = [walletFrom, walletTo]
         .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
@@ -49,21 +54,24 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           return acc;
         }, {});
 
-      if (!selectedRoute) return
+      // Prepare request for confirming the route
+      if (!selectedRoute) return;
       const confirmRequest: ConfirmRouteRequest = {
         requestId: selectedRoute.requestId,
         selectedWallets: selectedWallets,
         destination: useCustomAddr ? customAddr : undefined,
       };
 
+      // Attempt to confirm the route and handle errors
       try {
-        setConfirmData(await confirmRoute(confirmRequest))
+        setConfirmData(await confirmRoute(confirmRequest));
       } catch (error) {
-        toastError(error as string)
+        toastError(error as string);
       }
     });
   };
 
+  // Function to check for validation errors in the confirmation response
   const confirmHasError = (confirmResponse: ConfirmRouteResponse) => {
     if (!confirmResponse.ok) {
       return {
@@ -79,46 +87,52 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
       )
     );
 
+    // Helper function to format asset amounts
     const has = (asset: WalletRequiredAssets) => {
-      return `${Number(asset.currentAmount.amount) / Number(10 ** asset.currentAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`
-    }
+      return `${Number(asset.currentAmount.amount) / Number(10 ** asset.currentAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`;
+    };
 
     const need = (asset: WalletRequiredAssets) => {
-      return `${Number(asset.requiredAmount.amount) / Number(10 ** asset.requiredAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`
-    }
+      return `${Number(asset.requiredAmount.amount) / Number(10 ** asset.requiredAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`;
+    };
 
     const require = (asset: WalletRequiredAssets) => {
       const reason = asset.reason === "FEE" && "transaction fee" ||
         asset.reason === "INPUT_ASSET" && "swap amount" ||
         asset.reason === "FEE_AND_INPUT_ASSET" && "transaction fee and swap amount";
-      return `${need(asset)} for ${reason}`
-    }
+      return `${need(asset)} for ${reason}`;
+    };
 
+    // Construct the error message if there are validation issues
     const errorMessage = hasError ? 'Needed ≈' + validationStatuses[0].wallets[0].requiredAssets.map((asset) => {
-      if (!asset.ok) return require(asset)
+      if (!asset.ok) return require(asset);
     }).join(' and ') + ' but You have ' + validationStatuses[0].wallets[0].requiredAssets.map((asset) => {
-      if (!asset.ok) return has(asset)
-    }).join(' and ') : ''
+      if (!asset.ok) return has(asset);
+    }).join(' and ') : '';
 
     return {
       error: hasError,
       message: errorMessage,
     };
-  }
+  };
 
+  // Function to confirm and execute the swap
   const confirmSwap = async () => {
     if (confirmData && manager) {
-      const confirmSwapResult = confirmData?.result;
+      const confirmSwapResult = confirmData.result;
+
+      if (!confirmSwapResult) return;
 
       const selectedWallets = [walletFrom, walletTo]
         .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
         .map((wallet) => {
           const _wallet: Wallet = wallet as Wallet;
           return _wallet;
-        })
+        });
 
+      // Calculate the pending swap
       const swap = calculatePendingSwap(
-        confirmSwapResult?.requestAmount || '0',
+        confirmSwapResult.requestAmount,
         confirmSwapResult,
         getWalletsForNewSwap(selectedWallets),
         settings,
@@ -126,20 +140,21 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         { blockchains, tokens },
       );
 
+      // Create the swap request via the manager
       await manager.create(
         "swap",
         { swapDetails: swap },
         { id: swap.requestId }
       );
 
-      setOpen(false);
+      setOpen(false);  // Close the modal after confirming the swap
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={(open) => {
-      setConfirmData(undefined)
-      setOpen(open)
+      setConfirmData(undefined);  // Clear confirmation data when modal is closed
+      setOpen(open);
     }}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
@@ -162,9 +177,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                 {swapTo.to.symbol} [{swapTo.to.blockchain}]
               </div>
             }
-            <button className="w-[30px] px-1"
-              onClick={confirmWallet}
-            >
+            <button className="w-[30px] px-1" onClick={confirmWallet}>
               <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
             </button>
           </DialogDescription>
@@ -183,8 +196,8 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
               <Checkbox id="terms" className='border-primary data-[state=checked]:text-primary'
                 checked={useCustomAddr}
                 onCheckedChange={(e: boolean) => {
-                  setUseCustomAddr(e)
-                  setConfirmData(undefined)
+                  setUseCustomAddr(e);
+                  setConfirmData(undefined);
                 }}
               />
               <Label
@@ -216,8 +229,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         <div className="text-error font-bold text-xs text-center tracking-wide">{confirmData && confirmHasError(confirmData).message}</div>
         <DexifierButton disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming}
           onClick={confirmData ? confirmSwap : confirmWallet}
-          className={cn(isConfirming && 'bg-transparent border border-primary', 'w-48')}
-        >
+          className={cn(isConfirming && 'bg-transparent border border-primary', 'w-48')}>
           {isConfirming ?
             <CustomLoader />
             :
@@ -235,4 +247,4 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   )
 }
 
-export default ConfirmModal
+export default ConfirmModal;

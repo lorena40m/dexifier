@@ -1,5 +1,6 @@
 "use client";
-
+// This component displays the details of a swap transaction, including the tokens involved, swap status, and swap steps. 
+// It provides functionality to cancel or delete a swap, and shows detailed information about each step of the swap process.
 import Image from "next/image";
 import Link from "next/link";
 import { cancelSwap } from "@rango-dev/queue-manager-rango-preset";
@@ -13,65 +14,68 @@ import { useSwap } from "@/app/providers/SwapProvider";
 import { getSwapMessages, getSwapDate, getStepState, getPendingSwaps } from "@/app/utils/swap";
 
 interface SwapTokenProps {
-  swapData: SwapResult,
-  isFrom: boolean,
+  swapData: SwapResult, // Data related to the token being swapped
+  isFrom: boolean, // Flag indicating if it's the 'from' token
   className?: string
 }
 
 interface StepStateProps {
-  swap: PendingSwap | undefined,
-  currentStep: number
+  swap: PendingSwap | undefined, // Pending swap data
+  currentStep: number // Current step of the swap process
 }
 
 const SwapDetailsCard = () => {
-  const { manager } = useManager();
+  const { manager } = useManager(); // Manager from the Rango queue
 
   const isSwapMade = false;
   const { selectedRoute, confirmData, setConfirmData, setSelectedRoute } = useSwap();
-  const swaps = selectedRoute?.swaps;
-  const pendingSwaps = getPendingSwaps(manager);
+  const swaps = selectedRoute?.swaps; // List of swaps involved in the current route
+  const pendingSwaps = getPendingSwaps(manager); // Fetch pending swaps from the manager
 
   const selectedSwap = confirmData?.result?.requestId
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmData?.result?.requestId)
     : undefined;
-  const pendingSwap = selectedSwap?.swap;
+  const pendingSwap = selectedSwap?.swap; // Get the selected swap from the pending swaps
 
+  // Handle canceling the swap
   const onCancel = () => {
     if (selectedSwap && manager) {
       const swap = manager.get(selectedSwap.id);
       if (swap) {
         cancelSwap(swap);
-        setConfirmData(undefined)
-        setSelectedRoute(undefined)
+        setConfirmData(undefined);
+        setSelectedRoute(undefined);
       }
     }
   };
 
+  // Handle deleting the swap
   const onDelete = async () => {
     if (selectedSwap && manager) {
       manager.deleteQueue(selectedSwap.id);
-      setConfirmData(undefined)
-      setSelectedRoute(undefined)
+      setConfirmData(undefined);
+      setSelectedRoute(undefined);
     }
   };
 
+  // Fetch the message for a particular step of the swap process
   const getMessage = (index: number) => {
-    if (!pendingSwap) return
+    if (!pendingSwap) return;
     const currentStep = pendingSwap.steps[index];
-    const stepMessage = getSwapMessages(pendingSwap, currentStep);
+    const stepMessage = getSwapMessages(pendingSwap, currentStep); // Get message for the current step
     const stepDetailMessage = stepMessage.detailedMessage.content || stepMessage.shortMessage;
-    return stepDetailMessage
-  }
+    return stepDetailMessage;
+  };
 
+  // Component to display the step message of the swap
   const StepMessage: FC<StepStateProps> = ({ swap, currentStep }) => {
     const [message, setMessage] = useState<string>();
 
-    // Move useEffect out of the conditional
     useEffect(() => {
       if (swap !== undefined) {
-        const state = getStepState(swap.steps[currentStep]);
+        const state = getStepState(swap.steps[currentStep]); // Get the state of the current step
         if (state !== "default") {
-          setMessage(getMessage(currentStep));
+          setMessage(getMessage(currentStep)); // Set the message for the step
         }
       }
     }, [swap, currentStep]);
@@ -87,11 +91,12 @@ const SwapDetailsCard = () => {
     );
   };
 
+  // Component to display the step state of the swap (in-progress, completed, etc.)
   const StepState: FC<StepStateProps> = ({ swap, currentStep }) => {
     if (swap === undefined) {
-      return
+      return null;
     }
-    const state = getStepState(swap.steps[currentStep]);
+    const state = getStepState(swap.steps[currentStep]); // Get the state of the current step
     return (
       state && <div className="flex justify-center items-center">{
         state === "in-progress" ?
@@ -125,8 +130,9 @@ const SwapDetailsCard = () => {
       }
       </div>
     )
-  }
+  };
 
+  // Component to display token details for the swap
   const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
     return (
       <div className={`${className} flex flex-col items-center`}>
@@ -149,9 +155,10 @@ const SwapDetailsCard = () => {
           {swapData[isFrom ? "from" : "to"].symbol}
         </span>
       </div>
-    )
-  }
+    );
+  };
 
+  // Component to display the steps of the swap, showing each step's details
   const SwapSteps: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
     return (
       <div className={`${className} flex justify-center gap-2  items-center`}>
@@ -176,8 +183,8 @@ const SwapDetailsCard = () => {
           {swapData[isFrom ? "from" : "to"].symbol}
         </span>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     selectedRoute && confirmData && (
