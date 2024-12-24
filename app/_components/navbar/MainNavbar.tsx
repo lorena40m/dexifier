@@ -9,8 +9,8 @@ import CustomLoader from "../common/loader";
 import WalletConnectModal from "../swap/WalletConnectModal";
 import WalletDetails from "./WalletDetails";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import TokenIcon from "../common/token-icon";
 
 // All navigation details
 const NAVIGATIONS = [
@@ -145,10 +145,14 @@ const MainNavbar = () => {
                       <div className="flex space-x-1">
                         <div className="flex -space-x-5">
                           {mappedWallets && mappedWallets.map((wallet, index) => (
-                            <Avatar key={index} className="size-8">
-                              <AvatarImage src={wallet.image!} />
-                              <AvatarFallback>{wallet.title}</AvatarFallback>
-                            </Avatar>
+                            <TokenIcon
+                              key={index}
+                              token={{
+                                image: wallet.image!,
+                                alt: wallet.title,
+                                className: "size-8",
+                              }}
+                            />
                           ))}
                         </div>
                         <span className="flex items-center">{totalBalance} $</span>

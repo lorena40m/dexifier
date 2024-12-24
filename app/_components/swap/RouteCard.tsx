@@ -6,6 +6,7 @@ import TooltipTemplate from "../common/tooltip-template";  // Import TooltipTemp
 import { useWidget } from "@rango-dev/widget-embedded";  // Importing hook from the Rango widget
 import { useSwap } from "@/app/providers/SwapProvider";  // Importing context provider for swap-related data
 import { MultiRouteSimulationResult, PreferenceType, RouteTag, SwapResult } from "rango-types/mainApi";  // Import types for the swap logic
+import TokenIcon from "../common/token-icon";
 
 // Defining types for component props
 interface TagPanelProps {
@@ -48,11 +49,19 @@ const RouteCard = () => {
   // Helper function to render a single node with logo, symbol, and amount
   const singleNodeTemplate = (logo: string, symbol: string, amount: string, blockchainLogo?: string) => (
     <>
-      <div className="w-[3.125rem] h-[3.125rem] p-3 border border-white border-dashed rounded-full">
-        <div className="relative">
-          <Image src={logo} width={26} height={26} alt={`${symbol}'s icon`} />
-          <Image className="absolute bottom-[-6px] left-[15px]" src={blockchainLogo || ""} width={15} height={15} alt={`${symbol}'s blockchainIcon`} />
-        </div>
+      <div className="w-[3.125rem] h-[3.125rem] p-2 border border-white border-dashed rounded-full">
+        <TokenIcon
+          token={{
+            image: logo,
+            alt: symbol,
+            className: "size-8",
+          }}
+          blockchain={{
+            image: blockchainLogo,
+            alt: symbol,
+            className: "size-4",
+          }}
+        />
       </div>
       <h1 className="w-[50px] text-[.625rem] text-white ">{amount} {symbol}</h1>
     </>
@@ -96,7 +105,14 @@ const RouteCard = () => {
                   <div>
                     <Image src="/assets/icons/arrow-down.svg" width={59} height={21} alt="Arrow down" className={`absolute ${index !== 0 ? "-right-[3.5625rem]" : "-right-[3.0625rem]"} top-6`} />
                     <TooltipTemplate content={`${singleNode.swapperId}`}>
-                      <Image src={singleNode.swapperLogo || ""} width={20} height={20} alt={`${singleNode.swapperId}`} className={`absolute ${index !== 0 ? "-right-[2.425rem]" : "-right-[2.125rem]"} top-4`} />
+                      <TokenIcon
+                        token={{
+                          image: singleNode.swapperLogo,
+                          alt: singleNode.swapperId,
+                          className: "size-5"
+                        }}
+                        className={`absolute ${index !== 0 ? "-right-[2.425rem]" : "-right-[2.125rem]"} top-4`}
+                      />
                     </TooltipTemplate>
                   </div>
                 ) : (
@@ -104,7 +120,14 @@ const RouteCard = () => {
                     <div>
                       <Image src="/assets/icons/arrow-up.svg" width={28.5} height={59} alt="Arrow up" className="absolute -right-[2.1625rem] -top-[1.875rem]" />
                       <TooltipTemplate content={`${singleNode.swapperId}`}>
-                        <Image src={singleNode.swapperLogo || ""} width={20} height={20} alt={`${singleNode.swapperId}`} className="absolute -right-[1.9rem] -top-3" />
+                        <TokenIcon
+                          token={{
+                            image: singleNode.swapperLogo,
+                            alt: singleNode.swapperId,
+                            className: "size-5"
+                          }}
+                          className={`absolute -right-[1.9rem] -top-3`}
+                        />
                       </TooltipTemplate>
                     </div>
                   </div>

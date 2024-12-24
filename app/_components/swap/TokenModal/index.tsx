@@ -17,13 +17,13 @@ import Search from "../../common/search";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import _ from 'lodash';
 import { BlockchainMeta, Token } from "rango-types/mainApi";
 import { useWidget } from "@rango-dev/widget-embedded";
 import Blockchains from "./Blockchains";
 import { toastSuccess } from "@/lib/utils";
 import { getAbbrAddress, getContrastRatio } from "@/app/utils";
+import TokenIcon from "../../common/token-icon";
 
 const PAGE_SIZE = 50; // Number of tokens to load per page for infinite scrolling
 
@@ -111,11 +111,12 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                       <div className="flex justify-between items-center">
                         <div className="flex items-center justify-center gap-6 capitalize">
                           {/* Display token logo and name */}
-                          <Avatar className="size-8">
-                            <AvatarImage src={token.image} />
-                            <AvatarFallback>{token.symbol}</AvatarFallback>
-                          </Avatar>
-
+                          <TokenIcon
+                            token={{
+                              image: token.image,
+                              alt: token.symbol,
+                            }}
+                          />
                           <div className="flex flex-col">
                             <TooltipTemplate
                               content={token.name} // Show token name in a tooltip

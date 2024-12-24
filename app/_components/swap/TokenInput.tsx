@@ -2,10 +2,10 @@ import { Input } from "@/components/ui/input";
 import { Dispatch, InputHTMLAttributes, SetStateAction } from "react";
 import { Separator } from "@/components/ui/separator";
 import TokenModal from "./TokenModal";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { BlockchainMeta, Token } from "rango-types/mainApi";
 import { useWidget } from "@rango-dev/widget-embedded";
+import TokenIcon from "../common/token-icon";
 
 // Defining the interface for TokenInput props
 interface TokenInputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -39,20 +39,17 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
           {/* Display selected token info or default "Select Token" */}
           {token ?
             <>
-              <div className="relative">
-                <Avatar>
-                  {/* Display token image */}
-                  <AvatarImage src={token.image} />
-                  <AvatarFallback>{token.name}</AvatarFallback>
-                </Avatar>
-                {/* Display blockchain logo in a small avatar */}
-                <div className="absolute -bottom-1 -right-1">
-                  <Avatar className="size-6">
-                    <AvatarImage src={selectedBlochchain.logo} />
-                    <AvatarFallback>{selectedBlochchain.name}</AvatarFallback>
-                  </Avatar>
-                </div>
-              </div>
+              <TokenIcon
+                token={{
+                  image: token.image!,
+                  alt: token.name!,
+                }}
+                blockchain={{
+                  image: selectedBlochchain.logo,
+                  alt: selectedBlochchain.name,
+                  className: "size-6",
+                }}
+              />
               <div className="flex flex-col overflow-hidden">
                 <span>{token.name}</span>
                 <span className="text-xs opacity-80">

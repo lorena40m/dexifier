@@ -1,14 +1,14 @@
 // This component allows the user to select a wallet for a specific blockchain from a list of connected wallets.
 // It supports wallet selection, displaying wallet details, and providing an option to connect more wallets.
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { RadioGroup } from "@/components/ui/radio-group";
 import { ConnectedWallet, useWalletList, useWidget, WalletType } from "@rango-dev/widget-embedded";
-import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
+import { Dispatch, SetStateAction } from "react";
 import ButtonCopyIcon from "../../common/coyp-button-icon";
 import WalletConnectModal from "../WalletConnectModal";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { getAbbrAddress } from "@/app/utils";
+import TokenIcon from "../../common/token-icon";
 
 // Props for the WalletSelect component
 interface SingleConfirmWalletProps {
@@ -56,10 +56,13 @@ const WalletSelect: React.FC<SingleConfirmWalletProps> = ({ index, chain, wallet
             className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30'
           >
             <div className='flex justify-center'>
-              <Avatar className="size-12">
-                <AvatarImage src={getWalletIcon(wallet.walletType)} /> {/* Display wallet icon */}
-                <AvatarFallback>{wallet.walletType}</AvatarFallback>
-              </Avatar>
+              <TokenIcon
+                token={{
+                  image: getWalletIcon(wallet.walletType),
+                  alt: wallet.walletType,
+                  className: "size-12",
+                }}
+              />
             </div>
             <span className='capitalize'>{wallet.walletType}</span> {/* Display wallet type */}
             <span className="flex items-center justify-center text-xs">

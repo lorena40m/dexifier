@@ -22,7 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { getAbbrAddress } from "@/app/utils";
 import { TokenBalance } from "@rango-dev/widget-embedded/dist/store/wallets";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TokenIcon from "../common/token-icon";
 
 enum MORE_SETTINGS {
   HIDE_SMALL_BALANCE = "Hide small balances",
@@ -244,7 +244,12 @@ const SubWallet: React.FC<any> = ({
               alt={"arrow"}
             />
           </div>
-          <Image src={getWalletIcon(wallet) || "/assets/wallet/default"} width={28} height={28} alt={wallet.chain} className="mr-2" />
+          <TokenIcon
+            token={{
+              image: getWalletIcon(wallet) || "/assets/wallet/default",
+              alt: wallet.chain,
+            }}
+          />
           {wallet.chain}
         </div>
         <div className="flex flex-col">
@@ -266,10 +271,12 @@ const SubWallet: React.FC<any> = ({
             <div key={index} className="flex justify-between items-center border-b border-b-[#13F18738] py-2">
               <div className="flex items-center">
                 <div className="p-3">
-                  <Avatar>
-                    <AvatarImage src={getTokenIcon(balance)} />
-                    <AvatarFallback>{balance.symbol}</AvatarFallback>
-                  </Avatar>
+                  <TokenIcon
+                    token={{
+                      image: getTokenIcon(balance),
+                      alt: balance.symbol,
+                    }}
+                  />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-md text-[#FFFFFF]">{balance.symbol}</span>

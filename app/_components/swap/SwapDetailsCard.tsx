@@ -12,6 +12,7 @@ import TooltipTemplate from "../common/tooltip-template";
 import { SwapResult } from "rango-types/mainApi";
 import { useSwap } from "@/app/providers/SwapProvider";
 import { getSwapMessages, getSwapDate, getStepState, getPendingSwaps } from "@/app/utils/swap";
+import TokenIcon from "../common/token-icon";
 
 interface SwapTokenProps {
   swapData: SwapResult, // Data related to the token being swapped
@@ -86,102 +87,7 @@ const SwapDetailsCard = () => {
 
     return (
       <div className="flex items-center justify-center p-3">
-        <span className="text-white/50">{message}</span>
-      </div>
-    );
-  };
-
-  // Component to display the step state of the swap (in-progress, completed, etc.)
-  const StepState: FC<StepStateProps> = ({ swap, currentStep }) => {
-    if (swap === undefined) {
-      return null;
-    }
-    const state = getStepState(swap.steps[currentStep]); // Get the state of the current step
-    return (
-      state && <div className="flex justify-center items-center">{
-        state === "in-progress" ?
-          <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
-            <div className="flex items-center justify-center gap-x-2.5">
-              <Image
-                src={"/assets/loader.png"}
-                width={10}
-                height={10}
-                alt="Loader"
-                className="animate-spin"
-              />
-              <span>Running</span>
-            </div>
-          </div> :
-          (
-            state !== "default" &&
-            <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
-              <div className="flex items-center justify-center gap-x-2.5">
-                {state === "completed" &&
-                  <Image
-                    src={"/assets/icons/check-filled.png"}
-                    width={11}
-                    height={11}
-                    alt="checked icon"
-                  />}
-                <span>{state}</span>
-              </div>
-            </div>
-          )
-      }
-      </div>
-    )
-  };
-
-  // Component to display token details for the swap
-  const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
-    return (
-      <div className={`${className} flex flex-col items-center`}>
-        <div className="w-[60px] h-[60px] p-3 border border-white border-dashed rounded-full">
-          <div className="relative">
-            <Image src={swapData[isFrom ? "from" : "to"].logo || ""} width={35} height={35} alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`} />
-            <Image
-              className="absolute bottom-[-6px] left-[20px]"
-              src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
-              width={20}
-              height={20}
-              alt={`${swapData[isFrom ? "from" : "to"].blockchain}'s blockchainIcon`}
-            />
-          </div>
-        </div>
-        <span className="text-xs">
-          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(2)}
-        </span>
-        <span className="text-sm">
-          {swapData[isFrom ? "from" : "to"].symbol}
-        </span>
-      </div>
-    );
-  };
-
-  // Component to display the steps of the swap, showing each step's details
-  const SwapSteps: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
-    return (
-      <div className={`${className} flex justify-center gap-2  items-center`}>
-        <div className="relative">
-          <Image src={swapData[isFrom ? "from" : "to"].logo || ""}
-            width={25}
-            height={25}
-            alt={`${swapData[isFrom ? "from" : "to"].symbol}'s icon`}
-          />
-          <Image
-            className="absolute bottom-[-6px] left-[15px]"
-            src={swapData[isFrom ? "from" : "to"].blockchainLogo || ""}
-            width={15}
-            height={15}
-            alt={`${swapData[isFrom ? "from" : "to"].blockchain}'s blockchainIcon`}
-          />
-        </div>
-        <span className="text-xs">
-          {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(2)}
-        </span>
-        <span className="text-xs">
-          {swapData[isFrom ? "from" : "to"].symbol}
-        </span>
+        <span className="text-white/50">{message.replace('Rango', 'Dexifier')}</span>
       </div>
     );
   };
@@ -260,18 +166,18 @@ const SwapDetailsCard = () => {
                   {swaps && swaps.map((swap, index) => {
                     return (
                       <div key={index} className="mt-4">
-                        <div className="grid grid-cols-11">
-                          <SwapSteps className={"md:col-span-3 col-span-4"} swapData={swap} isFrom={true} />
+                        <div className="flex items-center gap-1">
+                          <SwapSteps swapData={swap} isFrom={true} />
 
-                          <div className="relative md:col-span-3 col-span-1 border-t border-dashed w-full mt-[12px]" >
-                            <div className="absolute top-[-10px] right-[10%] md:right-[40%]">
+                          <div className="relative border-t border-dashed w-full min-w-24 h-[1px] flex-grow" >
+                            <div className="absolute top-[-10px] right-[40%]">
                               <TooltipTemplate content={swap.swapperId}>
                                 <Image src={swap.swapperLogo} width={21} height={21} alt="swapLogo" />
                               </TooltipTemplate>
                             </div>
 
                           </div>
-                          <SwapSteps className={"md:col-span-3 col-span-4"} swapData={swap} isFrom={false} />
+                          <SwapSteps swapData={swap} isFrom={false} />
 
                           <div className="text-white/50 ml-2 col-span-2">
                             {swap && <StepState swap={pendingSwap} currentStep={index} />}
@@ -298,6 +204,100 @@ const SwapDetailsCard = () => {
         <div className="absolute lg:max-h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-transparent to-[#050F0F] z-10" />
       </div >
     )
+  );
+};
+
+// Component to display token details for the swap
+const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
+  return (
+    <div className={`${className} flex flex-col items-center`}>
+      <div className="w-[60px] h-[60px] p-2 border border-white border-dashed rounded-full">
+        <TokenIcon
+          token={{
+            image: swapData[isFrom ? "from" : "to"].logo,
+            alt: swapData[isFrom ? "from" : "to"].symbol,
+          }}
+          blockchain={{
+            image: swapData[isFrom ? "from" : "to"].blockchainLogo,
+            alt: swapData[isFrom ? "from" : "to"].blockchain,
+            className: "size-6",
+          }}
+        />
+      </div>
+      <span className="text-xs">
+        {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(2)}
+      </span>
+      <span className="text-sm">
+        {swapData[isFrom ? "from" : "to"].symbol}
+      </span>
+    </div>
+  );
+};
+
+// Component to display the step state of the swap (in-progress, completed, etc.)
+const StepState: FC<StepStateProps> = ({ swap, currentStep }) => {
+  if (swap === undefined) {
+    return null;
+  }
+  const state = getStepState(swap.steps[currentStep]); // Get the state of the current step
+  return (
+    state && <div className="flex justify-center items-center">{
+      state === "in-progress" ?
+        <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
+          <div className="flex items-center justify-center gap-x-2.5">
+            <Image
+              src={"/assets/loader.png"}
+              width={10}
+              height={10}
+              alt="Loader"
+              className="animate-spin"
+            />
+            <span>Running</span>
+          </div>
+        </div> :
+        (
+          state !== "default" &&
+          <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
+            <div className="flex items-center justify-center gap-x-2.5">
+              {state === "completed" &&
+                <Image
+                  src={"/assets/icons/check-filled.png"}
+                  width={11}
+                  height={11}
+                  alt="checked icon"
+                />}
+              <span>{state}</span>
+            </div>
+          </div>
+        )
+    }
+    </div>
+  )
+};
+
+// Component to display the steps of the swap, showing each step's details
+const SwapSteps: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
+  return (
+    <div className={`${className} flex justify-center gap-2  items-center`}>
+      <TokenIcon
+        token={{
+          image: swapData[isFrom ? "from" : "to"].logo,
+          alt: swapData[isFrom ? "from" : "to"].symbol,
+          className: "size-8",
+        }}
+        blockchain={{
+          image: swapData[isFrom ? "from" : "to"].blockchainLogo,
+          alt: swapData[isFrom ? "from" : "to"].blockchain,
+          className: "size-4",
+        }}
+      />
+      <span className="text-xs">
+        {parseFloat(swapData[isFrom ? "fromAmount" : "toAmount"]).toFixed(2)}
+      </span>
+      <span className="text-xs">
+        {swapData[isFrom ? "from" : "to"].symbol}
+      </span>
+    </div>
   );
 };
 

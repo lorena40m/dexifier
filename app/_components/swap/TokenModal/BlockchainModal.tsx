@@ -13,13 +13,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import _ from 'lodash';
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { BlockchainMeta } from "rango-types/mainApi";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Search from "@/app/_components/common/search";
+import TokenIcon from "../../common/token-icon";
 
 // Define props for the BlockchainModal component
 interface BlockchainModalProps {
@@ -78,11 +78,12 @@ const BlockchainModal: React.FC<PropsWithChildren<BlockchainModalProps>> = ({ ch
                   >
                     {/* Avatar and display name for the blockchain */}
                     <div className="flex gap-[.875rem]">
-                      <Avatar className="size-8">
-                        <AvatarImage src={blockchain.logo} /> {/* Blockchain logo */}
-                        <AvatarFallback>{blockchain.shortName}</AvatarFallback> {/* Fallback text if no image */}
-                      </Avatar>
-
+                      <TokenIcon  
+                        token={{
+                          image: blockchain.logo,
+                          alt: blockchain.shortName,
+                        }}
+                      />  {/* Blockchain logo */}
                       <h2 className="text-base sm:text-lg">{blockchain.displayName}</h2>
                     </div>
 

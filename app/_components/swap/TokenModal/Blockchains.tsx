@@ -6,9 +6,9 @@ import React, { Dispatch, SetStateAction } from "react";
 import { cn } from "@/lib/utils";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { BlockchainMeta } from "rango-types/mainApi";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import BlockchainModal from "./BlockchainModal";
 import _ from "lodash";
+import TokenIcon from "../../common/token-icon";
 
 // Define props for the Blockchains component
 interface BlockchainsProps {
@@ -41,10 +41,13 @@ const Blockchains: React.FC<BlockchainsProps> = ({ selectedBlockchain, setSelect
                 onClick={() => setSelectedBlockchain(blockchain)} // Set selected blockchain when clicked
               >
                 {/* Avatar for displaying the blockchain logo */}
-                <Avatar className="size-10">
-                  <AvatarImage src={blockchain.logo} />
-                  <AvatarFallback>{blockchain.shortName}</AvatarFallback>
-                </Avatar>
+                <TokenIcon
+                  token={{
+                    image: blockchain.logo,
+                    alt: blockchain.shortName,
+                    className: "size-10",
+                  }}
+                />
               </div>
             </TooltipTemplate>
           ))}
