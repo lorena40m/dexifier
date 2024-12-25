@@ -6,7 +6,7 @@ const DexifierButton: React.FC<PropsWithChildren<React.ButtonHTMLAttributes<HTML
   return (
     <Button
       className={cn(
-        'bg-primary hover:bg-primary-dark text-black font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300',
+        'bg-primary hover:bg-primary-dark text-black font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300 rounded-xl',
         className
       )}
       variant={"default"}

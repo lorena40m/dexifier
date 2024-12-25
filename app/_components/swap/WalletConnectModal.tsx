@@ -79,7 +79,7 @@ const WalletConnectModal: React.FC<PropsWithChildren<WalletConnectModalProps>> =
               style={{ backgroundColor: BgColorSet[wallet.state] }} // Set background color based on wallet state
               onClick={() => handleWallet(wallet)} // Handle wallet click to connect, disconnect, or open installation link
             >
-              <Image src={wallet.image} alt={`@{index}'s wallet`} width={45} height={45} /> {/* Wallet image */}
+              <Image src={wallet.image} alt={wallet.type} width={45} height={45} /> {/* Wallet image */}
               <span className="text-sm">{wallet.title}</span> {/* Wallet title */}
               <span className="text-xs color-grey-500" style={{ color: TextColorSet[wallet.state] }}>
                 {/* Wallet state text with color based on wallet state */}

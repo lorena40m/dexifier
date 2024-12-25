@@ -34,11 +34,6 @@ const BlockchainModal: React.FC<PropsWithChildren<BlockchainModalProps>> = ({ ch
   const [search, setSearch] = useState<string>(''); // Search query state
   const [filteredBlockchains, setFilteredBlockchains] = useState<BlockchainMeta[]>([]); // Filtered list of blockchains
 
-  // Effect to initialize the filtered blockchains when the blockchains data changes
-  useEffect(() => {
-    setFilteredBlockchains(blockchains)
-  }, [blockchains])
-
   // Effect to filter the blockchain list based on the search query
   useEffect(() => {
     setFilteredBlockchains(blockchains.filter((blockchain: BlockchainMeta) => blockchain.displayName.toLowerCase().includes(search.toLowerCase())))
@@ -67,36 +62,31 @@ const BlockchainModal: React.FC<PropsWithChildren<BlockchainModalProps>> = ({ ch
         <ScrollArea className="h-96">
           {filteredBlockchains.map((blockchain, index) => {
             const isSelected = isEqual(blockchain, selectedBlockchain); // Check if the blockchain is selected
-
             return (
-              <DialogClose className="ml-2 overflow-y-auto max-h-[50vh] w-full pe-3" key={index}>
-                <div>
-                  <div
-                    key={index}
-                    className="pb-[.875rem] mt-4 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
-                    onClick={() => setSelectedBlockchain(blockchain)} // Set selected blockchain on click
-                  >
-                    {/* Avatar and display name for the blockchain */}
-                    <div className="flex gap-[.875rem]">
-                      <TokenIcon  
-                        token={{
-                          image: blockchain.logo,
-                          alt: blockchain.shortName,
-                        }}
-                      />  {/* Blockchain logo */}
-                      <h2 className="text-base sm:text-lg">{blockchain.displayName}</h2>
-                    </div>
+              <DialogClose
+                key={index}
+                className="w-full flex items-center justify-between border-b border-separator hover:opacity-80 p-2"
+                onClick={() => setSelectedBlockchain(blockchain)} // Set selected blockchain on click
+              >
+                {/* Avatar and display name for the blockchain */}
+                <div className="flex gap-4 items-center">
+                  <TokenIcon
+                    token={{
+                      image: blockchain.logo,
+                      alt: blockchain.shortName,
+                    }}
+                  />  {/* Blockchain logo */}
+                  <span className="text-base">{blockchain.displayName}</span>
+                </div>
 
-                    {/* Indicator to show if the blockchain is selected */}
-                    <div
-                      className={`w-5 h-5 ${isSelected
-                          ? "bg-primary text-black"
-                          : "bg-transparent border border-seperator"
-                        } rounded-full flex items-center justify-center`}
-                    >
-                      {isSelected && <FaCheck size={12.5} />} {/* Checkmark icon for selected blockchain */}
-                    </div>
-                  </div>
+                {/* Indicator to show if the blockchain is selected */}
+                <div
+                  className={`size-5 ${isSelected
+                    ? "bg-primary text-black"
+                    : "bg-transparent border border-seperator"
+                    } rounded-full flex items-center justify-center`}
+                >
+                  {isSelected && <FaCheck size={12.5} />} {/* Checkmark icon for selected blockchain */}
                 </div>
               </DialogClose>
             );

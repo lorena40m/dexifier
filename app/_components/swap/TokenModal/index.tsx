@@ -21,9 +21,9 @@ import _ from 'lodash';
 import { BlockchainMeta, Token } from "rango-types/mainApi";
 import { useWidget } from "@rango-dev/widget-embedded";
 import Blockchains from "./Blockchains";
-import { toastSuccess } from "@/lib/utils";
 import { getAbbrAddress, getContrastRatio } from "@/app/utils";
 import TokenIcon from "../../common/token-icon";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 50; // Number of tokens to load per page for infinite scrolling
 
@@ -86,7 +86,7 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
             <Label className="text-lg">Select Token</Label>
             {/* Search input for filtering tokens */}
             <Search value={search} onChange={(e) => setSearch(e.target.value)} />
-            <div id="scrollableDiv" className="max-h-72 overflow-scroll">
+            <div id="scrollableDiv" className="max-h-72 overflow-y-auto">
               {/* Infinite Scroll for displaying tokens */}
               <InfiniteScroll
                 dataLength={filteredTokens.length} // Current length of displayed tokens
@@ -94,18 +94,17 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                 hasMore={true} // Always allow fetching more tokens
                 loader={undefined} // Loader component for fetching more tokens
                 scrollableTarget="scrollableDiv" // Scroll container ID: Ref => Line 89
+                className="flex flex-col gap-2 pe-1"
               >
                 {/* Map over the filtered tokens and display them */}
                 {filteredTokens.map((token, index) => {
                   const isSelected: boolean = isEqual(token, selectedToken); // Check if the token is selected
                   return (
                     <DialogClose
-                      className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${isSelected ? "border-primary" : "border-seperator"
-                        }`}
-                      onClick={() => {
-                        setToken(token); // Update selected token
-                        toastSuccess(`${token.symbol}'s selected as token`); // Show success message
-                      }}
+                      className={cn("p-2 border rounded-[2rem] w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300",
+                        isSelected ? "border-primary" : "border-separator"
+                      )}
+                      onClick={() => setToken(token)} // Update selected token
                       key={index}
                     >
                       <div className="flex justify-between items-center">
@@ -119,16 +118,15 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                           />
                           <div className="flex flex-col">
                             <TooltipTemplate
-                              content={token.name} // Show token name in a tooltip
+                              content={token.name || "Null"} // Show token name in a tooltip
                               className="!-mb-1"
-                              key={`${index}-${name}`}
                             >
-                              <div>
-                                <span className="text-base px-1">{token.symbol}</span>
-                                <span className={`text-[14px] font-bold`} style={{ color: selectedBlockchain?.color ? getContrastRatio(selectedBlockchain?.color, "#02140c00") ? selectedBlockchain?.color : "white" : "white" }}>
-                                  ({selectedBlockchain?.displayName})
+                              <span className="text-base font-bold">
+                                {token.symbol}
+                                <span className="text-sm" style={{ color: selectedBlockchain.color ? getContrastRatio(selectedBlockchain.color, "#02140c00") ? selectedBlockchain.color : "white" : "white" }}>
+                                  ({selectedBlockchain.displayName})
                                 </span>
-                              </div>
+                              </span>
                             </TooltipTemplate>
                             <TooltipTemplate content={token.address}>
                               <span className="text-[12px] opacity-40">
@@ -139,13 +137,12 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                         </div>
                         <div className="flex gap-3 items-center">
                           {/* Display medal if token is popular */}
-                          {token.isPopular ? <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" /> : <div className="w-[25px] h-[25px]" />}
+                          {token.isPopular && <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" />}
                           {/* Display check mark if the token is selected */}
-                          {isSelected ? (
+                          {isSelected ?
                             <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-                          ) : (
-                            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
-                          )}
+                            :
+                            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />}
                         </div>
                       </div>
                     </DialogClose>

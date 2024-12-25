@@ -5,7 +5,7 @@
 // make the state accessible through the React Context API. Additionally, a custom hook
 // (useSwap) is provided for easier consumption of the context in components.
 
-import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState } from "react";
+import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useEffect } from "react";
 import { ConfirmRouteResponse, MultiRouteResponse, MultiRouteSimulationResult, Token } from "rango-types/mainApi"
 import { Settings } from "../types/rango";
 
@@ -42,6 +42,32 @@ export const SwapProvider = ({ children }: { children: ReactNode }) => {
   const [selectedRoute, setSelectedRoute] = useState<MultiRouteSimulationResult>();
   const [confirmData, setConfirmData] = useState<ConfirmRouteResponse>();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINS);
+
+  useEffect(() => {
+    try {
+      const swap = localStorage.getItem("swap");
+      if (swap) {
+        const { tokenFrom, tokenTo, routeData, selectedRoute, confirmData, settings } = JSON.parse(swap)
+        if (tokenFrom) setTokenFrom(tokenFrom)
+        if (tokenTo) setTokenTo(tokenTo)
+        if (routeData) setRouteData(routeData)
+        if (selectedRoute) setSelectedRoute(selectedRoute)
+        if (confirmData) setConfirmData(confirmData)
+        if (settings) setSettings(settings)
+      }
+    } catch (error) { }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("swap", JSON.stringify({
+      tokenFrom,
+      tokenTo,
+      routeData,
+      selectedRoute,
+      confirmData,
+      settings,
+    }));
+  }, [tokenFrom, tokenTo, routeData, selectedRoute, confirmData, settings])
 
   return (
     <SwapContext.Provider

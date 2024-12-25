@@ -49,7 +49,7 @@ const SwapCard: React.FC = () => {
   const isWalletConnected = connectedWallets.length > 0;
 
   // Swap state management from the SwapProvider context
-  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setRouteData, selectedRoute, setSelectedRoute } = useSwap();
+  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setRouteData, selectedRoute, setSelectedRoute, settings } = useSwap();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
   const [isFetchingRoute, fetchRoute] = useTransition();
@@ -63,6 +63,7 @@ const SwapCard: React.FC = () => {
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmData?.result?.requestId)
     : undefined;
   const pendingSwap = selectedSwap?.swap;
+  console.log("pendingSwap", pendingSwap);
 
   // Fetch the route for swapping when amountFrom, tokenFrom, or tokenTo changes
   useEffect(() => {
@@ -85,7 +86,7 @@ const SwapCard: React.FC = () => {
         return total + walletBalance;
       }, 0)
     );
-  }, [tokenFrom]);
+  }, [tokenFrom, connectedWallets]);
 
   // Debounced fetch for swap routes
   const fetchRouteDebounceHandler = useMemo(() =>
@@ -99,7 +100,7 @@ const SwapCard: React.FC = () => {
           toToken: tokenTo,
           inputAmount: amount,
           disabledLiquiditySources: [],
-          slippage: 0.5,
+          slippage: parseFloat(settings.slippage),
           affiliateRef: null,
           affiliatePercent: null,
           affiliateWallets: null
@@ -155,10 +156,10 @@ const SwapCard: React.FC = () => {
                 Balance: {tokenFromBalance ? `${tokenFromBalance} ${tokenFrom.symbol}` : '_'}
               </Label>
               {tokenFromBalance > 0 &&
-                <div className="flex gap-1 justify-end">
-                  <button className="hover:opacity-80 text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.25).toString())}>25%</button><span>|</span>
-                  <button className="hover:opacity-80 text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.5).toString())}>50%</button><span>|</span>
-                  <button className="hover:opacity-80 text-sm" onClick={() => setAmountFrom(tokenFromBalance.toString())}>Max</button>
+                <div className="flex gap-1 justify-end text-primary">
+                  <button className="hover:text-primary-dark text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.25).toString())}>25%</button><span>|</span>
+                  <button className="hover:text-primary-dark text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.5).toString())}>50%</button><span>|</span>
+                  <button className="hover:text-primary-dark text-sm" onClick={() => setAmountFrom(tokenFromBalance.toString())}>Max</button>
                 </div>}
             </div>}
           </div>
@@ -201,7 +202,7 @@ const SwapCard: React.FC = () => {
           />
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="p-6">
         {/* Footer Section: Handles the swap confirmation or wallet connection */}
         {isWalletConnected ?
           isFetchingRoute || pendingSwap ?
@@ -215,13 +216,13 @@ const SwapCard: React.FC = () => {
             </Button>
             :
             <ConfirmModal>
-              <DexifierButton className="w-full" disabled={!selectedRoute}>
+              <DexifierButton className="w-2/3" disabled={!selectedRoute}>
                 Swap Now
               </DexifierButton>
             </ConfirmModal>
           :
           <WalletConnectModal>
-            <DexifierButton className="w-full">
+            <DexifierButton className="w-2/3">
               Connect Wallet
             </DexifierButton>
           </WalletConnectModal>

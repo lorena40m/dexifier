@@ -19,9 +19,8 @@ const TooltipTemplate = ({
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-
         <TooltipContent
-          className={`${className} -mb-1 bg-black text-primary border-primary text-xs opacity-70`}
+          className={`${className} -mb-1 bg-black text-primary border-primary text-xs`}
         >
           {content}
         </TooltipContent>

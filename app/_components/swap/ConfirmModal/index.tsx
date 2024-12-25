@@ -157,7 +157,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
       setOpen(open);
     }}>
       <DialogTrigger asChild>{props.children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
+      <DialogContent className="w-[30rem] bg-transparent max-h-[90vh] max-w-[90vw] p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
         <DialogHeader>
           <div className="flex flex-row justify-between p-2">
             <DialogTitle className="text-2xl">Confirm Wallet</DialogTitle>

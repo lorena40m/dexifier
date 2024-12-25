@@ -53,7 +53,7 @@ const WalletSelect: React.FC<SingleConfirmWalletProps> = ({ index, chain, wallet
         {/* Map over the connected wallets and display each wallet */}
         {requiredWallets.map((wallet: ConnectedWallet, index: number) => (
           <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType} key={index}
-            className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30'
+            className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30 hover:border-gray-500'
           >
             <div className='flex justify-center'>
               <TokenIcon

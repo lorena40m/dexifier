@@ -13,6 +13,9 @@ import { SwapResult } from "rango-types/mainApi";
 import { useSwap } from "@/app/providers/SwapProvider";
 import { getSwapMessages, getSwapDate, getStepState, getPendingSwaps } from "@/app/utils/swap";
 import TokenIcon from "../common/token-icon";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import DexifierButton from "../common/button";
+import { cn } from "@/lib/utils";
 
 interface SwapTokenProps {
   swapData: SwapResult, // Data related to the token being swapped
@@ -87,123 +90,115 @@ const SwapDetailsCard = () => {
 
     return (
       <div className="flex items-center justify-center p-3">
-        <span className="text-white/50">{message.replace('Rango', 'Dexifier')}</span>
+        <span className="text-white/50 text-center">{message.replace('Rango', 'Dexifier')}</span>
       </div>
     );
   };
 
-  return (
-    selectedRoute && confirmData && (
-      <div className="relative bg-modal max-w-[650px] min-h-[540px] p-6 rounded-3xl border border-[#AAA]/20 backdrop-blur-lg shadow-lg">
-        <div className="z-0">
-          <div className="flex justify-between">
-            <h1 className="text-2xl mb-5">Swap Details</h1>
-            <button
-              className="text-red-700 disabled:cursor-not-allowed hover:opacity-80 mx-[20px] text-lg font-bold"
-              onClick={onDelete}
-              disabled={selectedSwap?.id === undefined}>
-              delete
-            </button>
-          </div>
-          <div className="relative">
-            <div className="overflow-auto h-[380px] px-3">
-              <div className="mb-8 text-xs">
-                {pendingSwap && <div className="flex justify-between">
-                  <span className="text-lg font-semibold">
-                    {`${pendingSwap.finishTime ? "Finished at" : "Created at"}:`}
-                  </span>
-                  <span className="text-sm text-white/50 px-2">
-                    {getSwapDate(pendingSwap)}
-                  </span>
-                </div>}
-
-                <h2>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold">Requested ID:</span>
-                    <span className="text-sm text-white/50 px-2">
-                      {selectedRoute?.requestId?.length > 40 ? (
-                        <>{selectedRoute?.requestId?.slice(0, 40)}...</>
-                      ) : (
-                        selectedRoute?.requestId
-                      )}
-                    </span>
-                    <ButtonCopyIcon text={selectedRoute?.requestId} />
-                    <Link href={`https://explorer.dexifier.com/swap/${selectedRoute?.requestId}`} target="_blank">
-                      <Image src={"/assets/icons/search-list.png"} width={22} height={22} alt="explorer" />
-                    </Link>
-                  </div>
-                </h2>
-              </div>
-
-              {confirmData?.result && swaps && <div className="mb-7 flex flex-col items-center text-xs">
-                <div className="flex">
-                  <SwapToken swapData={swaps[0]} isFrom={true} />
-                  <div className="relative border-t border-dashed w-[100px] mt-[30px] mx-2">
-                    {swaps && swaps.map((swap, index) => {
-                      const percentage = ((index + 1) / (swaps.length + 1)) * 100; // Calculate percentage for left
-                      return (
-                        <div
-                          key={index}
-                          className="absolute top-[-12px]"
-                          style={{
-                            left: `${percentage}%`,
-                            transform: 'translateX(-50%)', // Center each element on its left position
-                          }}
-                        >
-                          <TooltipTemplate content={swap.swapperId}>
-                            <Image src={swap.swapperLogo} width={25} height={25} alt="swapLogo" />
-                          </TooltipTemplate>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <SwapToken swapData={swaps[swaps.length - 1]} isFrom={false} />
-                </div>
-                <div className="w-full mt-4">
-                  <span className="text-lg font-semibold">Swap Steps:</span>
-                </div>
-                <div>
-                  {swaps && swaps.map((swap, index) => {
-                    return (
-                      <div key={index} className="mt-4">
-                        <div className="flex items-center gap-1">
-                          <SwapSteps swapData={swap} isFrom={true} />
-
-                          <div className="relative border-t border-dashed w-full min-w-24 h-[1px] flex-grow" >
-                            <div className="absolute top-[-10px] right-[40%]">
-                              <TooltipTemplate content={swap.swapperId}>
-                                <Image src={swap.swapperLogo} width={21} height={21} alt="swapLogo" />
-                              </TooltipTemplate>
-                            </div>
-
-                          </div>
-                          <SwapSteps swapData={swap} isFrom={false} />
-
-                          <div className="text-white/50 ml-2 col-span-2">
-                            {swap && <StepState swap={pendingSwap} currentStep={index} />}
-                          </div>
-                        </div>
-                        {swap && <StepMessage swap={pendingSwap} currentStep={index} />}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-              }
+  return selectedRoute && (
+    <Card className="max-w-[650px] min-h-[540px] w-full h-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-2 rounded-[2rem] shadow-lg text-white">
+      <CardHeader className="flex flex-row justify-between items-center">
+        <h1 className="text-2xl">Swap Details</h1>
+        <button
+          className="text-red-700 hover:opacity-50 text-lg font-bold"
+          onClick={onDelete}
+          disabled={!selectedSwap?.id}
+        >
+          delete
+        </button>
+      </CardHeader>
+      <CardContent className="overflow-auto h-[380px] px-6">
+        <div className="mb-8">
+          {pendingSwap && <div className="flex justify-between">
+            <span className="text-lg font-semibold">
+              {`${pendingSwap.finishTime ? "Finished at" : "Created at"}:`}
+            </span>
+            <span className="text-sm text-white/50">
+              {getSwapDate(pendingSwap)}
+            </span>
+          </div>}
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-semibold">Requested ID:</span>
+            <div className="flex gap-2">
+              <span className="text-sm text-white/50">
+                {selectedRoute.requestId.length > 40 ? (
+                  <>{selectedRoute.requestId.slice(0, 40)}...</>
+                ) : (
+                  selectedRoute.requestId
+                )}
+              </span>
+              <ButtonCopyIcon text={selectedRoute.requestId} />
+              <Link href={`https://explorer.dexifier.com/swap/${selectedRoute.requestId}`} target="_blank">
+                <Image src={"/assets/icons/search-list.png"} width={22} height={22} alt="explorer" />
+              </Link>
             </div>
           </div>
-          <div className="flex my-2">
-            <button
-              className={`m-auto border disabled:cursor-not-allowed border-primary rounded-xl p-6 py-2 ${isSwapMade ? "opacity-80" : "hover:opacity-80"}`}
-              onClick={onCancel}
-              disabled={isSwapMade}>
-              <span className="text-lg">Cancel</span>
-            </button>
-          </div>
         </div>
-        <div className="absolute lg:max-h-[32.875rem] lg:max-w-[23.875rem] bg-gradient-to-b from-transparent to-[#050F0F] z-10" />
-      </div >
-    )
+
+        {confirmData && confirmData.result && swaps && <div className="mb-7 flex flex-col items-center text-xs">
+          <div className="flex gap-1">
+            <SwapToken swapData={swaps[0]} isFrom={true} />
+            <div className="relative border-t border-dashed min-w-24 flex-grow mt-8">
+              {swaps && swaps.map((swap, index) => {
+                const percentage = ((index + 1) / (swaps.length + 1)) * 100; // Calculate percentage for left
+                return (
+                  <div
+                    key={index}
+                    className="absolute top-[-12px]"
+                    style={{
+                      left: `${percentage}%`,
+                      transform: 'translateX(-50%)', // Center each element on its left position
+                    }}
+                  >
+                    <TooltipTemplate content={swap.swapperId}>
+                      <Image src={swap.swapperLogo} width={25} height={25} alt="swapLogo" />
+                    </TooltipTemplate>
+                  </div>
+                );
+              })}
+            </div>
+            <SwapToken swapData={swaps[swaps.length - 1]} isFrom={false} />
+          </div>
+          <div className="w-full mt-4">
+            <span className="text-lg font-semibold">Swap Steps:</span>
+          </div>
+          <div>
+            {swaps && swaps.map((swap, index) => {
+              return (
+                <div key={index} className="mt-4">
+                  <div className="flex items-center gap-1">
+                    <SwapSteps swapData={swap} isFrom={true} />
+                    <div className="relative border-t border-dashed w-full min-w-24 h-[1px] flex-grow" >
+                      <div className="absolute w-full -top-3 flex justify-center">
+                        <TooltipTemplate content={swap.swapperId}>
+                          <TokenIcon
+                            token={{ image: swap.swapperLogo, className: "size-6" }}
+                          />
+                        </TooltipTemplate>
+                      </div>
+                    </div>
+                    <SwapSteps swapData={swap} isFrom={false} />
+                    <div className="text-white/50 ml-2 col-span-2">
+                      {swap && <StepState swap={pendingSwap} currentStep={index} />}
+                    </div>
+                  </div>
+                  {swap && <StepMessage swap={pendingSwap} currentStep={index} />}
+                </div>
+              )
+            })}
+          </div>
+        </div>}
+      </CardContent>
+      <CardFooter className="p-6">
+        <DexifierButton
+          className={cn('border bg-transparent text-white border-primary', isSwapMade ? 'opacity-80' : 'hover:opacity-80')}
+          onClick={onCancel}
+          disabled={isSwapMade}
+        >
+          Cancel
+        </DexifierButton>
+      </CardFooter>
+    </Card>
   );
 };
 
@@ -211,7 +206,7 @@ const SwapDetailsCard = () => {
 const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
   return (
     <div className={`${className} flex flex-col items-center`}>
-      <div className="w-[60px] h-[60px] p-2 border border-white border-dashed rounded-full">
+      <div className="size-16 p-2 border border-white border-dashed rounded-full">
         <TokenIcon
           token={{
             image: swapData[isFrom ? "from" : "to"].logo,

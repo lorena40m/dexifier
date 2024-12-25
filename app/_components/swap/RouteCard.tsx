@@ -7,13 +7,7 @@ import { useWidget } from "@rango-dev/widget-embedded";  // Importing hook from 
 import { useSwap } from "@/app/providers/SwapProvider";  // Importing context provider for swap-related data
 import { MultiRouteSimulationResult, PreferenceType, RouteTag, SwapResult } from "rango-types/mainApi";  // Import types for the swap logic
 import TokenIcon from "../common/token-icon";
-
-// Defining types for component props
-interface TagPanelProps {
-  tags: RouteTag[];  // Array of tags related to the route
-  className: string;
-  info: { totalTime: string; fee: string | undefined };  // Information about total time and fee for the route
-}
+import { cn } from "@/lib/utils";
 
 // Enum for different sorting preferences
 enum PREFERENCE {
@@ -65,22 +59,6 @@ const RouteCard = () => {
       </div>
       <h1 className="w-[50px] text-[.625rem] text-white ">{amount} {symbol}</h1>
     </>
-  );
-
-  // TagPanel component to display tags and additional information like fee and total time
-  const TagPanel: React.FC<TagPanelProps> = ({ tags, className, info }) => (
-    <div className={className}>
-      <div className="flex flex-row justify-center text-sm mx-3 min-w-[107px] mb-1 text-primary">
-        <div>{info.fee}$</div>
-        <span className="mx-1"> | </span>
-        <div>{info.totalTime}</div>
-      </div>
-      {tags.map((tag: RouteTag, index: number) => tag.label !== "Recommended" && (
-        <div key={"tag" + index} className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px] justify-center">
-          <span className={`${tag.label === "High Impact" ? "text-rose-500" : ""} text-center`}>{tag.label}</span>
-        </div>
-      ))}
-    </div>
   );
 
   // Function to render each route with relevant information
@@ -142,7 +120,18 @@ const RouteCard = () => {
             </div>
           );
         })}
-        <TagPanel className="flex flex-col absolute right-0 top-1" tags={route.tags} info={calculatedInfo} />
+        <div className="flex flex-col absolute right-0 top-1">
+          <div className="flex flex-row justify-center text-sm mx-3 min-w-[107px] mb-1 text-primary">
+            <div>{calculatedInfo.fee}$</div>
+            <span className="mx-1"> | </span>
+            <div>{calculatedInfo.totalTime}</div>
+          </div>
+          {route.tags.map((tag: RouteTag, index: number) => tag.label !== "Recommended" && (
+            <div key={"tag" + index} className="bg-black opacity-60 flex px-2 py-1 mb-1 border rounded-md border-primary mx-3 text-xs font-medium min-w-[107px] justify-center">
+              <span className={`${tag.label === "High Impact" ? "text-rose-500" : ""} text-center`}>{tag.label}</span>
+            </div>
+          ))}
+        </div>
       </button>
     );
   };
@@ -154,7 +143,9 @@ const RouteCard = () => {
         {Object.values(PREFERENCE).map((value, index) => (
           <button
             key={index}
-            className={`px-3.5 py-1.5 border border-primary rounded-full text-xs font-medium leading-[.9rem] transition-colors duration-300 ${preference === value ? "bg-primary text-black" : "bg-transparent text-white hover:bg-white/10 "} disabled:cursor-not-allowed`}
+            className={cn("px-3.5 py-1.5 border border-primary rounded-full text-xs font-medium leading-[.9rem] transition-colors duration-300",
+              preference === value ? "bg-primary text-black" : "bg-transparent text-white hover:bg-white/10"
+            )}
             onClick={() => {
               const sortedResult = sortQuotesBy(STRATEGY[value], routes as MultiRouteSimulationResult[]);  // Sort routes based on selected preference
               setSortedRoutes(sortedResult);  // Update sorted routes state
@@ -165,7 +156,7 @@ const RouteCard = () => {
           </button>
         ))}
       </div>
-      <div className="overflow-y-auto lg:h-[28rem] pe-1">
+      <div className="overflow-y-auto h-[28rem] pe-1">
         {sortedRoutes.map((route) => singleRouteContainer(route))}
       </div>
     </div>

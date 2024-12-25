@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Dispatch, InputHTMLAttributes, SetStateAction } from "react";
+import { Dispatch, InputHTMLAttributes, SetStateAction, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import TokenModal from "./TokenModal";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,9 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
   const { meta } = useWidget();
   const { blockchains } = meta; // Get the list of available blockchains
   // Find the selected blockchain's metadata
-  const selectedBlochchain = blockchains.find((blockchain: BlockchainMeta) => blockchain.name === token?.blockchain);
+  const selectedBlochchain = useMemo<BlockchainMeta | undefined>(() => {
+    if(token) return blockchains.find((blockchain: BlockchainMeta) => blockchain.name === token.blockchain)
+  }, [blockchains, token]);
 
   return (
     <div className={`flex gap-1 border border-[#695F5F]/40 items-center justify-between bg-[#000]/30 backdrop-blur-lg rounded-lg py-2 shadow-md h-[3.3125rem]`}>
@@ -45,8 +47,8 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
                   alt: token.name!,
                 }}
                 blockchain={{
-                  image: selectedBlochchain.logo,
-                  alt: selectedBlochchain.name,
+                  image: selectedBlochchain?.logo,
+                  alt: selectedBlochchain?.name,
                   className: "size-6",
                 }}
               />
