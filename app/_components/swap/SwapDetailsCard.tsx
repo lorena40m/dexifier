@@ -14,8 +14,8 @@ import { useSwap } from "@/app/providers/SwapProvider";
 import { getSwapMessages, getSwapDate, getStepState, getPendingSwaps } from "@/app/utils/swap";
 import TokenIcon from "../common/token-icon";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import DexifierButton from "../common/button";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface SwapTokenProps {
   swapData: SwapResult, // Data related to the token being swapped
@@ -189,14 +189,15 @@ const SwapDetailsCard = () => {
           </div>
         </div>}
       </CardContent>
-      <CardFooter className="p-6">
-        <DexifierButton
-          className={cn('border bg-transparent text-white border-primary', isSwapMade ? 'opacity-80' : 'hover:opacity-80')}
+      <CardFooter>
+        <Button
+          className={cn('h-12 mx-auto', isSwapMade ? 'opacity-80' : 'hover:opacity-80')}
+          variant="outline"
           onClick={onCancel}
           disabled={isSwapMade}
         >
           Cancel
-        </DexifierButton>
+        </Button>
       </CardFooter>
     </Card>
   );

@@ -3,8 +3,8 @@ import { Dispatch, InputHTMLAttributes, SetStateAction } from "react";
 import { Separator } from "@/components/ui/separator";
 import CurrencyModal from "./CurrencyModal";
 import { Currency } from "@/app/types/exolix";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button";
+import TokenIcon from "../common/token-icon";
 
 interface CurrencyInputProps extends InputHTMLAttributes<HTMLInputElement> {
   currency: Currency | undefined;
@@ -21,10 +21,12 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({ currency, excludedCurrenc
         <Button className="md:w-[9rem] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2 text-sm">
           {currency ?
             <>
-              <Avatar>
-                <AvatarImage src={currency.icon} />
-                <AvatarFallback>{currency.code}</AvatarFallback>
-              </Avatar>
+              <TokenIcon
+                token={{
+                  image: currency.icon,
+                  alt: currency.code,
+                }}
+              />
               <div className="flex flex-col">
                 <span>{currency.code}</span>
                 <span className="text-xs opacity-80">

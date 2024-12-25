@@ -9,7 +9,7 @@ import { useWidget } from "@rango-dev/widget-embedded";
 import { SwapperMeta, SwapperType } from "rango-types/mainApi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import TokenIcon from "../common/token-icon";
 
 interface SwapperModalProps {
   title: string,
@@ -75,11 +75,13 @@ const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children
                   }}
                 >
                   <div className="flex gap-[.875rem]">
-                    <Avatar className="size-6">
-                      <AvatarImage src={swapper.logo} />
-                      <AvatarFallback>{swapper.title}</AvatarFallback>
-                    </Avatar>
-
+                    <TokenIcon
+                      token={{
+                        image: swapper.logo,
+                        alt: swapper.title,
+                        className: "size-6"
+                      }}
+                    />
                     <h2 className="text-base sm:text-lg">{swapper.title}
                       <span className="text-sm text-border">({swapper.id})</span>
                     </h2>

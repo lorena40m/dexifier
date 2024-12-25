@@ -15,10 +15,10 @@ import WalletSelect from './WalletSelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { useManager } from "@rango-dev/queue-manager-react";
-import DexifierButton from '../../common/button';
 import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from '@/app/utils/swap';
 import { Wallet } from '@/app/types/rango';
+import { Button } from '@/components/ui/button';
 
 // ConfirmModal component for confirming a wallet before swapping assets
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
@@ -227,11 +227,11 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           </div>
         </ScrollArea>
         <div className="text-error font-bold text-xs text-center tracking-wide">{confirmData && confirmHasError(confirmData).message}</div>
-        <DexifierButton disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming}
+        <Button variant={isConfirming ? "outline" : "primary"} disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming}
           onClick={confirmData ? confirmSwap : confirmWallet}
-          className={cn(isConfirming && 'bg-transparent border border-primary', 'w-48')}>
+          className="mx-auto h-12 w-48">
           {isConfirming ?
-            <CustomLoader />
+            <CustomLoader className='!size-8' />
             :
             confirmData ?
               confirmHasError(confirmData).error ?
@@ -241,7 +241,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
               :
               'Confirm Wallet'
           }
-        </DexifierButton>
+        </Button>
       </DialogContent>
     </Dialog>
   )

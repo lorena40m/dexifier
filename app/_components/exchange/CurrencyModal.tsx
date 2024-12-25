@@ -1,4 +1,4 @@
-import React, { Dispatch, ReactNode, SetStateAction, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import React, { Dispatch, ReactNode, SetStateAction, useEffect, useRef, useState } from "react";
 import { Check, X } from "lucide-react";
 import { debounce, isEqual } from "lodash";
 import {
@@ -16,9 +16,9 @@ import { getCurrencies } from "@/app/api/exolix";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import _ from 'lodash';
 import CustomLoader from "../common/loader";
+import TokenIcon from "../common/token-icon";
 
 interface CurrencyModalProps {
   children: ReactNode;
@@ -31,7 +31,6 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({ children, selectedCurrenc
   const search = useRef<string>('');
   const page = useRef<number>(1);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [isFetching, setIsFetching] = useState<boolean>(true);
 
   function sortBySearchTerm(arr: Currency[], searchTerm: string): Currency[] {
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -74,14 +73,16 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({ children, selectedCurrenc
   const fetchCurrenciesDebounceHandler = debounce(
     (search: string, page: number) => {
       getCurrencies(search, page).then(data => {
-        setCurrencies(prev => prev.concat(sortBySearchTerm(data, search)));
-        setIsFetching(false);
+        setCurrencies(prev => {
+          if (page === 1) return sortBySearchTerm(data, search)
+          return prev.concat(sortBySearchTerm(data, search))
+        });
       });
     }, 1000 // 1s delay
-  )
+  );
 
   useEffect(() => {
-    fetchCurrenciesDebounceHandler('', 1)
+    fetchCurrenciesDebounceHandler(search.current, page.current)
   }, [])
 
   return (
@@ -97,71 +98,77 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({ children, selectedCurrenc
         <Separator className="bg-separator" />
         <Label className="text-lg">Select Currency</Label>
         <Search onChange={(e) => {
-          search.current = e.target.value
-          setCurrencies([])
-          setIsFetching(true);
-          fetchCurrenciesDebounceHandler(e.target.value, 1)
+          search.current = e.target.value;
+          page.current = 1
+          fetchCurrenciesDebounceHandler(search.current, page.current)
         }} />
-        {isFetching && <CustomLoader />}
-        <InfiniteScroll
-          dataLength={currencies.length}
-          next={() => {
-            page.current += 1
-            fetchCurrenciesDebounceHandler(search.current, page.current)
-          }}
-          hasMore={true}
-          loader={undefined}
-          className="max-h-96 pe-1"
-        >
-          {!currencies.length && !isFetching && <div className="flex justify-center">No result</div>}
-          {currencies.map((currency, index) => {
-            const selected: boolean = isEqual(currency, selectedCurrency);
-            if (isEqual(currency, excludedCurrency)) return
-            return (
-              <DialogClose
-                className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${selected ? "border-primary" : "border-separator"}`}
-                key={index}
-                onClick={() => setCurrency(currency)}
-              >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center justify-center gap-6 capitalize">
-                    <Avatar>
-                      <AvatarImage src={currency.icon} />
-                      <AvatarFallback>{currency.code}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <TooltipTemplate
-                        content={currency.name}
-                        className="!-mb-1"
-                        key={`${index}-${name}`}
-                      >
-                        <div>
-                          <span className="text-base px-1">{currency.code}</span>
-                          <span className={`hidden md:flex text-[14px] font-bold opacity-70`}>
-                            ({currency.name})
-                          </span>
+        <div id="scrollableDiv" className="max-h-96 overflow-y-auto">
+          <InfiniteScroll
+            dataLength={currencies.length}
+            next={() => {
+              page.current += 1
+              fetchCurrenciesDebounceHandler(search.current, page.current)
+            }}
+            hasMore={true}
+            loader={<div className="h-16 mt-4"><CustomLoader /></div>}
+            scrollableTarget="scrollableDiv"
+            className="pe-1"
+          >
+            {currencies.length ?
+              currencies.map((currency, index) => {
+                const selected: boolean = isEqual(currency, selectedCurrency);
+                if (isEqual(currency, excludedCurrency)) return
+                return (
+                  <DialogClose
+                    className={`mt-2.5 px-3.5 py-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300 ${selected ? "border-primary" : "border-separator"}`}
+                    key={index}
+                    onClick={() => setCurrency(currency)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center justify-center gap-6 capitalize">
+                        <TokenIcon
+                          token={{
+                            image: currency.icon,
+                            alt: currency.code,
+                          }}
+                        />
+                        <div className="flex flex-col">
+                          <TooltipTemplate
+                            content={currency.name}
+                            className="!-mb-1"
+                            key={`${index}-${name}`}
+                          >
+                            <div>
+                              <span className="text-base px-1">{currency.code}</span>
+                              <span className={`hidden md:flex text-[14px] font-bold opacity-70`}>
+                                ({currency.name})
+                              </span>
+                            </div>
+                          </TooltipTemplate>
                         </div>
-                      </TooltipTemplate>
-                    </div>
-                  </div>
-                  <div className="flex gap-4 items-center">
-                    <div className="flex gap-2 items-center">
-                      <div className="flex flex-col">
-                        <span className="flex justify-end text-2xs">{currency.network.network}</span>
-                        <span className="flex justify-end text-xs text-primary">{currency.network.name}</span>
                       </div>
-                      {selected ? (
-                        <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-                      ) : (
-                        <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
-                      )}
+                      <div className="flex gap-4 items-center">
+                        <div className="flex gap-2 items-center">
+                          <div className="flex flex-col">
+                            <span className="flex justify-end text-2xs">{currency.network.network}</span>
+                            <span className="flex justify-end text-xs text-primary">{currency.network.name}</span>
+                          </div>
+                          {selected ? (
+                            <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
+                          ) : (
+                            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </DialogClose>
-            )
-          })}
-        </InfiniteScroll>
+                  </DialogClose>
+                )
+              })
+              :
+              <div className="flex justify-center">No result</div>
+            }
+          </InfiniteScroll>
+        </div>
       </DialogContent>
     </Dialog>
   );

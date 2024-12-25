@@ -15,10 +15,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatReadableDate } from "@/app/utils";
+import TokenIcon from "../common/token-icon";
 
 const AddressesCard = () => {
   const { rateData, txData, withdrawalAddress, setWithdrawalAddress, currencyFrom, currencyTo } = useExchange();
@@ -80,15 +80,17 @@ const AddressesCard = () => {
         <div className="flex w-full justify-center items-center gap-3 my-4">
           {currencyFrom && (
             <>
-              <Avatar>
-                <AvatarImage src={currencyFrom?.icon} alt={currencyFrom?.name} />
-                <AvatarFallback>{currencyFrom?.code}</AvatarFallback>
-              </Avatar>
+              <TokenIcon
+                token={{
+                  image: currencyFrom.icon,
+                  alt: currencyFrom.code,
+                }}
+              />
               <div className="flex items-center gap-1 md:gap-2 ">
                 <span>{txData?.amount || rateData?.fromAmount}</span>
-                <span>{currencyFrom?.code}</span>
+                <span>{currencyFrom.code}</span>
                 <span className="text-opacity-80 md:block hidden">
-                  [{currencyFrom?.network.network}]
+                  [{currencyFrom.network.network}]
                 </span>
               </div>
             </>
@@ -96,10 +98,12 @@ const AddressesCard = () => {
           <Image src={"/assets/icons/circleArrow.png"} width={30} height={30} alt="circleAddress" className="md:block hidden" />
           {currencyTo && (
             <>
-              <Avatar>
-                <AvatarImage src={currencyTo.icon} alt={currencyTo.name} />
-                <AvatarFallback>{currencyTo.code}</AvatarFallback>
-              </Avatar>
+              <TokenIcon
+                token={{
+                  image: currencyTo.icon,
+                  alt: currencyTo.code,
+                }}
+              />
               <div className="flex items-center gap-1 md:gap-2 ">
                 <span>{txData?.amountTo || rateData?.toAmount}</span>
                 <span>{currencyTo.code}</span>

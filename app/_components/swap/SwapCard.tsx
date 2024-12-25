@@ -27,11 +27,9 @@ import { Button } from "@/components/ui/button";
 import {
   getBestMultiRoutes,
 } from "@/app/api/rango";
-import { toastError } from "@/lib/utils";
 import ConfirmModal from "./ConfirmModal";
 import { useWidget } from "@rango-dev/widget-embedded";
 import WalletConnectModal from "./WalletConnectModal";
-import DexifierButton from "../common/button";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -52,6 +50,7 @@ const SwapCard: React.FC = () => {
   const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setRouteData, selectedRoute, setSelectedRoute, settings } = useSwap();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
+  const [error, setError] = useState<string>();
   const [isFetchingRoute, fetchRoute] = useTransition();
 
   // Manager for pending swaps
@@ -63,7 +62,6 @@ const SwapCard: React.FC = () => {
     ? pendingSwaps.find(({ swap }) => swap.requestId === confirmData?.result?.requestId)
     : undefined;
   const pendingSwap = selectedSwap?.swap;
-  console.log("pendingSwap", pendingSwap);
 
   // Fetch the route for swapping when amountFrom, tokenFrom, or tokenTo changes
   useEffect(() => {
@@ -95,6 +93,7 @@ const SwapCard: React.FC = () => {
       setRouteData(undefined);
       setSelectedRoute(undefined);
       fetchRoute(async () => {
+        setError(undefined)
         const routeRequest = createQuoteRequestBody({
           fromToken: tokenFrom,
           toToken: tokenTo,
@@ -108,7 +107,7 @@ const SwapCard: React.FC = () => {
         try {
           setRouteData(await getBestMultiRoutes(routeRequest))
         } catch (error) {
-          toastError(error as string)
+          setError(error as string)
         }
       })
     }, 1000),  // 1s delay
@@ -167,7 +166,7 @@ const SwapCard: React.FC = () => {
             type="number"
             id="tokenFrom"
             placeholder="Please enter 1-42000000"
-            className="placeholder:text-white/50 flex-1 border-none bg-transparent bg-opacity-0 focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
             value={amountFrom}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setAmountFrom(e.target.value)}
             token={tokenFrom}
@@ -194,7 +193,7 @@ const SwapCard: React.FC = () => {
           <TokenInput
             type="number"
             id="tokenTo"
-            className="placeholder:text-white/50 flex-1 border-none bg-transparent bg-opacity-0 focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
+            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
             disabled
             token={tokenTo}
             setToken={setTokenTo}
@@ -202,30 +201,31 @@ const SwapCard: React.FC = () => {
           />
         </div>
       </CardContent>
+      <div className="text-error font-bold text-center tracking-wide">{error}</div>
       <CardFooter className="p-6">
         {/* Footer Section: Handles the swap confirmation or wallet connection */}
-        {isWalletConnected ?
-          isFetchingRoute || pendingSwap ?
-            <Button
-              className={`bg-transparent text-primary border border-seperator hover:bg-black/30 w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto mt-[20px] md:mt-[10px] text-xl transition-colors duration-300`}
-              onClick={handleAction}
-              disabled={true}
-            >
-              {pendingSwap && 'Swapping'}
-              < CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
-            </Button>
-            :
-            <ConfirmModal>
-              <DexifierButton className="w-2/3" disabled={!selectedRoute}>
-                Swap Now
-              </DexifierButton>
-            </ConfirmModal>
+        {isFetchingRoute ?
+          <Button className="h-12 w-2/3 mx-auto" variant="outline" disabled>
+            <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
+          </Button>
           :
-          <WalletConnectModal>
-            <DexifierButton className="w-2/3">
-              Connect Wallet
-            </DexifierButton>
-          </WalletConnectModal>
+          isWalletConnected ?
+            pendingSwap ?
+              <Button className="h-12 w-2/3 mx-auto text-base xl:text-xl" variant="outline" disabled onClick={handleAction}>
+                Swapping <CustomLoader className="ml-2 !w-[1.875rem] !h-[1.875rem]" />
+              </Button>
+              :
+              <ConfirmModal>
+                <Button className="h-12 w-2/3 mx-auto" disabled={!selectedRoute} variant="primary">
+                  Swap Now
+                </Button>
+              </ConfirmModal>
+            :
+            <WalletConnectModal>
+              <Button className="h-12 w-2/3 mx-auto" variant="primary">
+                Connect Wallet
+              </Button>
+            </WalletConnectModal>
         }
       </CardFooter>
     </Card>
