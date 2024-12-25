@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -51,11 +51,20 @@ const MainNavbar = () => {
     };
   });
 
+  const [scrolled, setScrolled] = useState(false);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+  
   return (
     <header
-      className={`w-screen fixed z-20 transition`}
-      style={{ transitionDuration: "250ms" }}
+      className={cn(scrolled ? 'bg-black' : 'bg-transparent', 'w-screen transition fixed top-0 z-50 duration-300')}
     >
       <div className={`max-w-[86rem] mx-auto px-2 sm:px-6 lg:px-8 pt-12 pb-4`}>
         <div className="relative flex items-center justify-center md:justify-between">
@@ -104,7 +113,7 @@ const MainNavbar = () => {
           {/* Logo (hidden on small screens) */}
           <Link href="/">
             <Image
-              className="md:w-64 w-44"
+              className="md:w-64 w-48"
               src="/assets/logo.png"
               alt="Logo"
               width={258}

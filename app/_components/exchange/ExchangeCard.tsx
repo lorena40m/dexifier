@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
-import { ChangeEvent, FC, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { ChangeEvent, Dispatch, FC, forwardRef, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { createTransaction, getRate, getTxInfo } from "@/app/api/exolix"
 import { RateRequest, TxRequest } from "@/app/types/exolix"
 import { Label } from "@/components/ui/label"
@@ -18,8 +18,13 @@ import {
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import HistoryPopup from "../settings-popup/history-popup"
+import React from "react"
 
-const ExchangeCard: FC = () => {
+interface ExchangeCardProps {
+  setLoading: Dispatch<React.SetStateAction<boolean>>;
+};
+
+const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, ref) => {
   const { rateData, setRateData, txData, setTxData, withdrawalAddress, currencyFrom, setCurrencyFrom, currencyTo, setCurrencyTo } = useExchange();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [isFetchingRate, fetchRate] = useTransition();
@@ -89,7 +94,7 @@ const ExchangeCard: FC = () => {
     stopConfirming()
     setTxData(undefined)
     setRateData(undefined)
-    fetchRateDebounceHandler(amountFrom)
+    if (parseFloat(amountFrom)) fetchRateDebounceHandler(amountFrom)
   }, [currencyTo, currencyFrom, amountFrom])
 
   useEffect(() => {
@@ -103,6 +108,10 @@ const ExchangeCard: FC = () => {
       clearInterval(confirmIntervalRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    props.setLoading(isFetchingRate || isCreatingTx)
+  }, [isFetchingRate, isCreatingTx])
 
   const fetchRateDebounceHandler = useMemo(() =>
     debounce((amount: string) => {
@@ -123,9 +132,9 @@ const ExchangeCard: FC = () => {
   );
 
   return (
-    <Card className="max-w-[650px] min-h-[540px] w-full h-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
-      <CardHeader className="p-4">
-        <div className="h-auto bg-transparent flex w-full justify-between">
+    <Card className="max-w-[650px] md:min-h-[540px] w-full h-full md:bg-modal/5 bg-primary/10 border border-[#AAA]/20 backdrop-blur-lg md:p-6 md:rounded-[2rem] rounded-[20px] shadow-lg text-white">
+      <CardHeader className="p-4 md:flex hidden">
+        <div className="h-auto bg-transparent w-full justify-between flex">
           <div className="flex gap-4 items-center">
             <Link href={'exchange'} className='border border-primary rounded-full py-1 px-4 text-black bg-primary'>
               No Wallet
@@ -139,12 +148,12 @@ const ExchangeCard: FC = () => {
           </div>
         </div>
       </CardHeader>
-      <Separator className="bg-[#AAA]/20" />
-      <CardContent className="p-6 flex flex-col justify-around">
+      <Separator className="bg-[#AAA]/20 md:block hidden" />
+      <CardContent className="md:p-6 flex flex-col justify-around px-4 py-8">
         <div className="w-full flex flex-col justify-evenly gap-3">
           <div className="flex justify-between items-end">
-            <Label htmlFor="currencyFrom" className="text-lg">You send</Label>
-            {rateData && <Label className="text-sm">
+            <Label htmlFor="currencyFrom" className="md:text-lg text-base">You send</Label>
+            {rateData && <Label className="text-sm md:block hidden">
               {rateData.minAmount && `Min: ${rateData.minAmount}`}
               {rateData.minAmount && rateData.maxAmount && ', '}
               {rateData.maxAmount && `Max: ${rateData.maxAmount}`}
@@ -178,7 +187,7 @@ const ExchangeCard: FC = () => {
             />
           </Button>
 
-          <Label htmlFor="currencyTo" className="text-lg">You get</Label>
+          <Label htmlFor="currencyTo" className="md:text-lg text-base">You get</Label>
           <CurrencyInput
             type="number"
             id="currencyTo"
@@ -189,11 +198,12 @@ const ExchangeCard: FC = () => {
             disabled
             className="placeholder:text-white/50 flex-1 border-none bg-transparent bg-opacity-0 focus-visible:ring-0 disabled:cursor-not-allowed focus-visible:outline-0 focus-visible:ring-offset-0"
           />
-          {rateData?.message && <div className="flex justify-center"><span className="text-error text-sm">{rateData.message || ""}</span></div>}
+          {rateData?.message && <div className="w-full text-center"><span className="text-error text-sm">{rateData.message || ""}</span></div>}
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="md:flex hidden">
         <Button
+          ref={ref}
           className={`
           ${isFetchingRate || isCreatingTx
               ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
@@ -211,6 +221,8 @@ const ExchangeCard: FC = () => {
       </CardFooter>
     </Card>
   )
-}
+})
+
+ExchangeCard.displayName = "ExchangeCard"
 
 export default ExchangeCard

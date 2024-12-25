@@ -4,7 +4,7 @@
 // It provides an ExchangeContext, an ExchangeProvider component to wrap the application, 
 // and a custom hook (useExchange) to access the context values easily within components.
 
-import { createContext, useContext, ReactNode, useState, SetStateAction, Dispatch } from "react";
+import { createContext, useContext, ReactNode, useState, SetStateAction, Dispatch, useEffect } from "react";
 import { Currency, ExTxInfo, RateResponse } from "../types/exolix";
 
 type Address = string; // Define a type alias for a withdrawal address
@@ -32,6 +32,30 @@ export const ExchangeProvider = ({ children }: { children: ReactNode }) => {
   const [withdrawalAddress, setWithdrawalAddress] = useState<Address>('');
   const [currencyFrom, setCurrencyFrom] = useState<Currency>();
   const [currencyTo, setCurrencyTo] = useState<Currency>();
+
+  useEffect(() => {
+    try {
+      const exchange = localStorage.getItem("dexifier/exchange");
+      if (exchange) {
+        const { currencyFrom, currencyTo, rateData, txData, withdrawalAddress } = JSON.parse(exchange)
+        if (currencyFrom) setCurrencyFrom(currencyFrom)
+        if (currencyTo) setCurrencyTo(currencyTo)
+        if (rateData) setRateData(rateData)
+        if (txData) setTxData(txData)
+        if (withdrawalAddress) setWithdrawalAddress(withdrawalAddress)
+      }
+    } catch (error) { }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("dexifier/exchange", JSON.stringify({
+      currencyFrom,
+      currencyTo,
+      rateData,
+      txData,
+      withdrawalAddress,
+    }));
+  }, [currencyFrom, currencyTo, rateData, txData, withdrawalAddress])
 
   return (
     <ExchangeContext.Provider

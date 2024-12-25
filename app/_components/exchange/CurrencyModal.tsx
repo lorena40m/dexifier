@@ -31,6 +31,7 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({ children, selectedCurrenc
   const search = useRef<string>('');
   const page = useRef<number>(1);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
   function sortBySearchTerm(arr: Currency[], searchTerm: string): Currency[] {
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -73,6 +74,7 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({ children, selectedCurrenc
   const fetchCurrenciesDebounceHandler = debounce(
     (search: string, page: number) => {
       getCurrencies(search, page).then(data => {
+        setHasMore(!!data.length)
         setCurrencies(prev => {
           if (page === 1) return sortBySearchTerm(data, search)
           return prev.concat(sortBySearchTerm(data, search))
@@ -109,7 +111,7 @@ const CurrencyModal: React.FC<CurrencyModalProps> = ({ children, selectedCurrenc
               page.current += 1
               fetchCurrenciesDebounceHandler(search.current, page.current)
             }}
-            hasMore={true}
+            hasMore={hasMore}
             loader={<div className="h-16 mt-4"><CustomLoader /></div>}
             scrollableTarget="scrollableDiv"
             className="pe-1"

@@ -46,7 +46,7 @@ const QrCodeGenerator: React.FC<QrCodeGeneratorProps> = ({ text }) => {
   }, [isVisible]);
 
   return (
-    <div className='relative h-[18px]'>
+    <div className='relative h-[18px] md:block hidden'>
 
       <div className={`absolute bottom-[30px] right-[20px] ${isVisible ? "flex" : "hidden"}`}>
         <div className='relative'>
