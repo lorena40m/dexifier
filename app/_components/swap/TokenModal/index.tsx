@@ -40,8 +40,9 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
   const [blockchainTokens, setBlockChainTokens] = useState<Token[]>([]); // State to store tokens filtered by blockchain
   const [filteredTokens, setFilteredTokens] = useState<Token[]>([]); // State to store the filtered list of tokens based on search query
 
-  const { meta } = useWidget(); // Fetch the metadata using the custom hook
+  const { meta, wallets } = useWidget(); // Fetch the metadata using the custom hook
   const { tokens } = meta; // Extract tokens from the metadata
+  const { details: connectedWallets } = wallets;
 
   // Effect to filter tokens based on the selected blockchain
   useEffect(() => {
@@ -63,6 +64,19 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
     setFilteredTokens(blockchainTokens.filter((token: Token) => token.symbol.toLowerCase().includes(search.toLowerCase()))
       .slice(0, PAGE_SIZE * page.current)); // Append more tokens to the list
   }, [blockchainTokens, search]);
+
+  const getTokenAmount = (token: Token, inUSD?: boolean): number => {
+    return connectedWallets.reduce((total, connectedWallet) => {
+      const walletBalance = connectedWallet.balances?.reduce((sum, balance) => {
+        // Check if the balance matches the specific chain and address
+        if (balance.chain === token.blockchain && balance.address === token.address) {
+          return sum + parseFloat(balance.amount) * (inUSD ? balance.usdPrice || 0 : 1);
+        }
+        return sum;
+      }, 0) || 0;
+      return total + walletBalance;
+    }, 0)
+  }
 
   return (
     <Dialog>
@@ -99,9 +113,11 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                 {/* Map over the filtered tokens and display them */}
                 {filteredTokens.map((token, index) => {
                   const isSelected: boolean = isEqual(token, selectedToken); // Check if the token is selected
+                  const tokenAmount = getTokenAmount(token);
+                  const tokenAmountInUSD = getTokenAmount(token, true);
                   return (
                     <DialogClose
-                      className={cn("p-2 border rounded-[2rem] w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300",
+                      className={cn("p-2 border rounded-3xl w-full cursor-pointer bg-transparent hover:bg-white/5 transition-colors duration-300",
                         isSelected ? "border-primary" : "border-separator"
                       )}
                       onClick={() => setToken(token)} // Update selected token
@@ -123,7 +139,7 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                             >
                               <span className="text-base font-bold">
                                 {token.symbol}
-                                <span className="text-sm" style={{ color: selectedBlockchain.color ? getContrastRatio(selectedBlockchain.color, "#02140c00") ? selectedBlockchain.color : "white" : "white" }}>
+                                <span className="ml-1 text-sm" style={{ color: selectedBlockchain.color ? getContrastRatio(selectedBlockchain.color, "#02140c00") ? selectedBlockchain.color : "white" : "white" }}>
                                   ({selectedBlockchain.displayName})
                                 </span>
                               </span>
@@ -136,13 +152,19 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                           </div>
                         </div>
                         <div className="flex gap-3 items-center">
+                          <div className="flex flex-col">
+                            <span className="text-sm">{tokenAmount > 0 && `${tokenAmount} ${token.symbol}`}</span>
+                            <span className="text-sm text-border">{tokenAmountInUSD > 0 && `${tokenAmountInUSD.toFixed(2)}$`}</span>
+                          </div>
                           {/* Display medal if token is popular */}
                           {token.isPopular && <Image src={"/assets/icons/medal.png"} width={25} height={25} alt="medal" />}
                           {/* Display check mark if the token is selected */}
-                          {isSelected ?
-                            <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
-                            :
-                            <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />}
+                          <div className="w-[1.175rem]">
+                            {isSelected ?
+                              <Check className="w-[1.175rem] h-[1.175rem] p-0.5 bg-primary rounded-full font-bold text-black" />
+                              :
+                              <div className="w-[1.175rem] h-[1.175rem] border-2 rounded-full" />}
+                          </div>
                         </div>
                       </div>
                     </DialogClose>

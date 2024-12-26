@@ -95,19 +95,17 @@ const RouteCard = () => {
                   </div>
                 ) : (
                   <div className="mx-2">
-                    <div>
-                      <Image src="/assets/icons/arrow-up.svg" width={28.5} height={59} alt="Arrow up" className="absolute -right-[2.1625rem] -top-[1.875rem]" />
-                      <TooltipTemplate content={`${singleNode.swapperId}`}>
-                        <TokenIcon
-                          token={{
-                            image: singleNode.swapperLogo,
-                            alt: singleNode.swapperId,
-                            className: "size-5"
-                          }}
-                          className={`absolute -right-[1.9rem] -top-3`}
-                        />
-                      </TooltipTemplate>
-                    </div>
+                    <Image src="/assets/icons/arrow-up.svg" width={28.5} height={59} alt="Arrow up" className="absolute -right-[2.1625rem] -top-[1.875rem]" />
+                    <TooltipTemplate content={`${singleNode.swapperId}`}>
+                      <TokenIcon
+                        token={{
+                          image: singleNode.swapperLogo,
+                          alt: singleNode.swapperId,
+                          className: "size-5"
+                        }}
+                        className={`absolute -right-[1.9rem] -top-3`}
+                      />
+                    </TooltipTemplate>
                   </div>
                 )}
               </div>

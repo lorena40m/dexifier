@@ -22,7 +22,7 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
   }, [blockchains, token]);
 
   return (
-    <div className={`flex gap-1 border border-[#695F5F]/40 items-center justify-between bg-[#000]/30 backdrop-blur-lg rounded-lg py-2 shadow-md h-[3.3125rem]`}>
+    <div className={`flex border border-[#695F5F]/40 items-center justify-between bg-[#000]/30 backdrop-blur-lg rounded-lg p-2 shadow-md h-[3.3125rem]`}>
       {/* Input field for token amount */}
       <div className="flex flex-col flex-1">
         <Input {...props} /> {/* Custom input for entering token amount */}
@@ -37,7 +37,7 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
       <Separator orientation="vertical" className="bg-separator" />
       {/* Token selection button */}
       <TokenModal selectedToken={token} setToken={setToken}>
-        <Button className="md:w-[9rem] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2 text-sm">
+        <Button className="md:w-[150px] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2 text-sm">
           {/* Display selected token info or default "Select Token" */}
           {token ?
             <>

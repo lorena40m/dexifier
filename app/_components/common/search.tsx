@@ -7,7 +7,7 @@ const Search = ({
   return (
     <div className="pe-[1rem] flex items-center gap-2 bg-black/10 rounded-xl border border-separator">
       <input
-        className="ps-[1rem] py-2 w-full bg-transparent text-white border-none outline-none"
+        className="ps-[1rem] py-2.5 w-full bg-transparent text-white border-none outline-none"
         placeholder="Search"
         {...props}
       />

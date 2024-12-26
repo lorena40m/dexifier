@@ -136,10 +136,10 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
       <CardHeader className="p-4 md:flex hidden">
         <div className="h-auto bg-transparent w-full justify-between flex">
           <div className="flex gap-4 items-center">
-            <Link href={'exchange'} className='border border-primary rounded-full py-1 px-4 text-black bg-primary'>
+            <Link href={'exchange'} className='border border-primary rounded-full text-sm font-semibold py-[7px] px-10 transition-colors duration-300 text-black bg-primary'>
               No Wallet
             </Link>
-            <Link href={'swap'} className='border border-primary rounded-full py-1 px-4 hover:text-primary'>
+            <Link href={'swap'} className='border border-primary rounded-full text-sm font-semibold py-[7px] px-10 transition-colors duration-300 hover:text-primary'>
               Browser Wallet
             </Link>
           </div>
@@ -149,8 +149,8 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
         </div>
       </CardHeader>
       <Separator className="bg-[#AAA]/20 md:block hidden" />
-      <CardContent className="md:p-6 flex flex-col justify-around px-4 py-8">
-        <div className="w-full flex flex-col justify-evenly gap-3">
+      <CardContent className="md:px-[31px] md:py-10 flex flex-col justify-around px-4 py-8">
+        <div className="w-full flex flex-col justify-evenly gap-2">
           <div className="flex justify-between items-end">
             <Label htmlFor="currencyFrom" className="md:text-lg text-base">You send</Label>
             {rateData && <Label className="text-sm md:block hidden">
@@ -175,15 +175,14 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
 
           <Button
             variant={"outline"}
-            className="bg-transparent self-center border-separator mt-6 rounded-full h-12 w-12 p-3"
+            className="bg-transparent self-center border-separator mt-7 mb-1 rounded-full h-[54px] w-[54px] p-1 hover:bg-primary-dark"
             onClick={reverseCurrencyPair}
           >
             <Image
               src={"/assets/icons/swap.png"}
               alt="Swap Icon"
-              height={0}
-              width={0}
-              className="w-full aspect-square"
+              height={28}
+              width={28}
             />
           </Button>
 

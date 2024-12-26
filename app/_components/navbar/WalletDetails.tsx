@@ -60,7 +60,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
   }, [moreSettings]);
 
   const { meta, wallets } = useWidget();
-  const { details: connectedWallets } = wallets;
+  const { details: connectedWallets, refetch } = wallets;
   const { list } = useWalletList({});
   const { blockchains, tokens } = meta;
   const walletTypes = Array.from(new Set(connectedWallets.map(wallet => wallet.walletType)))
@@ -116,6 +116,10 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
     return tokens.find((tk: Token) => tk.blockchain === token.chain && tk.address === token.address).image;
   }
 
+  const handleRefresh = () => {
+    refetch(connectedWallets, tokens)
+  }
+
   useEffect(() => {
     setSelectedWalletTypes(walletTypes)
     setSelectedChains(blockchains)
@@ -136,8 +140,8 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
             </SheetClose>
           </SheetTitle>
           <SheetDescription className="flex justify-between p-2 pt-0">
-            <span className="text-2xl font-semibold text-white">Your Wallet</span>
-            <button onClick={() => { }}>
+            <span className="text-2xl font-bold text-white">Your Wallet</span>
+            <button onClick={handleRefresh}>
               <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
             </button>
           </SheetDescription>
@@ -235,19 +239,18 @@ const SubWallet: React.FC<any> = ({
       <button className="flex justify-between items-center text-sm border border-primary hover:opacity-80 p-3 rounded-lg mt-2 w-full bg-[#13f1871f]"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex text-lg font-bold items-center" >
-          <div className="mr-2">
-            <Image src={"/assets/icons/arrow.png"}
-              className={`transition-transform duration-500 ease-in-out ${!isOpen ? 'rotate-0' : 'rotate-180'}`}
-              width={20}
-              height={20}
-              alt={"arrow"}
-            />
-          </div>
+        <div className="flex gap-2 text-lg font-bold items-center" >
+          <Image src={"/assets/icons/arrow.png"}
+            className={`transition-transform duration-500 ease-in-out ${!isOpen ? 'rotate-0' : 'rotate-180'}`}
+            width={20}
+            height={20}
+            alt={"arrow"}
+          />
           <TokenIcon
             token={{
               image: getWalletIcon(wallet) || "/assets/wallet/default",
               alt: wallet.chain,
+              className: "size-8",
             }}
           />
           {wallet.chain}
@@ -269,15 +272,14 @@ const SubWallet: React.FC<any> = ({
         {wallet && wallet.balances && isOpen && (wallet.balances.length === 0 ? <div className="text-sm text-center "> No tokens found</div> : wallet.balances.map((balance: any, index: number) => {
           return (
             <div key={index} className="flex justify-between items-center border-b border-b-[#13F18738] py-2">
-              <div className="flex items-center">
-                <div className="p-3">
-                  <TokenIcon
-                    token={{
-                      image: getTokenIcon(balance),
-                      alt: balance.symbol,
-                    }}
-                  />
-                </div>
+              <div className="flex items-center gap-2">
+                <TokenIcon
+                  token={{
+                    image: getTokenIcon(balance),
+                    alt: balance.symbol,
+                    className: "size-8",
+                  }}
+                />
                 <div className="flex flex-col">
                   <span className="text-md text-[#FFFFFF]">{balance.symbol}</span>
                   <span className="text-xs  text-[#717171] font-bold">{balance.chain}</span>

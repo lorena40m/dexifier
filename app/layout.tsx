@@ -21,15 +21,6 @@ export const metadata: Metadata = {
     "Dexifier is a cutting-edge project built using NEXT14 and SHADCN, dedicated to providing easy and infinite exchange routes.",
 };
 
-const DEXIFIER_CONFIG: WidgetConfig = {
-  apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || process.env.NEXT_PUBLIC_RANGO_API_KEY || '',
-  title: 'Dexifier',
-  walletConnectProjectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-  multiWallets: true,
-  excludeLiquiditySources: true,
-  customDestination: true,
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body id="root" className={inter.className}>
-        <DexifierProvider config={DEXIFIER_CONFIG}>
+        <DexifierProvider>
           <MainNavbar />
           {children}
         </DexifierProvider>

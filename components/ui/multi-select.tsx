@@ -226,14 +226,14 @@ export const MultiSelect = React.forwardRef<
                     {selectedValues && selectedValues.slice(0, maxCount).map(value => {
                       const option = options.find((option) => option.value === value);
                       return option?.icon && (
-                        <Avatar className="size-8">
+                        <Avatar className="size-7">
                           <AvatarImage src={option.icon} />
                           <AvatarFallback>{option.label}</AvatarFallback>
                         </Avatar>
                       )
                     })}
                   </div>
-                  <span className="flex items-center">{selectedValues.length ? `${selectedValues.length}/${options.length} ${unit}${selectedValues.length > 1 ? 's' : ''}` : placeholder}</span>
+                  <span className="flex items-center text-base">{selectedValues.length ? `${selectedValues.length}/${options.length} ${unit}${selectedValues.length > 1 ? 's' : ''}` : placeholder}</span>
                 </div>
                 <span>{isPopoverOpen ? "▲" : "▼"}</span>
               </div>
@@ -245,41 +245,45 @@ export const MultiSelect = React.forwardRef<
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-72 border border-separator p-0"
+          className={cn("border border-gray-300 p-0",
+            config.showSearch ? "w-[350px]" : "w-[255px]"
+          )}
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
           <Command className="bg-primary-dark">
-            <div className="flex justify-between items-center p-2">
-              {props.title && <span>{props.title}</span>}
+            <div className="flex justify-between items-center py-2 px-4">
+              {props.title && <span className="text-gray-500">{props.title}</span>}
               {config.showSelectAll &&
                 <div
                   key="all"
                   onClick={toggleAll}
                   className="cursor-pointer"
                 >
-                  <span className="capitalize hover:underline text-sm">{`${selectedValues.length === options.length ? 'de' : ''}select All`}</span>
+                  <span className="text-white capitalize hover:underline text-sm">{`${selectedValues.length === options.length ? 'de' : ''}select All`}</span>
                 </div>}
             </div>
             <Separator />
             {config.showSearch &&
               <CommandInput
                 placeholder={`Search ${unit}...`}
-                className="p-0 h-8 text-white"
+                className="p-0 h-10 text-white text-base border-none"
               />}
 
-            <CommandList className="max-h-60 overflow-scroll">
+            <CommandList className="max-h-60 p-1 overflow-y-scroll">
               <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup>
+              <CommandGroup className="gap-2">
                 {options.map((option) => {
                   const isSelected = selectedValues.includes(option.value);
                   return (
                     <CommandItem
                       key={option.value}
                       onSelect={() => toggleOption(option.value)}
-                      className="cursor-pointer flex justify-between data-[selected='true']:bg-black/20"
+                      className={cn("cursor-pointer flex rounded-lg gap-1 data-[selected='true']:bg-black/20",
+                        config.showSearch ? "justify-between" : "flex-row-reverse justify-end"
+                      )}
                     >
-                      <div className="flex items-center text-white gap-2">
+                      <div className="flex items-center text-white text-base gap-2">
                         {option.icon && (
                           <Avatar className="size-6">
                             <AvatarImage src={option.icon} />
@@ -290,13 +294,13 @@ export const MultiSelect = React.forwardRef<
                       </div>
                       <div
                         className={cn(
-                          "flex h-4 w-4 items-center justify-center rounded-sm",
+                          "flex h-5 w-5 items-center justify-center rounded-sm",
                           isSelected
                             ? "bg-blue-600 text-primary-foreground"
                             : "bg-white [&_svg]:invisible"
                         )}
                       >
-                        <CheckIcon className="h-4 w-4 text-white" />
+                        <CheckIcon className="h-4 w-4 text-white" strokeWidth={5} />
                       </div>
                     </CommandItem>
                   );

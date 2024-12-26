@@ -14,18 +14,18 @@ interface CurrencyInputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const CurrencyInput: React.FC<CurrencyInputProps> = ({ currency, excludedCurrency, setCurrency, ...props }) => {
   return (
-    <div className={`flex gap-1 border border-[#695F5F]/40 items-center justify-between md:bg-[#000]/30 bg-primary/30 backdrop-blur-lg rounded-lg py-2 shadow-md md:h-[3.3125rem] h-12`}>
+    <div className={`flex border border-[#695F5F]/40 items-center justify-between md:bg-[#000]/30 bg-primary/30 backdrop-blur-lg rounded-lg py-2 shadow-md md:h-[3.3125rem] h-12`}>
       <Input {...props} />
       <Separator orientation="vertical" className="md:bg-separator bg-slate-300" />
       <CurrencyModal selectedCurrency={currency} excludedCurrency={excludedCurrency} setCurrency={setCurrency}>
-        <Button className="md:w-[9rem] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2 text-sm">
+        <Button className="md:w-[150px] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2 text-sm">
           {currency ?
             <>
               <TokenIcon
                 token={{
                   image: currency.icon,
                   alt: currency.code,
-                  className: "md:size-12 size-8"
+                  className: "md:size-10 size-8"
                 }}
               />
               <div className="flex flex-col">

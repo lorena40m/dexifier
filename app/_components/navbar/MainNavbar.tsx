@@ -113,10 +113,10 @@ const MainNavbar = () => {
           {/* Logo (hidden on small screens) */}
           <Link href="/">
             <Image
-              className="md:w-64 w-48"
+              className="md:w-[285px] w-[200px]"
               src="/assets/logo.png"
               alt="Logo"
-              width={258}
+              width={285}
               height={64}
             />
           </Link>

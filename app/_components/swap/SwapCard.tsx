@@ -47,7 +47,7 @@ const SwapCard: React.FC = () => {
   const isWalletConnected = connectedWallets.length > 0;
 
   // Swap state management from the SwapProvider context
-  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setRouteData, selectedRoute, setSelectedRoute, settings } = useSwap();
+  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setConfirmData, setRouteData, selectedRoute, setSelectedRoute, settings } = useSwap();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
   const [error, setError] = useState<string>();
@@ -121,8 +121,10 @@ const SwapCard: React.FC = () => {
   }
 
   const handleAction = () => {
-    if (selectedRoute) {
+    if (selectedSwap && manager) {
       // Action to handle swap logic (could be a swap transaction)
+      setConfirmData(undefined)
+      manager.deleteQueue(selectedSwap.id)
     }
   }
 
@@ -131,10 +133,10 @@ const SwapCard: React.FC = () => {
       <CardHeader className="p-4">
         <div className="h-auto bg-transparent flex w-full justify-between">
           <div className="flex gap-4 items-center">
-            <Link href={'exchange'} className='border border-primary rounded-full py-1 px-4 hover:text-primary'>
+            <Link href={'exchange'} className='border border-primary rounded-full text-sm font-semibold py-[7px] px-10 transition-colors duration-300 hover:text-primary'>
               No Wallet
             </Link>
-            <Link href={'swap'} className='border border-primary rounded-full py-1 px-4 text-black bg-primary'>
+            <Link href={'swap'} className='border border-primary rounded-full text-sm font-semibold py-[7px] px-10 transition-colors duration-300 text-black bg-primary'>
               Browser Wallet
             </Link>
           </div>
@@ -145,8 +147,8 @@ const SwapCard: React.FC = () => {
         </div>
       </CardHeader>
       <Separator className="bg-[#AAA]/20" />
-      <CardContent className="p-6 flex flex-col justify-around">
-        <div className="w-full flex flex-col justify-evenly gap-3">
+      <CardContent className="px-[31px] py-10 flex flex-col justify-around">
+        <div className="w-full flex flex-col justify-evenly gap-2">
           {/* Token From Section */}
           <div className="flex justify-between items-end">
             <Label htmlFor="tokenFrom" className="text-lg">From</Label>
@@ -176,15 +178,14 @@ const SwapCard: React.FC = () => {
           {/* Reverse Swap Button */}
           <Button
             variant="outline"
-            className="bg-transparent self-center border-separator mt-6 rounded-full h-12 w-12 p-3 hover:bg-primary-dark"
+            className="bg-transparent self-center border-separator mt-7 mb-1 rounded-full h-[54px] w-[54px] p-1 hover:bg-primary-dark"
             onClick={reverseTokenPair}
           >
             <Image
               src={"/assets/icons/swap.png"}
               alt="Swap Icon"
-              height={0}
-              width={0}
-              className="w-full aspect-square"
+              height={28}
+              width={28}
             />
           </Button>
 
@@ -202,27 +203,35 @@ const SwapCard: React.FC = () => {
         </div>
       </CardContent>
       <div className="text-error font-bold text-center tracking-wide">{error}</div>
-      <CardFooter className="p-6">
+      <CardFooter className="px-[31px] py-6 mt-[2px] text-base md:text-xl">
         {/* Footer Section: Handles the swap confirmation or wallet connection */}
         {isFetchingRoute ?
-          <Button className="h-12 w-2/3 mx-auto" variant="outline" disabled>
+          <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled>
             <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
           </Button>
           :
           isWalletConnected ?
             pendingSwap ?
-              <Button className="h-12 w-2/3 mx-auto text-base xl:text-xl" variant="outline" disabled onClick={handleAction}>
-                Swapping <CustomLoader className="ml-2 !w-[1.875rem] !h-[1.875rem]" />
+              <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled={pendingSwap.status === "running"} onClick={handleAction}>
+                {pendingSwap.status === "running" && <>Swapping <CustomLoader className="ml-2 !w-[1.875rem] !h-[1.875rem]" /></>}
+                {pendingSwap.status === "failed" && <><Image
+                  src={"/assets/icons/reset-icon.png"}
+                  width={21.39}
+                  height={25}
+                  alt="Reset icon"
+                  className="me-3"
+                /> Swap again</>}
+                {pendingSwap.status === "success" && <>Swap succeed!</>}
               </Button>
               :
               <ConfirmModal>
-                <Button className="h-12 w-2/3 mx-auto" disabled={!selectedRoute} variant="primary">
+                <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" disabled={!selectedRoute} variant="primary">
                   Swap Now
                 </Button>
               </ConfirmModal>
             :
             <WalletConnectModal>
-              <Button className="h-12 w-2/3 mx-auto" variant="primary">
+              <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="primary">
                 Connect Wallet
               </Button>
             </WalletConnectModal>
