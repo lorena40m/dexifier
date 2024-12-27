@@ -1,6 +1,6 @@
 "use client";
 
-import Search from "../common/search";
+import Search from "../../common/search";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { DialogClose } from "@radix-ui/react-dialog";
@@ -9,7 +9,8 @@ import { useWidget } from "@rango-dev/widget-embedded";
 import { SwapperMeta, SwapperType } from "rango-types/mainApi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import TokenIcon from "../common/token-icon";
+import TokenIcon from "../../common/token-icon";
+import { cn } from "@/lib/utils";
 
 interface SwapperModalProps {
   title: string,
@@ -51,7 +52,7 @@ const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children
         <Separator className="bg-separator" />
         <Search value={search} onChange={(e) => setSearch(e.target.value)} />
 
-        <div className="mb-6 pe-[.2188rem] flex justify-end items-center">
+        <div className="pe-[.2188rem] flex justify-end items-center">
           <button
             className="bg-transparent border-none text-sm hover:text-primary transition-colors duration-300 first-letter:uppercase"
             onClick={() => {
@@ -62,14 +63,14 @@ const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children
           </button>
         </div>
 
-        <div className="sm:mx-[.5813rem] overflow-y-auto max-h-[50vh] pe-6">
-          <div>
-            {filteredSwappers.map((swapper) => {
-              const isSelected = settings.swappers.includes(swapper);
-              return (
+        <div className="flex flex-col gap-3 overflow-y-auto max-h-[50vh]">
+          {filteredSwappers.map((swapper) => {
+            const isSelected = settings.swappers.includes(swapper);
+            return (
+              <>
                 <div
                   key={swapper.id}
-                  className="pb-[.875rem] mb-6 flex items-center justify-between border-b border-seperator cursor-pointer transition-all duration-300"
+                  className="flex items-center justify-between cursor-pointer transition-all duration-300 hover:opacity-50 px-2"
                   onClick={() => {
                     setSettings(prev => ({ ...prev, swappers: toggleValueInArray(prev.swappers, swapper) }))
                   }}
@@ -79,26 +80,25 @@ const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children
                       token={{
                         image: swapper.logo,
                         alt: swapper.title,
-                        className: "size-6"
+                        className: "size-8"
                       }}
                     />
                     <h2 className="text-base sm:text-lg">{swapper.title}
                       <span className="text-sm text-border">({swapper.id})</span>
                     </h2>
                   </div>
-
                   <div
-                    className={`w-4 h-4 ${isSelected
-                      ? "bg-primary text-black"
-                      : "bg-transparent border border-seperator"
-                      } rounded-[.25rem] flex items-center justify-center`}
+                    className={cn("w-4 h-4 rounded-[.25rem] flex items-center justify-center",
+                      isSelected ? "bg-primary text-black" : "bg-transparent border border-seperator",
+                    )}
                   >
                     {isSelected && <FaCheck size={10} />}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+                <Separator className="bg-separator" />
+              </>
+            );
+          })}
         </div>
       </DialogContent>
     </Dialog>

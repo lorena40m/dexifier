@@ -19,8 +19,6 @@
  * 
  */
 import Image from "next/image";
-import SettingsPopup from "../settings-popup/settings-popup";
-import HistoryPopup from "../settings-popup/history-popup";
 import CustomLoader from "../common/loader";
 import React, { ChangeEvent, useEffect, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -39,6 +37,9 @@ import { Label } from "@/components/ui/label";
 import { debounce } from "lodash";
 import { createQuoteRequestBody, getPendingSwaps } from "@/app/utils/swap";
 import { useManager } from "@rango-dev/queue-manager-react";
+import SettingsModal from "./SettingModal";
+import TooltipTemplate from "../common/tooltip-template";
+import HistoryModal from "./SettingModal/HistoryModal";
 
 const SwapCard: React.FC = () => {
   // Use custom hook to get connected wallet details
@@ -141,8 +142,34 @@ const SwapCard: React.FC = () => {
             </Link>
           </div>
           <div className="flex items-center">
-            <SettingsPopup />
-            <HistoryPopup />
+            <SettingsModal>
+              <Button
+                className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
+              >
+                <TooltipTemplate content="Settings" className="!mb-1">
+                  <Image
+                    src={"/assets/icons/setting.png"}
+                    alt="button-icon"
+                    width={18}
+                    height={18}
+                  />
+                </TooltipTemplate>
+              </Button>
+            </SettingsModal>
+            <HistoryModal>
+              <Button
+                className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
+              >
+                <TooltipTemplate content="History" className="!mb-1">
+                  <Image
+                    src={"/assets/icons/option.png"}
+                    alt="button-icon"
+                    width={18}
+                    height={18}
+                  />
+                </TooltipTemplate>
+              </Button>
+            </HistoryModal>
           </div>
         </div>
       </CardHeader>

@@ -17,8 +17,9 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
-import HistoryPopup from "../settings-popup/history-popup"
 import React from "react"
+import TooltipTemplate from "../common/tooltip-template"
+import HistoryModal from "../swap/SettingModal/HistoryModal"
 
 interface ExchangeCardProps {
   setLoading: Dispatch<React.SetStateAction<boolean>>;
@@ -144,7 +145,20 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
             </Link>
           </div>
           <div className="flex items-center">
-            <HistoryPopup />
+            <HistoryModal>
+              <Button
+                className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
+              >
+                <TooltipTemplate content="History" className="!mb-1">
+                  <Image
+                    src={"/assets/icons/option.png"}
+                    alt="button-icon"
+                    width={18}
+                    height={18}
+                  />
+                </TooltipTemplate>
+              </Button>
+            </HistoryModal>
           </div>
         </div>
       </CardHeader>
