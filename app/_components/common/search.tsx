@@ -1,23 +1,17 @@
-import React from "react";
+import React, { InputHTMLAttributes } from "react";
 import { IoSearchSharp } from "react-icons/io5";
 
 const Search = ({
-  search,
-  setSearch,
-}: {
-  search: string;
-  setSearch: React.Dispatch<React.SetStateAction<string>>;
-}) => {
+  ...props
+}: InputHTMLAttributes<HTMLInputElement>) => {
   return (
-    <div className="mb-4 pe-[1.3125rem] py-[.0625rem] flex items-center gap-2 bg-[#1612215E] rounded-[.625rem] border-[0.45px] border-[#695F5F]">
+    <div className="pe-[1rem] flex items-center gap-2 bg-black/10 rounded-xl border border-separator">
       <input
-        className="ps-[1.0125rem] py-2.5 w-full bg-transparent text-white placeholder:text-white border-0 outline-none rounded-[.625rem]"
+        className="ps-[1rem] py-2.5 w-full bg-transparent text-white border-none outline-none"
         placeholder="Search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        {...props}
       />
-
-      <IoSearchSharp className="font-bold text-[2.05rem] text-primary" />
+      <IoSearchSharp className="font-bold text-[2rem] text-primary" />
     </div>
   );
 };

@@ -1,11 +1,17 @@
+import "./globals.css";
 import React from "react";
-import MainNavbar from "./_components/MainNavbar";
+import MainNavbar from "./_components/navbar/MainNavbar";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
-import { StateProvider } from "@/redux_slice/provider";
+import { WidgetConfig } from "@rango-dev/widget-embedded";
+import dynamic from "next/dynamic";
 import "react-toastify/dist/ReactToastify.css";
-import "./globals.css";
+
+// Dynamically import DexifierProvider for client-side rendering
+const DexifierProvider = dynamic(() => import("./DexifierProvider"), {
+  ssr: false, // Ensures this component renders only on the client side
+});
 
 const inter = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
@@ -23,10 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body id="root" className={inter.className}>
-        <StateProvider>
+        <DexifierProvider>
           <MainNavbar />
           {children}
-        </StateProvider>
+        </DexifierProvider>
         <ToastContainer />
       </body>
     </html>
