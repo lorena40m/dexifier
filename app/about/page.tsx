@@ -1,32 +1,22 @@
-import EasyAndInfiniteSection from "../_components/about/easy-and-infinite-section";
-import PrivacySection from "../_components/about/privacy-section";
-import CustomerSupportSection from "../_components/about/customer-support-section";
-import WalletSection from "../_components/about/wallet-section";
-import CommunitySection from "../_components/about/community-section";
-import FooterSection from "../_components/about/footer-section";
+import ExchangeSection from "../_components/about/exchange";
+import PrivacySection from "../_components/about/privacy";
+import CustomerSection from "../_components/about/customer";
+import SponsorSection from "../_components/about/sponsor";
+import CommunitySection from "../_components/about/community";
+import FooterSection from "../_components/about/footer";
 import { Inter } from "next/font/google";
-import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function AboutPage() {
   return (
-    <main className="relative z-1">
-      <Image
-        src={"/assets/about-us/glow.png"}
-        alt="glow"
-        width={100}
-        height={100}
-        className="w-[400px] h-[400px] z-[-1] top-0 left-0 absolute"
-      ></Image>
-      <div className={`${inter.className} px-5 md:px-10 lg:px-20 xl:px-[7rem]`}>
-        <EasyAndInfiniteSection />
-        <PrivacySection />
-        <CustomerSupportSection />
-        <WalletSection />
-        <CommunitySection />
-      </div>
-
+    <main className={cn(inter.className, "max-w-[90rem] mx-auto flex flex-col gap-16 px-5 md:px-10 lg:px-20 xl:px-[100px]")}>
+      <ExchangeSection />
+      <PrivacySection />
+      <CustomerSection />
+      <SponsorSection />
+      <CommunitySection />
       <FooterSection />
     </main>
   );
