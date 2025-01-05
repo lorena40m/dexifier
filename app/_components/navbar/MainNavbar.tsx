@@ -64,7 +64,7 @@ const MainNavbar = () => {
   
   return (
     <header
-      className={cn(scrolled ? 'bg-black' : 'bg-transparent', 'w-screen transition fixed top-0 z-50 duration-300')}
+      className={cn(scrolled ? 'bg-black' : 'bg-transparent', 'w-screen transition fixed top-0 z-[99999] duration-300')}
     >
       <div className={`max-w-[86rem] mx-auto px-2 sm:px-6 lg:px-8 pt-12 pb-4`}>
         <div className="relative flex items-center justify-center md:justify-between">
