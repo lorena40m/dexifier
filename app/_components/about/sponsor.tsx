@@ -1,4 +1,6 @@
-import Image from "next/image";
+"use client";
+
+import { motion } from "framer-motion";
 import React from "react";
 
 const BRANDS = [
@@ -25,7 +27,11 @@ const SponsorSection = () => {
       </p>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 pb-16">
         {BRANDS.map((brand, index) => (
-          <Image
+          <motion.img
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1, transition: { type: "spring", duration: 2 } }}
+            viewport={{ amount: 0.4, once: true }}
+            className="bg-primary rounded-2xl overflow-hidden"
             key={index}
             src={`/assets/about-us/brand-${brand}.png`}
             alt={brand}

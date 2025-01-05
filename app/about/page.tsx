@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function AboutPage() {
   return (
-    <main className={cn(inter.className, "max-w-[90rem] mx-auto flex flex-col gap-16 px-5 md:px-10 lg:px-20 xl:px-[100px]")}>
+    <main className={cn(inter.className, "max-w-[90rem] mx-auto overflow-hidden flex flex-col gap-16 px-5 md:px-10 lg:px-20 xl:px-[100px]")}>
       <ExchangeSection />
       <PrivacySection />
       <CustomerSection />

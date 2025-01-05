@@ -3,7 +3,7 @@ import Link from "next/link";
 
 const CustomerSection = () => {
   return (
-    <section className="border-2 rounded-2xl text-center md:px-24 md:py-14 p-8">
+    <section className="relative z-10 overflow-hidden rounded-2xl text-center md:px-24 md:py-14 p-8">
       <p className="font-semibold text-[2.25rem] md:text-[3rem] xl:text-[4.5rem] text-primary leading-tight">
         24/7 Customer Support
       </p>
@@ -20,6 +20,14 @@ const CustomerSection = () => {
           Join Discord
         </Button>
       </Link>
+      <div
+        className="absolute z-[-2] left-[-25%] top-[-150%] w-[150%] h-auto aspect-square bg-[#04100c] bg-no-repeat"
+        style={{
+          backgroundImage: "conic-gradient(transparent, white)",
+          animation: "l15 4s linear infinite",
+        }}
+      />
+      <div className="absolute z-[-1] left-[2px] top-[2px] w-[calc(100%-4px)] h-[calc(100%-4px)] rounded-2xl bg-[#04100c]" />
     </section>
   );
 };

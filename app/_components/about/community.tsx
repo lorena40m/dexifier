@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 import { AiOutlineDiscord } from "react-icons/ai";
@@ -7,6 +9,7 @@ import { RiMediumLine } from "react-icons/ri";
 import { PiYoutubeLogo } from "react-icons/pi";
 import { VscGithub } from "react-icons/vsc";
 import { IconType } from "react-icons/lib";
+import { motion } from "framer-motion";
 
 interface Social {
   icon: IconType;
@@ -48,17 +51,21 @@ const CommunitySection = () => {
       </p>
       <p className="text-xl md:text-[2rem] xl:text-[34px] leading-relaxed py-6 text-center">
         Discover the latest insights on Discord, engage with fellow
-        crypto enthusiasts on Telegram, follow our pulse on Twitter, 
+        crypto enthusiasts on Telegram, follow our pulse on Twitter,
         catch our informative and entertaining videos on YouTube.
       </p>
-
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-8 pt-8">
+      <motion.div
+        initial={{ opacity: 0, y: 125 }}
+        whileInView={{ opacity: 1, y: 0, transition: { type: "spring", duration: 2 } }}
+        viewport={{ amount: 0.4, once: true }}
+        className="grid grid-cols-3 md:grid-cols-6 gap-8 pt-8"
+      >
         {SOCIALS.map((social, index) => (
           <Link href={social.link} target="_blank" key={index}>
             <social.icon className="text-primary size-8 md:size-10 lg:size-12 xl:size-14" />
           </Link>
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 };
