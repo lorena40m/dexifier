@@ -19,6 +19,7 @@ import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from '@/app/utils/swap';
 import { Wallet } from '@/app/types/rango';
 import { Button } from '@/components/ui/button';
+import { TbRefresh } from "react-icons/tb";
 
 // ConfirmModal component for confirming a wallet before swapping assets
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
@@ -178,7 +179,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
               </div>
             }
             <button className="w-[30px] px-1" onClick={confirmWallet}>
-              <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
+              <TbRefresh className="size-6 text-primary" />
             </button>
           </DialogDescription>
         </DialogHeader>

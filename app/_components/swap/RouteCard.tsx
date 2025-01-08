@@ -38,6 +38,7 @@ const RouteCard = () => {
   useEffect(() => {
     const sortedResult = sortQuotesBy(STRATEGY[PREFERENCE.RECOMMENDED], routes);
     setSortedRoutes(sortedResult);
+    setSelectedRoute(sortedResult[0]);
   }, [routes]);
 
   // Helper function to render a single node with logo, symbol, and amount

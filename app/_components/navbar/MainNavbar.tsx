@@ -11,6 +11,7 @@ import WalletDetails from "./WalletDetails";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import TokenIcon from "../common/token-icon";
+import { BiSolidWallet } from "react-icons/bi";
 
 // All navigation details
 const NAVIGATIONS = [
@@ -64,7 +65,7 @@ const MainNavbar = () => {
   
   return (
     <header
-      className={cn(scrolled ? 'bg-black' : 'bg-transparent', 'w-screen transition fixed top-0 z-[99999] duration-300')}
+      className={cn(scrolled ? '' : 'bg-transparent', 'w-screen transition fixed top-0 z-50 duration-300')}
     >
       <div className={`max-w-[86rem] mx-auto px-2 sm:px-6 lg:px-8 pt-12 pb-4`}>
         <div className="relative flex items-center justify-center md:justify-between">
@@ -135,17 +136,12 @@ const MainNavbar = () => {
             {pathname === '/dex/swap' && (!connectedWallets.length ?
               <WalletConnectModal>
                 <button className="flex text-[1.075rem] bg-primary rounded-full py-2 px-4 gap-2 items-center justify-center hover:opacity-80">
-                  <Image
-                    src={"/assets/icons/wallet.png"}
-                    alt="Wallet Icon"
-                    width={22}
-                    height={22}
-                  />
-                  <span>Connect Wallet</span>
+                  <BiSolidWallet className="size-6 text-black" />
+                  <span className="text-black">Connect Wallet</span>
                 </button>
               </WalletConnectModal>
               :
-              <div className="flex">
+              <div className="flex text-black">
                 <WalletDetails>
                   <button className={cn(isLoading ? '' : 'bg-[#13f187]', 'text-[1.075rem] min-h-[35px] border border-primary rounded-l-full p-2 items-center justify-center hover:bg-opacity-80')}>
                     {isLoading ?
@@ -169,7 +165,7 @@ const MainNavbar = () => {
                     }
                   </button>
                 </WalletDetails>
-                <Separator orientation="vertical" />
+                <Separator orientation="vertical" className="bg-transparent" />
                 <WalletConnectModal>
                   <button className="rounded-r-full bg-primary p-2 pe-3 hover:bg-opacity-80">Add wallets</button>
                 </WalletConnectModal>
