@@ -5,9 +5,12 @@ import { catchDataFromQuote, sortQuotesBy } from "@/app/utils/swap";  // Import 
 import TooltipTemplate from "../common/tooltip-template";  // Import TooltipTemplate component for displaying tooltips
 import { useWidget } from "@rango-dev/widget-embedded";  // Importing hook from the Rango widget
 import { useSwap } from "@/app/providers/SwapProvider";  // Importing context provider for swap-related data
-import { MultiRouteSimulationResult, PreferenceType, RouteTag, SwapResult } from "rango-types/mainApi";  // Import types for the swap logic
+import { BlockchainMeta, MultiRouteSimulationResult, PreferenceType, RouteTag, SwapResult, Token } from "rango-types/mainApi";  // Import types for the swap logic
 import TokenIcon from "../common/token-icon";
 import { cn } from "@/lib/utils";
+import { Quote } from "@chainflip/sdk/swap";
+import { useQuote } from "@/app/providers/QuoteProvider";
+import { formatChainName } from "@/app/utils/chainflip";
 
 // Enum for different sorting preferences
 enum PREFERENCE {
@@ -27,8 +30,9 @@ const STRATEGY: { [key: string]: PreferenceType } = {
 
 const RouteCard = () => {
   const { meta } = useWidget();  // Getting metadata
-  const { tokens } = meta;  // Extracting tokens from the metadata
+  const { tokens, blockchains } = meta;  // Extracting tokens & blockchains from the metadata
   const { routeData, selectedRoute, setSelectedRoute } = useSwap();  // Getting route data from SwapProvider context
+  const { quoteData, selectedQuote, setSelectedQuote } = useQuote();   // Getting quote data from QuoteProvider context
   const routes: MultiRouteSimulationResult[] = useMemo(() => routeData ? routeData.results : [], [routeData]);  // Memoizing the routes to avoid recalculating unless routeData changes
 
   const [preference, setPreference] = useState<PREFERENCE>(PREFERENCE.RECOMMENDED);  // State to store the current sorting preference
@@ -67,7 +71,10 @@ const RouteCard = () => {
     return (
       <button
         className={`relative w-full mb-3.5 flex max-w-full overflow-x-auto pt-6 pb-1.5 ps-3 bg-[#459b7612] border rounded-xl ${selectedRoute?.requestId !== route.requestId ? "border-separator" : "border-2 border-primary"} disabled:opacity-40 disabled:cursor-not-allowed`}
-        onClick={() => setSelectedRoute(route)}  // Set the selected route when clicked
+        onClick={() => {
+          setSelectedRoute(route)
+          setSelectedQuote(undefined)
+        }}  // Set the selected route when clicked
         key={route.requestId}
         style={{ clipPath: "border-box" }}
       >
@@ -134,6 +141,48 @@ const RouteCard = () => {
     );
   };
 
+  // Function to render each quote with relevant information
+  const singleQuoteContainer = (quote: Quote) => {
+    const containerClasses = "min-w-fit flex flex-col items-center justify-start gap-y-1.5";
+    const tokenFrom: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === quote.srcAsset.chain && token.name === quote.srcAsset.asset)
+    const tokenTo: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === quote.destAsset.chain && token.name === quote.destAsset.asset)
+    const blockchainFrom: BlockchainMeta = blockchains.find((blockchain: BlockchainMeta) => formatChainName(blockchain.name) === quote.srcAsset.chain)
+    const blockchainTo: BlockchainMeta = blockchains.find((blockchain: BlockchainMeta) => formatChainName(blockchain.name) === quote.destAsset.chain)
+    return (
+      <button
+        className={`relative w-full mb-3.5 flex max-w-full overflow-x-auto pt-6 pb-1.5 ps-3 bg-[#459b7612] border rounded-xl ${selectedQuote?.type !== quote.type ? "border-separator" : "border-2 border-primary"} disabled:opacity-40 disabled:cursor-not-allowed`}
+        onClick={() => {
+          setSelectedRoute(undefined)
+          setSelectedQuote(quote)
+        }}  // Set the selected route when clicked
+        key={quote.type}
+        style={{ clipPath: "border-box" }}
+      >
+        <div className="flex items-start">
+          <div className={`relative ${containerClasses}`}>
+            {singleNodeTemplate(tokenFrom.image, tokenFrom.symbol, (Number(quote.depositAmount) / (10 ** tokenFrom.decimals)).toFixed(2), blockchainFrom.logo)}
+            <div>
+              <Image src="/assets/icons/arrow-down.svg" width={59} height={21} alt="Arrow down" className={`absolute -right-[3.0625rem] top-6`} />
+              <TooltipTemplate content={`Chainflip`}>
+                <TokenIcon
+                  token={{
+                    image: "https://docs.chainflip.io/chainfliplogo.png",
+                    alt: "Chainflip",
+                    className: "size-5"
+                  }}
+                  className={`absolute -right-[2.125rem] top-4`}
+                />
+              </TooltipTemplate>
+            </div>
+          </div>
+          <div className={`mt-[3.125rem] ms-[22px] ${containerClasses}`}>
+            {singleNodeTemplate(tokenTo.image, tokenTo.symbol, (Number(quote.egressAmount) / (10 ** tokenTo.decimals)).toFixed(2), blockchainTo.logo)}
+          </div>
+        </div>
+      </button>
+    )
+  }
+
   return (
     <div className="relative max-w-[650px] min-h-[540px] w-full h-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg flex flex-col gap-4">
       <h1 className="text-2xl">Routes</h1>
@@ -156,6 +205,7 @@ const RouteCard = () => {
       </div>
       <div className="overflow-y-auto h-[28rem] pe-1">
         {sortedRoutes.map((route) => singleRouteContainer(route))}
+        {quoteData?.quotes.map((quote) => singleQuoteContainer(quote))}
       </div>
     </div>
   );

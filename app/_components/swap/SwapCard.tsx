@@ -40,6 +40,10 @@ import { useManager } from "@rango-dev/queue-manager-react";
 import SettingsModal from "./SettingModal";
 import TooltipTemplate from "../common/tooltip-template";
 import HistoryModal from "./SettingModal/HistoryModal";
+import { Asset, Chain, QuoteRequest } from "@chainflip/sdk/swap";
+import { formatChainName } from "@/app/utils/chainflip";
+import { useQuote } from "@/app/providers/QuoteProvider";
+import { getQuoteV2 } from "@/app/api/chainflip";
 
 const SwapCard: React.FC = () => {
   // Use custom hook to get connected wallet details
@@ -49,6 +53,7 @@ const SwapCard: React.FC = () => {
 
   // Swap state management from the SwapProvider context
   const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setConfirmData, setRouteData, selectedRoute, setSelectedRoute, settings } = useSwap();
+  const { setQuoteData, selectedQuote, setSelectedQuote } = useQuote();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
   const [error, setError] = useState<string>();
@@ -93,6 +98,8 @@ const SwapCard: React.FC = () => {
       if (!(tokenFrom && tokenTo)) return;
       setRouteData(undefined);
       setSelectedRoute(undefined);
+      setQuoteData(undefined);
+      setSelectedQuote(undefined);
       fetchRoute(async () => {
         setError(undefined)
         const routeRequest = createQuoteRequestBody({
@@ -106,7 +113,25 @@ const SwapCard: React.FC = () => {
           affiliateWallets: null
         })
         try {
-          setRouteData(await getBestMultiRoutes(routeRequest))
+          /** First we request quote to the Chainflip */
+          const srcChain = formatChainName(tokenFrom.blockchain) as Chain;
+          const destChain = formatChainName(tokenTo.blockchain) as Chain;
+          if (srcChain && destChain) {
+            const quoteRequest: QuoteRequest = {
+              srcChain: srcChain,
+              destChain: destChain,
+              srcAsset: tokenFrom.symbol as Asset,
+              destAsset: tokenTo.symbol as Asset,
+              amount: (parseFloat(amount) * (10 ** tokenFrom.decimals)).toString(),
+              brokerCommissionBps: 100, // 100 basis point = 1%
+              affiliateBrokers: [
+                { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 50 }
+              ],
+            };
+            setQuoteData(await getQuoteV2(quoteRequest));
+          }
+          /** */
+          setRouteData(await getBestMultiRoutes(routeRequest));
         } catch (error) {
           setError(error as string)
         }
@@ -225,7 +250,7 @@ const SwapCard: React.FC = () => {
             disabled
             token={tokenTo}
             setToken={setTokenTo}
-            value={selectedRoute ? selectedRoute.outputAmount : 0}
+            value={selectedRoute ? selectedRoute.outputAmount : selectedQuote && tokenTo ? (Number(selectedQuote.egressAmount) / (10 ** tokenTo.decimals)) : 0}
           />
         </div>
       </CardContent>
@@ -252,7 +277,7 @@ const SwapCard: React.FC = () => {
               </Button>
               :
               <ConfirmModal>
-                <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" disabled={!selectedRoute} variant="primary">
+                <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" disabled={!selectedRoute && !selectedQuote} variant="primary">
                   Swap Now
                 </Button>
               </ConfirmModal>

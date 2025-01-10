@@ -156,8 +156,8 @@ export async function getBestMultiRoutes(
     const response: AxiosResponse = await axiosRango.post('routing/bests', request);
     const multiRouteResponse = response.data as MultiRouteResponse;
 
-    if (multiRouteResponse.results.length === 0) {
-      throw new Error("No routes found")
+    if (multiRouteResponse.diagnosisMessages.length) {
+      throw new Error(multiRouteResponse.diagnosisMessages[0])
     }
 
     return multiRouteResponse;

@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import { X } from 'lucide-react';
-import { PropsWithChildren, useState, useTransition } from 'react';
+import { PropsWithChildren, useEffect, useState, useTransition } from 'react';
 import { confirmRoute } from '@/app/api/rango';
-import { ConfirmRouteRequest, ConfirmRouteResponse, WalletRequiredAssets } from 'rango-types/mainApi';
+import { ConfirmRouteRequest, ConfirmRouteResponse, Token, WalletRequiredAssets } from 'rango-types/mainApi';
 import CustomLoader from '../../common/loader';
-import { cn, toastError } from '@/lib/utils';
+import { cn, swapSDK, toastError } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useSwap } from '@/app/providers/SwapProvider';
@@ -19,6 +19,21 @@ import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { getWalletsForNewSwap } from '@/app/utils/swap';
 import { Wallet } from '@/app/types/rango';
 import { Button } from '@/components/ui/button';
+import { useQuote } from '@/app/providers/QuoteProvider';
+import { formatChainName } from '@/app/utils/chainflip';
+import { requestDepositAddress } from '@/app/api/chainflip';
+import { DepositAddressRequestV2, DepositAddressResponse } from '@chainflip/sdk/swap';
+
+type SwapToken = {
+  amount: string,
+  symbol: string,
+  blockchain?: string,
+}
+
+type SwapInfo = {
+  from: SwapToken,
+  to: SwapToken,
+}
 
 // ConfirmModal component for confirming a wallet before swapping assets
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
@@ -26,10 +41,46 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { blockchains, tokens } = meta;
   const { manager } = useManager();
   const { selectedRoute, confirmData, setConfirmData, settings } = useSwap();
+  const { selectedQuote, depositData, setDepositData } = useQuote();
+  const [swapInfo, setSwapInfo] = useState<SwapInfo>();
 
   // Extract the route details for the swap (from and to tokens)
-  const swapFrom = selectedRoute?.swaps.at(0);
-  const swapTo = selectedRoute?.swaps.at(-1);
+  useEffect(() => {
+    if (selectedRoute) {
+      const swapFrom = selectedRoute?.swaps.at(0);
+      const swapTo = selectedRoute?.swaps.at(-1);
+      if (swapFrom && swapTo)
+        setSwapInfo({
+          from: {
+            amount: swapFrom.fromAmount,
+            symbol: swapFrom.from.symbol,
+            blockchain: swapFrom.from.blockchain,
+          },
+          to: {
+            amount: swapTo.toAmount,
+            symbol: swapTo.to.symbol,
+            blockchain: swapTo.to.blockchain,
+          },
+        })
+    }
+    if (selectedQuote) {
+      const tokenFrom: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === selectedQuote.srcAsset.chain && token.name === selectedQuote.srcAsset.asset)
+      const tokenTo: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === selectedQuote.destAsset.chain && token.name === selectedQuote.destAsset.asset)
+      if (tokenFrom)
+        setSwapInfo({
+          from: {
+            amount: (parseFloat(selectedQuote.depositAmount) / (10 ** tokenFrom.decimals)).toString(),
+            symbol: selectedQuote.srcAsset.asset,
+            blockchain: formatChainName(selectedQuote.srcAsset.chain),
+          },
+          to: {
+            amount: (parseFloat(selectedQuote.egressAmount) / (10 ** tokenTo.decimals)).toString(),
+            symbol: selectedQuote.destAsset.asset,
+            blockchain: formatChainName(selectedQuote.destAsset.chain),
+          },
+        })
+    }
+  }, [selectedRoute, selectedQuote])
 
   // State hooks for managing the modal, wallets, and custom address input
   const [open, setOpen] = useState<boolean>(false);
@@ -55,24 +106,42 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         }, {});
 
       // Prepare request for confirming the route
-      if (!selectedRoute) return;
-      const confirmRequest: ConfirmRouteRequest = {
-        requestId: selectedRoute.requestId,
-        selectedWallets: selectedWallets,
-        destination: useCustomAddr ? customAddr : undefined,
-      };
+      if (selectedRoute) {
+        const confirmRequest: ConfirmRouteRequest = {
+          requestId: selectedRoute.requestId,
+          selectedWallets: selectedWallets,
+          destination: useCustomAddr ? customAddr : undefined,
+        };
 
-      // Attempt to confirm the route and handle errors
-      try {
-        setConfirmData(await confirmRoute(confirmRequest));
-      } catch (error) {
-        toastError(error as string);
+        // Attempt to confirm the route and handle errors
+        try {
+          setConfirmData(await confirmRoute(confirmRequest));
+        } catch (error) {
+          toastError(error as string);
+        }
+      }
+
+      //
+      if (selectedQuote) {
+        const depositAddressRequest: DepositAddressRequestV2 = {
+          quote: selectedQuote,
+          destAddress: useCustomAddr ? customAddr : walletTo.address,
+        }
+        const depositAddressResponse: DepositAddressResponse = await requestDepositAddress(depositAddressRequest)
+        console.log("depositAddressResponse", depositAddressResponse);
+        setDepositData(depositAddressResponse)
       }
     });
   };
 
   // Function to check for validation errors in the confirmation response
-  const confirmHasError = (confirmResponse: ConfirmRouteResponse) => {
+  const confirmHasError = (confirmResponse: ConfirmRouteResponse | undefined) => {
+    if (!confirmResponse) {
+      return {
+        error: false,
+        message: '',
+      };
+    }
     if (!confirmResponse.ok) {
       return {
         error: true,
@@ -116,8 +185,27 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
     };
   };
 
+  function depositHasError(depositResponse: DepositAddressResponse | undefined) {
+    if (!depositResponse) {
+      return {
+        error: false,
+        message: '',
+      };
+    }
+  }
+
   // Function to confirm and execute the swap
   const confirmSwap = async () => {
+    if (depositData && selectedQuote && walletFrom) {
+      const transactionHash = await swapSDK.executeSwap({
+        amount: depositData.amount,
+        srcChain: selectedQuote.srcAsset.chain,
+        srcAsset: selectedQuote.srcAsset.asset,
+        destChain: selectedQuote.destAsset.chain,
+        destAsset: selectedQuote.destAsset.asset,
+        destAddress: depositData.destAddress,
+      });
+    }
     if (confirmData && manager) {
       const confirmSwapResult = confirmData.result;
 
@@ -167,14 +255,14 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           </div>
           <Separator className="bg-separator" />
           <DialogDescription className='flex items-center justify-around'>
-            {swapFrom && swapTo &&
+            {swapInfo &&
               <div className="text-sm font-bold text-center py-2">Confirm Swap &nbsp;
                 <span className="text-[#bbbbbb] text-lg">
-                  {parseFloat(swapFrom.fromAmount).toFixed(2)} &nbsp;
+                  {parseFloat(swapInfo.from.amount).toFixed(2)} &nbsp;
                 </span>
-                {swapFrom.from.symbol} [{swapFrom.from.blockchain}] to &nbsp;
-                <span className="text-[#bbbbbb] text-lg"> {parseFloat(swapTo.toAmount)?.toFixed(2)} &nbsp;</span>
-                {swapTo.to.symbol} [{swapTo.to.blockchain}]
+                {swapInfo.from.symbol} [{swapInfo.from.blockchain}] to &nbsp;
+                <span className="text-[#bbbbbb] text-lg"> {parseFloat(swapInfo.to.amount).toFixed(2)} &nbsp;</span>
+                {swapInfo.to.symbol} [{swapInfo.to.blockchain}]
               </div>
             }
             <button className="w-[30px] px-1" onClick={confirmWallet}>
@@ -184,9 +272,9 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         </DialogHeader>
         <ScrollArea className='h-[40vh]'>
           <div className='space-y-4'>
-            {swapFrom &&
+            {swapInfo &&
               <WalletSelect
-                chain={swapFrom.from.blockchain}
+                chain={swapInfo.from.blockchain || ''}
                 index={1}
                 wallet={walletFrom}
                 setWallet={setWalletFrom}
@@ -216,9 +304,9 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                 onChange={(e) => setCustomAddr(e.target.value)}
               />
               :
-              swapTo &&
+              swapInfo &&
               <WalletSelect
-                chain={swapTo.to.blockchain}
+                chain={swapInfo.to.blockchain || ''}
                 index={2}
                 wallet={walletTo}
                 setWallet={setWalletTo}
@@ -226,15 +314,15 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
             }
           </div>
         </ScrollArea>
-        <div className="text-error font-bold text-xs text-center tracking-wide">{confirmData && confirmHasError(confirmData).message}</div>
+        <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message || depositHasError(depositData)?.message}</div>
         <Button variant={isConfirming ? "outline" : "primary"} disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming}
-          onClick={confirmData ? confirmSwap : confirmWallet}
+          onClick={confirmData || depositData ? confirmSwap : confirmWallet}
           className="mx-auto h-12 w-48">
           {isConfirming ?
             <CustomLoader className='!size-8' />
             :
-            confirmData ?
-              confirmHasError(confirmData).error ?
+            confirmData || depositData ?
+              confirmHasError(confirmData).error || depositHasError(depositData)?.error ?
                 'Proceed Anyway'
                 :
                 'Swap'
