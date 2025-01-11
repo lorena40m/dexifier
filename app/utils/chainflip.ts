@@ -6,6 +6,7 @@ const chainsMap: Record<string, Chain> = {
   DOT: "Polkadot",
   ARBITRUM: "Arbitrum",
   SOLANA: "Solana",
+  SOL: "Solana",
 }
 
 export function formatChainName(chain: string): Chain | string | undefined {

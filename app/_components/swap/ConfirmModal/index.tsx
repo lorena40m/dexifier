@@ -129,7 +129,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         }
         const depositAddressResponse: DepositAddressResponse = await requestDepositAddress(depositAddressRequest)
         console.log("depositAddressResponse", depositAddressResponse);
-        setDepositData(depositAddressResponse)
+        // setDepositData(depositAddressResponse)
       }
     });
   };
@@ -197,14 +197,14 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   // Function to confirm and execute the swap
   const confirmSwap = async () => {
     if (depositData && selectedQuote && walletFrom) {
-      const transactionHash = await swapSDK.executeSwap({
-        amount: depositData.amount,
-        srcChain: selectedQuote.srcAsset.chain,
-        srcAsset: selectedQuote.srcAsset.asset,
-        destChain: selectedQuote.destAsset.chain,
-        destAsset: selectedQuote.destAsset.asset,
-        destAddress: depositData.destAddress,
-      });
+      // const transactionHash = await swapSDK.executeSwap({
+      //   amount: depositData.amount,
+      //   srcChain: selectedQuote.srcAsset.chain,
+      //   srcAsset: selectedQuote.srcAsset.asset,
+      //   destChain: selectedQuote.destAsset.chain,
+      //   destAsset: selectedQuote.destAsset.asset,
+      //   destAddress: depositData.destAddress,
+      // });
     }
     if (confirmData && manager) {
       const confirmSwapResult = confirmData.result;
@@ -314,7 +314,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
             }
           </div>
         </ScrollArea>
-        <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message || depositHasError(depositData)?.message}</div>
+        <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message}</div>
         <Button variant={isConfirming ? "outline" : "primary"} disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming}
           onClick={confirmData || depositData ? confirmSwap : confirmWallet}
           className="mx-auto h-12 w-48">
@@ -322,7 +322,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
             <CustomLoader className='!size-8' />
             :
             confirmData || depositData ?
-              confirmHasError(confirmData).error || depositHasError(depositData)?.error ?
+              confirmHasError(confirmData).error ?
                 'Proceed Anyway'
                 :
                 'Swap'

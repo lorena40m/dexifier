@@ -4,6 +4,7 @@ import CustomLoader from "@/app/_components/common/loader";
 import AddressesCard from "@/app/_components/exchange/AddressCard";
 import ExchangeCard from "@/app/_components/exchange/ExchangeCard";
 import { useExchange } from "@/app/providers/ExchangeProvider";
+import { useQuote } from "@/app/providers/QuoteProvider";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import React, { useState } from "react";
@@ -12,13 +13,14 @@ import { useRef } from "react";
 
 export default function ExchangePage() {
   const { rateData, txData, withdrawalAddress } = useExchange();
+  const { selectedQuote } = useQuote();
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
   return (
     <section className="flex md:flex-row flex-col flex-wrap gap-5 justify-center items-center md:m-4 md:mt-32 mt-8">
       <ExchangeCard ref={buttonRef} setLoading={setLoading} />
-      {rateData && !rateData.message &&
+      {(rateData && !rateData.message || selectedQuote) &&
         <AddressesCard />
       }
       <Button

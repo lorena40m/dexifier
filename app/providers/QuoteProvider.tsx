@@ -1,15 +1,19 @@
 'use client'
 
 import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState } from "react";
-import { DepositAddressResponse, Quote, QuoteResponseV2 } from "@chainflip/sdk/swap";
+import { AssetData, DepositAddressResponse, Quote, QuoteResponseV2, SwapStatusResponseV2 } from "@chainflip/sdk/swap";
 
 interface QuoteContextType {
+  srcAsset?: AssetData,
+  setSrcAsset: Dispatch<SetStateAction<AssetData | undefined>>,
+  destAsset?: AssetData,
+  setDestAsset: Dispatch<SetStateAction<AssetData | undefined>>,
   quoteData?: QuoteResponseV2,
   setQuoteData: Dispatch<SetStateAction<QuoteResponseV2 | undefined>>,
   selectedQuote?: Quote,
   setSelectedQuote: Dispatch<SetStateAction<Quote | undefined>>,
-  depositData?: DepositAddressResponse,
-  setDepositData: Dispatch<SetStateAction<DepositAddressResponse | undefined>>,
+  depositData?: SwapStatusResponseV2,
+  setDepositData: Dispatch<SetStateAction<SwapStatusResponseV2 | undefined>>,
 }
 
 const QuoteContext: React.Context<QuoteContextType | undefined> = createContext<QuoteContextType | undefined>(undefined);
@@ -17,12 +21,14 @@ const QuoteContext: React.Context<QuoteContextType | undefined> = createContext<
 export const QuoteProvider = ({ children }: { children: ReactNode }) => {
   const [quoteData, setQuoteData] = useState<QuoteResponseV2>();
   const [selectedQuote, setSelectedQuote] = useState<Quote>();
-  const [depositData, setDepositData] = useState<DepositAddressResponse>();
+  const [depositData, setDepositData] = useState<SwapStatusResponseV2>();
+  const [srcAsset, setSrcAsset] = useState<AssetData>();
+  const [destAsset, setDestAsset] = useState<AssetData>();
 
   return (
     <QuoteContext.Provider
       value={{
-        quoteData, setQuoteData, selectedQuote, setSelectedQuote, depositData, setDepositData,
+        quoteData, setQuoteData, selectedQuote, setSelectedQuote, depositData, setDepositData, srcAsset, setSrcAsset, destAsset, setDestAsset,
       }}
     >
       {children}

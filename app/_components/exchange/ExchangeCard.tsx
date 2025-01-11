@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import CurrencyInput from "./CurrencyInput"
 import debounce from "lodash/debounce";
 import { useExchange } from "@/app/providers/ExchangeProvider"
-import { toastError } from "@/lib/utils"
+import { swapSDK, toastError } from "@/lib/utils"
 import CustomLoader from "../common/loader"
 import {
   Card,
@@ -20,6 +20,9 @@ import Link from "next/link"
 import React from "react"
 import TooltipTemplate from "../common/tooltip-template"
 import HistoryModal from "../swap/SettingModal/HistoryModal"
+import { formatChainName } from "@/app/utils/chainflip"
+import { Chain, DepositAddressRequestV2, QuoteRequest } from "@chainflip/sdk/swap"
+import { useQuote } from "@/app/providers/QuoteProvider"
 
 interface ExchangeCardProps {
   setLoading: Dispatch<React.SetStateAction<boolean>>;
@@ -29,15 +32,18 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
   const { rateData, setRateData, txData, setTxData, withdrawalAddress, currencyFrom, setCurrencyFrom, currencyTo, setCurrencyTo } = useExchange();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [isFetchingRate, fetchRate] = useTransition();
-  const [isCreatingTx, craeteTx] = useTransition();
+  const [isCreatingTx, createTx] = useTransition();
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
+  const { depositData, setDepositData, selectedQuote, setSelectedQuote, setSrcAsset, destAsset, setDestAsset } = useQuote();
+  const [isFinished, setIsFinished] = useState<boolean>();
+  const [isCreatingChannel, setIsCreatingChannel] = useState<boolean>();
 
   const stopConfirming = () => {
     clearInterval(confirmIntervalRef.current);
     confirmIntervalRef.current = undefined;
   }
 
-  // Start polling for transaction confirmation
+  // Start polling for transaction confirmation (Exolix)
   const startConfirming = async (txId: string) => {
     // Clear any existing interval before starting a new one
     stopConfirming();
@@ -47,13 +53,15 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
       setTxData(txInfo);
 
       if (txInfo.status === "success" || txInfo.status === "overdue" || txInfo.status === "refunded") {
+        setIsFinished(true);
         stopConfirming();
       }
     }, 5000); // Poll every 5 seconds (adjust as needed)
   };
 
+  // Create transaction (Exolix)
   const createTransactionHandler = () => {
-    craeteTx(async () => {
+    createTx(async () => {
       if (!(currencyFrom && currencyTo)) return;
       const txRequest: TxRequest = {
         coinFrom: currencyFrom.code,
@@ -76,8 +84,51 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
     })
   }
 
-  const handleAction = () => {
-    if (txData) {
+  // Start polling for transaction confirmation (Chainflip)
+  const startChanneling = async (channelId: string) => {
+    // Clear any existing interval before starting a new one
+    stopConfirming();
+
+    confirmIntervalRef.current = setInterval(async () => {
+      try {
+        const statusData = await swapSDK.getStatusV2({
+          id: channelId
+        });
+        setDepositData(statusData);
+        setIsCreatingChannel(false);
+        if (statusData.state === "COMPLETED" || statusData.state === "FAILED") {
+          setIsFinished(true);
+          stopConfirming();
+        }
+      } catch (error) { }
+    }, 10000); // Poll every 10 seconds (adjust as needed)
+  }
+
+  const handleAction = async () => {
+    if (isFinished) {
+      setIsFinished(false)
+      setTxData(undefined)
+      setRateData(undefined)
+      setSelectedQuote(undefined)
+      setDepositData(undefined)
+    }
+    if (selectedQuote) {
+      if (depositData) {
+        stopConfirming();
+        setDepositData(undefined);
+      }
+      else {
+        /** Create transaction (Chainflip) */
+        setIsCreatingChannel(true);
+        const depositAddressRequest: DepositAddressRequestV2 = {
+          quote: selectedQuote,
+          destAddress: withdrawalAddress,
+        }
+        const depositAddressResponse: any = await swapSDK.requestDepositAddressV2(depositAddressRequest)
+        startChanneling(depositAddressResponse.depositChannelId);
+      }
+    }
+    else if (txData) {
       stopConfirming();
       setTxData(undefined);
     } else if (rateData) {
@@ -95,6 +146,8 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
     stopConfirming()
     setTxData(undefined)
     setRateData(undefined)
+    setSelectedQuote(undefined)
+    setDepositData(undefined)
     if (parseFloat(amountFrom)) fetchRateDebounceHandler(amountFrom)
   }, [currencyTo, currencyFrom, amountFrom])
 
@@ -118,6 +171,7 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
     debounce((amount: string) => {
       fetchRate(async () => {
         if (!(currencyFrom && currencyTo)) return;
+        /** First request rate to the Exolix */
         const rateRequest: RateRequest = {
           coinFrom: currencyFrom.code,
           networkFrom: currencyFrom.network.network,
@@ -126,7 +180,49 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
           amount: amount,
           rateType: 'float'
         }
-        setRateData(await getRate(rateRequest))
+        const rateResponse = await getRate(rateRequest)
+
+        /** Then we request quote to the Chainflip */
+        const srcChain = formatChainName(currencyFrom.network.network) as Chain;
+        const destChain = formatChainName(currencyTo.network.network) as Chain;
+        if (srcChain && destChain && rateResponse) {
+          const srcAsset = (await swapSDK.getAssets(srcChain)).find(asset => asset.symbol === currencyFrom.code)
+          const destAsset = (await swapSDK.getAssets(destChain)).find(asset => asset.symbol === currencyTo.code)
+          if (srcAsset && destAsset) {
+            setSrcAsset(srcAsset);
+            setDestAsset(destAsset);
+            const quoteRequest: QuoteRequest = {
+              srcChain: srcChain,
+              destChain: destChain,
+              srcAsset: srcAsset.asset,
+              destAsset: destAsset.asset,
+              amount: (parseFloat(amount) * (10 ** srcAsset.decimals)).toString(),
+              brokerCommissionBps: 100, // 100 basis point = 1%
+              affiliateBrokers: [
+                { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 50 }
+              ],
+            };
+            try {
+              const quoteResponse = await swapSDK.getQuoteV2(quoteRequest);
+              const bestQuote = quoteResponse.quotes
+                .reduce((maxQuote, currentQuote) => {
+                  const currentEgressAmount = Number(currentQuote.egressAmount);
+                  const maxEgressAmount = Number(maxQuote.egressAmount);
+                  return currentEgressAmount > maxEgressAmount ? currentQuote : maxQuote;
+                });
+
+              /** Pick up the best route among the result from Exolix & Chainflip */
+              if (bestQuote && (Number(bestQuote.egressAmount) / (10 ** destAsset.decimals)) > rateResponse.toAmount) {
+                setSelectedQuote(bestQuote);
+                return;
+              }
+            } catch (error) { }
+          }
+        }
+        /** */
+
+        // Use the route by Exolix
+        setRateData(rateResponse)
       })
     }, 1000), // 1s delay
     [currencyFrom, currencyTo]
@@ -204,7 +300,7 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
           <CurrencyInput
             type="number"
             id="currencyTo"
-            value={rateData?.toAmount || 0}
+            value={rateData?.toAmount || (selectedQuote && destAsset && (Number(selectedQuote.egressAmount) / (10 ** destAsset.decimals))) || 0}
             currency={currencyTo}
             excludedCurrency={currencyFrom}
             setCurrency={setCurrencyTo}
@@ -218,17 +314,17 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
         <Button
           ref={ref}
           className={`
-          ${isFetchingRate || isCreatingTx
+          ${isFetchingRate || isCreatingTx || isCreatingChannel
               ? "bg-transparent text-primary border border-seperator hover:bg-black/30"
               : "bg-primary hover:bg-primary-dark text-black"
             } w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto mt-[20px] md:mt-[10px] text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
           onClick={handleAction}
-          disabled={isFetchingRate || isCreatingTx || !rateData || !withdrawalAddress}
+          disabled={isFetchingRate || isCreatingTx || isCreatingChannel || !(rateData || selectedQuote) || !withdrawalAddress}
         >
-          {isFetchingRate || isCreatingTx ?
+          {isFetchingRate || isCreatingTx || isCreatingChannel ?
             <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
             :
-            txData ? 'Stop Confirmation' : 'Exchange Now'
+            txData || depositData ? isFinished ? 'Exchange Again' : 'Stop Confirmation' : 'Exchange Now'
           }
         </Button>
       </CardFooter>

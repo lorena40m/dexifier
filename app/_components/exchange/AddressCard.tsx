@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import ButtonCopyIcon from "../common/coyp-button-icon";
@@ -19,9 +19,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatReadableDate } from "@/app/utils";
 import TokenIcon from "../common/token-icon";
+import { useQuote } from "@/app/providers/QuoteProvider";
 
 const AddressesCard = () => {
   const { rateData, txData, withdrawalAddress, setWithdrawalAddress, currencyFrom, currencyTo } = useExchange();
+  const { selectedQuote, srcAsset, destAsset, depositData } = useQuote();
 
   const [steps, setSteps] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -38,11 +40,6 @@ const AddressesCard = () => {
       console.error('Failed to read from clipboard:', error);
     }
   }
-
-  const txDataMemo = useMemo(() =>
-    ({ txData }),
-    [txData]
-  );
 
   useEffect(() => {
     if (!txData) return
@@ -66,7 +63,29 @@ const AddressesCard = () => {
       setSteps(['Confirmed', `${txData.coinFrom.coinCode} to ${txData.coinTo.coinCode}`, `${txData.status}`])
       return
     }
-  }, [txDataMemo, txData])
+  }, [txData])
+
+  const renderStatus = () => {
+    switch (depositData?.state) {
+      case "RECEIVING":
+        return <><StatusBar steps={[`Depositing ${depositData.srcAsset}`, `${depositData.srcAsset} to ${depositData.destAsset}`]} currentStep={0} />Receiving funds</>
+      case "SWAPPING":
+        return <><StatusBar steps={[`${depositData.srcAsset} to ${depositData.destAsset}`, `Withdrawing ${depositData.destAsset}`]} currentStep={0} />Swapping assets</>
+      case "SENDING":
+        return <><StatusBar steps={[`Withdrawing ${depositData.destAsset}`, 'Finishing']} currentStep={0} />Withdrawing funds</>
+      case "SENT":
+        return <><StatusBar steps={[`Withdrawing ${depositData.destAsset}`, 'Finishing']} currentStep={1} />Withdraw succeed</>
+      case "COMPLETED":
+        return <><StatusBar steps={[`Withdrawing ${depositData.destAsset}`, 'Finishing']} currentStep={2} />Transaction is completed and funds are received</>
+      case "FAILED":
+        return <span>Transaction is failed</span>
+      default:
+        if (depositData?.depositChannel?.isExpired === true) {
+          return <span >Transation is overdue</span>
+        }
+        return <><CustomLoader /><span className="md:text-primary text-white">Waiting to receive funds</span></>
+    }
+  }
 
   return (
     <Card className="max-w-[650px] md:min-h-[540px] w-full h-full md:bg-modal/5 bg-primary/10 border border-[#AAA]/20 backdrop-blur-lg md:p-6 md:rounded-[2rem] rounded-[20px] shadow-lg text-white">
@@ -88,7 +107,7 @@ const AddressesCard = () => {
                 }}
               />
               <div className="flex items-center gap-1 md:gap-2 ">
-                <span>{txData?.amount || rateData?.fromAmount}</span>
+                <span>{txData?.amount || rateData?.fromAmount || (selectedQuote && srcAsset && (Number(selectedQuote.depositAmount) / (10 ** srcAsset.decimals)))}</span>
                 <span>{currencyFrom.code}</span>
                 <span className="text-opacity-80 md:block hidden">
                   [{currencyFrom.network.network}]
@@ -97,7 +116,7 @@ const AddressesCard = () => {
             </>
           )}
           <Image src={"/assets/icons/circleArrow.png"} width={0} height={0} alt="circleAddress" className="md:block hidden size-8" />
-          <Image src={"/assets/icons/circleArrow.svg"} width={0} height={0} alt="circleAddress" className="md:hidden size-5"/>
+          <Image src={"/assets/icons/circleArrow.svg"} width={0} height={0} alt="circleAddress" className="md:hidden size-5" />
           {currencyTo && (
             <>
               <TokenIcon
@@ -108,7 +127,7 @@ const AddressesCard = () => {
                 }}
               />
               <div className="flex items-center gap-1 md:gap-2">
-                <span>{txData?.amountTo || rateData?.toAmount}</span>
+                <span>{txData?.amountTo || rateData?.toAmount || (selectedQuote && destAsset && (Number(selectedQuote.egressAmount) / (10 ** destAsset.decimals)))}</span>
                 <span>{currencyTo.code}</span>
                 <span className="text-opacity-80 md:block hidden">
                   [{currencyTo.network.network}]
@@ -138,23 +157,23 @@ const AddressesCard = () => {
           </div>
 
           {!withdrawalAddress && <span className="text-primary md:block hidden">Enter the Recipient Address first !</span>}
-          {txData && <div className="flex md:justify-center mb-3 md:text-lg text-xs md:my-0 my-3">
+          {(txData || depositData) && <div className="flex md:justify-center mb-3 md:text-lg text-xs md:my-0 my-3">
             <div className="flex flex-col gap-2">
               <div className="flex md:items-center">
                 <div><Image src={"/assets/icons/clock.png"} width={20} height={20} alt="clock" className="md:block hidden" /></div>
                 <span className="text-primary uppercase md:w-auto w-32">Created Time : &nbsp;</span>
-                <span>{formatReadableDate(txData.createdAt)}</span>
+                <span>{formatReadableDate(txData?.createdAt || new Date(depositData?.depositChannel?.createdAt || 0))}</span>
               </div>
               <div className="flex md:items-center">
                 <div><Image src={"/assets/icons/id.png"} width={20} height={20} alt="id" className="md:block hidden" /></div>
                 <span className="text-primary uppercase md:w-auto w-32">Transaction ID : &nbsp;</span>
-                <span className="pr-2">{txData.id}</span>
-                <ButtonCopyIcon text={txData.id || ""} />
+                <span className="pr-2">{txData?.id || depositData?.swapId}</span>
+                <ButtonCopyIcon text={txData?.id || depositData?.swapId || ""} />
               </div>
               <div className="flex md:items-center">
                 <div><Image src={"/assets/icons/state.png"} width={23} height={23} alt="state" className="md:block hidden" /></div>
                 <span className="text-primary uppercase md:w-auto w-32">Status : &nbsp;</span>
-                <span>{txData.status}</span>
+                <span>{txData?.status || depositData?.state}</span>
               </div>
             </div>
           </div>}
@@ -175,8 +194,20 @@ const AddressesCard = () => {
               txData.status === "success" ? <div className="flex flex-col items-center text-primary"><StatusBar steps={steps} currentStep={currentStep} /><span>Transaction is completed and funds are received</span></div> :
                 txData.status === "overdue" ? <div className="flex justify-center"><span >Transation is overdue</span></div> :
                   <StatusBar steps={steps} currentStep={currentStep} />}
-          </div>
-          }
+          </div>}
+          {depositData && <div>
+            <Label htmlFor="deposit" className="md:text-lg text-sm md:capitalize uppercase md:text-white text-primary">Deposit <span className="text-primary">{currencyFrom?.network.name} <span className="md:hidden">{'('}</span>{currencyFrom?.code}<span className="md:hidden">{')'}</span></span> address</Label>
+            <div id="deposit" className={`${depositData.depositChannel?.depositAddress ? "border-primary/40" : "border-[#695F5F]"} border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] md:my-3 mt-1 mb-3 bg-transparent`}>
+              <Input
+                type='text'
+                value={depositData.depositChannel?.depositAddress || ""}
+                className="md:text-primary text-white md:text-base text-xs bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 md:px-3 px-1"
+                readOnly={true}
+              />
+              {depositData.depositChannel?.depositAddress && <><QrCodeGenerator text={depositData.depositChannel?.depositAddress} /> <ButtonCopyIcon text={depositData.depositChannel?.depositAddress} /></>}
+            </div>
+            {<div className="flex flex-col items-center text-primary">{renderStatus()}</div>}
+          </div>}
         </div>
       </CardContent>
     </Card>

@@ -21,9 +21,9 @@ const options = {
   network: "mainnet",
   backendUrl: "https://chainflip-swap.chainflip.io",
   // network: "perseverance", // Testnet
-  // backendUrl: "https://perseverance.chainflip-swap.chainflip.io",
   broker: {
     url: `https://chainflip-broker.io/rpc/${process.env.NEXT_PUBLIC_CHAINFLIP_API_KEY}`,
+    // url: `https://perseverance.chainflip-broker.io/rpc/${process.env.NEXT_PUBLIC_CHAINFLIP_API_KEY}`,
     commissionBps: 0, // basis points, i.e. 100 = 1%
   },
 };
