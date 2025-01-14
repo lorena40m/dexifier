@@ -21,7 +21,8 @@ import React from "react"
 import TooltipTemplate from "../common/tooltip-template"
 import HistoryModal from "../swap/SettingModal/HistoryModal"
 import { formatChainName } from "@/app/utils/chainflip"
-import { Chain, DepositAddressRequestV2, QuoteRequest } from "@chainflip/sdk/swap"
+import { Chain, DepositAddressRequestV2, DepositAddressResponse, QuoteRequest } from "@chainflip/sdk/swap"
+import { DepositAddressResponseV2 } from "@/app/types/chainflip"
 import { useQuote } from "@/app/providers/QuoteProvider"
 
 interface ExchangeCardProps {
@@ -34,8 +35,8 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
   const [isFetchingRate, fetchRate] = useTransition();
   const [isCreatingTx, createTx] = useTransition();
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
-  const { depositData, setDepositData, selectedQuote, setSelectedQuote, setSrcAsset, destAsset, setDestAsset } = useQuote();
-  const [isFinished, setIsFinished] = useState<boolean>();
+  const { depositData, setDepositData, selectedQuote, setSelectedQuote, setSrcAsset, destAsset, setDestAsset, setDepositResponse, initializeQuote } = useQuote();
+  const isFinished = useMemo(() => txData?.status === "success" || txData?.status === "overdue" || txData?.status === "refunded" || depositData?.state === "COMPLETED" || depositData?.state === "FAILED", [txData, depositData]);
   const [isCreatingChannel, setIsCreatingChannel] = useState<boolean>();
 
   const stopConfirming = () => {
@@ -53,7 +54,6 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
       setTxData(txInfo);
 
       if (txInfo.status === "success" || txInfo.status === "overdue" || txInfo.status === "refunded") {
-        setIsFinished(true);
         stopConfirming();
       }
     }, 5000); // Poll every 5 seconds (adjust as needed)
@@ -84,33 +84,15 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
     })
   }
 
-  // Start polling for transaction confirmation (Chainflip)
-  const startChanneling = async (channelId: string) => {
-    // Clear any existing interval before starting a new one
-    stopConfirming();
-
-    confirmIntervalRef.current = setInterval(async () => {
-      try {
-        const statusData = await swapSDK.getStatusV2({
-          id: channelId
-        });
-        setDepositData(statusData);
-        setIsCreatingChannel(false);
-        if (statusData.state === "COMPLETED" || statusData.state === "FAILED") {
-          setIsFinished(true);
-          stopConfirming();
-        }
-      } catch (error) { }
-    }, 10000); // Poll every 10 seconds (adjust as needed)
-  }
+  useEffect(() => {
+    if (depositData) setIsCreatingChannel(false);
+  }, [depositData])
 
   const handleAction = async () => {
     if (isFinished) {
-      setIsFinished(false)
       setTxData(undefined)
       setRateData(undefined)
-      setSelectedQuote(undefined)
-      setDepositData(undefined)
+      initializeQuote()
     }
     if (selectedQuote) {
       if (depositData) {
@@ -124,8 +106,8 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
           quote: selectedQuote,
           destAddress: withdrawalAddress,
         }
-        const depositAddressResponse: any = await swapSDK.requestDepositAddressV2(depositAddressRequest)
-        startChanneling(depositAddressResponse.depositChannelId);
+        const depositAddressResponse: DepositAddressResponseV2 = await swapSDK.requestDepositAddressV2(depositAddressRequest)
+        setDepositResponse(depositAddressResponse);
       }
     }
     else if (txData) {

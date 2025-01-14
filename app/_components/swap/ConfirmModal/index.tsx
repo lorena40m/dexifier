@@ -21,8 +21,8 @@ import { Wallet } from '@/app/types/rango';
 import { Button } from '@/components/ui/button';
 import { useQuote } from '@/app/providers/QuoteProvider';
 import { formatChainName } from '@/app/utils/chainflip';
-import { requestDepositAddress } from '@/app/api/chainflip';
-import { DepositAddressRequestV2, DepositAddressResponse } from '@chainflip/sdk/swap';
+import { DepositAddressRequestV2 } from '@chainflip/sdk/swap';
+import { DepositAddressResponseV2 } from '@/app/types/chainflip';
 
 type SwapToken = {
   amount: string,
@@ -41,7 +41,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { blockchains, tokens } = meta;
   const { manager } = useManager();
   const { selectedRoute, confirmData, setConfirmData, settings } = useSwap();
-  const { selectedQuote, depositData, setDepositData } = useQuote();
+  const { selectedQuote, depositData, depositResponse, setDepositResponse } = useQuote();
   const [swapInfo, setSwapInfo] = useState<SwapInfo>();
 
   // Extract the route details for the swap (from and to tokens)
@@ -89,6 +89,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const [walletFrom, setWalletFrom] = useState<ConnectedWallet>();
   const [walletTo, setWalletTo] = useState<ConnectedWallet>();
   const [isConfirming, confirm] = useTransition();
+  const [isCreatingChannel, setIsCreatingChannel] = useState<boolean>();
 
   // Function to handle wallet confirmation
   const confirmWallet = async () => {
@@ -96,17 +97,17 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
     if (useCustomAddr && !customAddr) return;
     if (!(walletFrom && walletTo)) return;
 
-    // Perform the confirmation when ready
-    confirm(async () => {
-      const selectedWallets = [walletFrom, walletTo]
-        .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
-        .reduce<{ [key: string]: string }>((acc, wallet) => {
-          acc[wallet.chain] = wallet.address;
-          return acc;
-        }, {});
+    if (selectedRoute) {
+      // Perform the confirmation when ready
+      confirm(async () => {
+        const selectedWallets = [walletFrom, walletTo]
+          .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
+          .reduce<{ [key: string]: string }>((acc, wallet) => {
+            acc[wallet.chain] = wallet.address;
+            return acc;
+          }, {});
 
-      // Prepare request for confirming the route
-      if (selectedRoute) {
+        // Prepare request for confirming the route
         const confirmRequest: ConfirmRouteRequest = {
           requestId: selectedRoute.requestId,
           selectedWallets: selectedWallets,
@@ -119,20 +120,30 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         } catch (error) {
           toastError(error as string);
         }
-      }
+      });
+    }
 
-      //
-      if (selectedQuote) {
-        const depositAddressRequest: DepositAddressRequestV2 = {
-          quote: selectedQuote,
-          destAddress: useCustomAddr ? customAddr : walletTo.address,
-        }
-        const depositAddressResponse: DepositAddressResponse = await requestDepositAddress(depositAddressRequest)
-        console.log("depositAddressResponse", depositAddressResponse);
-        // setDepositData(depositAddressResponse)
+    if (selectedQuote) {
+      setIsCreatingChannel(true);
+      const depositAddressRequest: DepositAddressRequestV2 = {
+        quote: selectedQuote,
+        destAddress: useCustomAddr ? customAddr : walletTo.address,
+        fillOrKillParams: {
+          minPrice: (Number(selectedQuote.estimatedPrice) * 99 / 100).toString(), // minimum accepted price for swaps through the channel
+          refundAddress: walletFrom.address, // address to which assets are refunded
+          retryDurationBlocks: 100, // 100 blocks * 6 seconds = 10 minutes before deposits are refunded
+        },
       }
-    });
+      const depositAddressResponse: DepositAddressResponseV2 = await swapSDK.requestDepositAddressV2(depositAddressRequest)
+      setDepositResponse(depositAddressResponse)
+    }
   };
+
+  useEffect(() => {
+    if (depositData) {
+      setIsCreatingChannel(false);
+    }
+  }, [depositData])
 
   // Function to check for validation errors in the confirmation response
   const confirmHasError = (confirmResponse: ConfirmRouteResponse | undefined) => {
@@ -185,7 +196,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
     };
   };
 
-  function depositHasError(depositResponse: DepositAddressResponse | undefined) {
+  function depositHasError(depositResponse: DepositAddressResponseV2 | undefined) {
     if (!depositResponse) {
       return {
         error: false,
@@ -196,15 +207,8 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
 
   // Function to confirm and execute the swap
   const confirmSwap = async () => {
-    if (depositData && selectedQuote && walletFrom) {
-      // const transactionHash = await swapSDK.executeSwap({
-      //   amount: depositData.amount,
-      //   srcChain: selectedQuote.srcAsset.chain,
-      //   srcAsset: selectedQuote.srcAsset.asset,
-      //   destChain: selectedQuote.destAsset.chain,
-      //   destAsset: selectedQuote.destAsset.asset,
-      //   destAddress: depositData.destAddress,
-      // });
+    if (depositResponse && selectedQuote && walletFrom) {
+      // Wallet interaction code to make transaction goes here...
     }
     if (confirmData && manager) {
       const confirmSwapResult = confirmData.result;
@@ -315,10 +319,10 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           </div>
         </ScrollArea>
         <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message}</div>
-        <Button variant={isConfirming ? "outline" : "primary"} disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming}
+        <Button variant={isConfirming || isCreatingChannel ? "outline" : "primary"} disabled={!(useCustomAddr ? customAddr : walletFrom && walletTo) || isConfirming || isCreatingChannel}
           onClick={confirmData || depositData ? confirmSwap : confirmWallet}
           className="mx-auto h-12 w-48">
-          {isConfirming ?
+          {isConfirming || isCreatingChannel ?
             <CustomLoader className='!size-8' />
             :
             confirmData || depositData ?

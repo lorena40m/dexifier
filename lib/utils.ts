@@ -15,9 +15,9 @@ export const toastSuccess = (text: string) => toast.success(text, toastDetails);
 
 export const toastError = (text: string) => toast.error(text, toastDetails);
 
-import { SwapSDK } from "@chainflip/sdk/swap";
+import { SwapSDK, SwapSDKOptions } from "@chainflip/sdk/swap";
 
-const options = {
+const options: SwapSDKOptions = {
   network: "mainnet",
   backendUrl: "https://chainflip-swap.chainflip.io",
   // network: "perseverance", // Testnet
@@ -26,6 +26,9 @@ const options = {
     // url: `https://perseverance.chainflip-broker.io/rpc/${process.env.NEXT_PUBLIC_CHAINFLIP_API_KEY}`,
     commissionBps: 0, // basis points, i.e. 100 = 1%
   },
+  enabledFeatures: {
+    dca: true,
+  },
 };
 
-export const swapSDK = new SwapSDK(options as any);
+export const swapSDK = new SwapSDK(options);
