@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { X } from 'lucide-react';
 import { PropsWithChildren, useEffect, useState, useTransition } from 'react';
 import { confirmRoute } from '@/app/api/rango';
-import { ConfirmRouteRequest, ConfirmRouteResponse, Token, WalletRequiredAssets } from 'rango-types/mainApi';
+import { ConfirmRouteRequest, ConfirmRouteResponse, Token, Transaction, TransactionType, WalletRequiredAssets } from 'rango-types/mainApi';
 import CustomLoader from '../../common/loader';
 import { cn, swapSDK, toastError } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -10,7 +10,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { useSwap } from '@/app/providers/SwapProvider';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from '@/components/ui/label';
-import { ConnectedWallet, useWidget } from '@rango-dev/widget-embedded';
+import { ConnectedWallet, useWidget, useWallets } from '@rango-dev/widget-embedded';
 import WalletSelect from './WalletSelect';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import { useQuote } from '@/app/providers/QuoteProvider';
 import { formatChainName } from '@/app/utils/chainflip';
 import { DepositAddressRequestV2 } from '@chainflip/sdk/swap';
 import { DepositAddressResponseV2 } from '@/app/types/chainflip';
+import { ethers } from 'ethers';
 
 type SwapToken = {
   amount: string,
@@ -39,9 +40,10 @@ type SwapInfo = {
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { meta } = useWidget();
   const { blockchains, tokens } = meta;
+  const { getSigners } = useWallets();
   const { manager } = useManager();
   const { selectedRoute, confirmData, setConfirmData, settings } = useSwap();
-  const { selectedQuote, depositData, depositResponse, setDepositResponse } = useQuote();
+  const { selectedQuote, depositData, depositResponse, setDepositResponse, srcAsset } = useQuote();
   const [swapInfo, setSwapInfo] = useState<SwapInfo>();
 
   // Extract the route details for the swap (from and to tokens)
@@ -135,6 +137,38 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         },
       }
       const depositAddressResponse: DepositAddressResponseV2 = await swapSDK.requestDepositAddressV2(depositAddressRequest)
+      try {
+        const tokenContractAddress = srcAsset?.contractAddress; // The ERC-20 token contract address
+        const recipient = depositAddressResponse.depositAddress; // The recipient's wallet address
+        const tokenAmount = '10'; // Amount of tokens to send (human-readable)
+        const decimals = srcAsset?.decimals; // Token decimals (usually 18 for ERC-20)
+
+        // Encode the transfer function data
+        const erc20Interface = new ethers.Interface([
+          'function transfer(address to, uint256 amount) public returns (bool)',
+        ]);
+        const amountInWei = ethers.parseUnits(tokenAmount, decimals); // Convert amount to smallest unit
+        const data = erc20Interface.encodeFunctionData('transfer', [recipient, amountInWei]);
+
+        const transaction: Transaction = {
+          from: walletFrom.address,
+          to: tokenContractAddress || recipient,
+          type: TransactionType.EVM,
+          blockChain: '',
+          isApprovalTx: true,
+          data: data,
+          value: tokenContractAddress ? null : depositAddressResponse.amount,
+          nonce: null,
+          gasLimit: null,
+          gasPrice: null,
+          maxPriorityFeePerGas: null,
+          maxFeePerGas: null,
+        }
+        
+        const wallet = await getSigners(walletFrom.walletType)
+        wallet.getSigner(TransactionType.EVM).signAndSendTx(transaction, walletFrom.address, null)
+        setOpen(false);  // Close the modal after confirming the swap
+      } catch (error) { }
       setDepositResponse(depositAddressResponse)
     }
   };

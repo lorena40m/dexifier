@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useRef, useEffect } from "react";
+import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useRef, useEffect, useMemo } from "react";
 import { AssetData, Quote, QuoteResponseV2, SwapStatusResponseV2 } from "@chainflip/sdk/swap";
 import { swapSDK } from "@/lib/utils";
 import { DepositAddressResponseV2 } from "../types/chainflip";
@@ -19,9 +19,20 @@ interface QuoteContextType {
   depositData?: SwapStatusResponseV2,
   setDepositData: Dispatch<SetStateAction<SwapStatusResponseV2 | undefined>>,
   initializeQuote: () => void,
+  state: STATE,
 }
 
 const QuoteContext: React.Context<QuoteContextType | undefined> = createContext<QuoteContextType | undefined>(undefined);
+
+export enum STATE {
+  START = "START",
+  FETCHING = "FETCHING",
+  ROUTE_SET = "ROUTE_SET",
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  FAILED = "FAILED",
+  SUCCESS = "SUCCESS",
+}
 
 export const QuoteProvider = ({ children }: { children: ReactNode }) => {
   const [quoteData, setQuoteData] = useState<QuoteResponseV2>();
@@ -31,8 +42,35 @@ export const QuoteProvider = ({ children }: { children: ReactNode }) => {
   const [srcAsset, setSrcAsset] = useState<AssetData>();
   const [destAsset, setDestAsset] = useState<AssetData>();
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
+
+  const state: STATE = useMemo(() => {
+    if(quoteData) {
+      if (selectedQuote) {
+        if (depositResponse) {
+          if (depositData) {
+            if (depositData.state === "FAILED") {
+              return STATE.FAILED
+            } else if (depositData.state === "COMPLETED") {
+              return STATE.SUCCESS
+            } else {
+              return STATE.PROCESSING
+            }
+          } else {
+            return STATE.PENDING
+          }
+        } else {
+          return STATE.ROUTE_SET
+        }
+      } else {
+        return STATE.FETCHING
+      }
+    } else {
+      return STATE.START
+    }
+  }, [quoteData, selectedQuote, depositResponse, depositData])
   
   const initializeQuote = () => {
+    setQuoteData(undefined)
     setSelectedQuote(undefined)
     setDepositResponse(undefined)
     setDepositData(undefined)
@@ -64,10 +102,14 @@ export const QuoteProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [depositResponse])
 
+  useEffect(() => {
+    return stopConfirming();
+  }, [])
+
   return (
     <QuoteContext.Provider
       value={{
-        quoteData, setQuoteData, selectedQuote, setSelectedQuote, depositData, setDepositData, srcAsset, setSrcAsset, destAsset, setDestAsset, depositResponse, setDepositResponse, initializeQuote,
+        quoteData, setQuoteData, selectedQuote, setSelectedQuote, depositData, setDepositData, srcAsset, setSrcAsset, destAsset, setDestAsset, depositResponse, setDepositResponse, initializeQuote, state,
       }}
     >
       {children}

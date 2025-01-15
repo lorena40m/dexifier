@@ -42,8 +42,9 @@ import TooltipTemplate from "../common/tooltip-template";
 import HistoryModal from "./SettingModal/HistoryModal";
 import { Asset, Chain, QuoteRequest } from "@chainflip/sdk/swap";
 import { formatChainName } from "@/app/utils/chainflip";
-import { useQuote } from "@/app/providers/QuoteProvider";
+import { STATE, useQuote } from "@/app/providers/QuoteProvider";
 import { getQuoteV2 } from "@/app/api/chainflip";
+import { swapSDK } from "@/lib/utils";
 
 const SwapCard: React.FC = () => {
   // Use custom hook to get connected wallet details
@@ -53,7 +54,7 @@ const SwapCard: React.FC = () => {
 
   // Swap state management from the SwapProvider context
   const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, confirmData, setConfirmData, setRouteData, selectedRoute, setSelectedRoute, settings } = useSwap();
-  const { setQuoteData, selectedQuote, setSelectedQuote } = useQuote();
+  const { setQuoteData, selectedQuote, setSelectedQuote, setSrcAsset, setDestAsset, depositData, state } = useQuote();
   const [amountFrom, setAmountFrom] = useState<string>('0');
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
   const [error, setError] = useState<string>();
@@ -117,21 +118,27 @@ const SwapCard: React.FC = () => {
           const srcChain = formatChainName(tokenFrom.blockchain) as Chain;
           const destChain = formatChainName(tokenTo.blockchain) as Chain;
           if (srcChain && destChain) {
-            const quoteRequest: QuoteRequest = {
-              srcChain: srcChain,
-              destChain: destChain,
-              srcAsset: tokenFrom.symbol as Asset,
-              destAsset: tokenTo.symbol as Asset,
-              amount: (parseFloat(amount) * (10 ** tokenFrom.decimals)).toString(),
-              brokerCommissionBps: 100, // 100 basis point = 1%
-              affiliateBrokers: [
-                { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 50 }
-              ],
-            };
-            setQuoteData(await getQuoteV2(quoteRequest));
+            const srcAsset = (await swapSDK.getAssets(srcChain)).find(asset => asset.symbol === tokenFrom.symbol)
+            const destAsset = (await swapSDK.getAssets(destChain)).find(asset => asset.symbol === tokenTo.symbol)
+            if (srcAsset && destAsset) {
+              setSrcAsset(srcAsset);
+              setDestAsset(destAsset);
+              const quoteRequest: QuoteRequest = {
+                srcChain: srcChain,
+                destChain: destChain,
+                srcAsset: tokenFrom.symbol as Asset,
+                destAsset: tokenTo.symbol as Asset,
+                amount: (parseFloat(amount) * (10 ** tokenFrom.decimals)).toString(),
+                brokerCommissionBps: 100, // 100 basis point = 1%
+                affiliateBrokers: [
+                  { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 50 }
+                ],
+              };
+              setQuoteData(await getQuoteV2(quoteRequest));
+            }
+            /** */
+            setRouteData(await getBestMultiRoutes(routeRequest));
           }
-          /** */
-          setRouteData(await getBestMultiRoutes(routeRequest));
         } catch (error) {
           setError(error as string)
         }
@@ -263,17 +270,17 @@ const SwapCard: React.FC = () => {
           </Button>
           :
           isWalletConnected ?
-            pendingSwap ?
-              <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled={pendingSwap.status === "running"} onClick={handleAction}>
-                {pendingSwap.status === "running" && <>Swapping <CustomLoader className="ml-2 !w-[1.875rem] !h-[1.875rem]" /></>}
-                {pendingSwap.status === "failed" && <><Image
+            (pendingSwap || depositData) ?
+              <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled={(pendingSwap?.status === "running" || state === STATE.PROCESSING)} onClick={handleAction}>
+                {(pendingSwap?.status === "running" || state === STATE.PROCESSING) && <>Swapping <CustomLoader className="ml-2 !w-[1.875rem] !h-[1.875rem]" /></>}
+                {(pendingSwap?.status === "failed" || state === STATE.FAILED) && <><Image
                   src={"/assets/icons/reset-icon.png"}
                   width={21.39}
                   height={25}
                   alt="Reset icon"
                   className="me-3"
                 /> Swap again</>}
-                {pendingSwap.status === "success" && <>Swap succeed!</>}
+                {(pendingSwap?.status === "success" || state === STATE.SUCCESS) && <>Swap succeed!</>}
               </Button>
               :
               <ConfirmModal>

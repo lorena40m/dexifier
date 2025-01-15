@@ -171,7 +171,7 @@ const StepState: FC<StepStateProps> = ({ state }) => {
     state && <div className="flex justify-center items-center">
       <div className="px-3.5 py-1 border border-primary text-primary w-fit rounded-full flex items-center gap-x-2.5">
         <div className="flex items-center justify-center gap-x-2.5">
-          {state === "Completed" ?
+          {state === "COMPLETED" ?
             <Image
               src={"/assets/icons/check-filled.png"}
               width={11}
