@@ -41,6 +41,7 @@ import { Asset, Chain, QuoteRequest } from "@chainflip/sdk/swap";
 import { formatChainName } from "@/app/utils/chainflip";
 import { STATE, useQuote } from "@/app/providers/QuoteProvider";
 import { chainflipSDK, rangoSDK } from "@/lib/utils";
+import { TbRefresh } from "react-icons/tb";
 
 const SwapCard: React.FC = () => {
   // Use custom hook to get connected wallet details
@@ -68,8 +69,10 @@ const SwapCard: React.FC = () => {
 
   // Fetch the route for swapping when amountFrom, tokenFrom, or tokenTo changes
   useEffect(() => {
+    setRouteData(undefined);
+    setSelectedRoute(undefined);
     if (parseFloat(amountFrom)) fetchRouteDebounceHandler(amountFrom);
-  }, [tokenFrom, tokenTo, amountFrom]);
+  }, [tokenTo, amountFrom]);
 
   // Update tokenFrom balance whenever tokenFrom changes or wallet balance is updated
   useEffect(() => {
@@ -87,7 +90,7 @@ const SwapCard: React.FC = () => {
         return total + walletBalance;
       }, 0)
     );
-  }, [tokenFrom, connectedWallets]);
+  }, [tokenFrom]);
 
   // Debounced fetch for swap routes
   const fetchRouteDebounceHandler = useMemo(() =>
@@ -224,6 +227,7 @@ const SwapCard: React.FC = () => {
             id="tokenFrom"
             placeholder="Please enter 1-42000000"
             className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
+            min={0}
             value={amountFrom}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setAmountFrom(e.target.value)}
             token={tokenFrom}
@@ -269,13 +273,7 @@ const SwapCard: React.FC = () => {
             (pendingSwap || depositData) ?
               <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled={(pendingSwap?.status === "running" || state === STATE.PROCESSING)} onClick={handleAction}>
                 {(pendingSwap?.status === "running" || state === STATE.PROCESSING) && <>Swapping <CustomLoader className="ml-2 !w-[1.875rem] !h-[1.875rem]" /></>}
-                {(pendingSwap?.status === "failed" || state === STATE.FAILED) && <><Image
-                  src={"/assets/icons/reset-icon.png"}
-                  width={21.39}
-                  height={25}
-                  alt="Reset icon"
-                  className="me-3"
-                /> Swap again</>}
+                {(pendingSwap?.status === "failed" || state === STATE.FAILED) && <><TbRefresh className="xl:size-6 size-5 mr-2" />Swap again</>}
                 {(pendingSwap?.status === "success" || state === STATE.SUCCESS) && <>Swap succeed!</>}
               </Button>
               :

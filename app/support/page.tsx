@@ -29,7 +29,7 @@ export default function SupportPage() {
           >
             <div className="flex basis-full flex-col p-4 sm:basis-1/2 w-[16rem] h-[20rem]">
               <span className="font-semibold text-2xl text-slate-100 text-center pt-4" style={{ wordSpacing: '0.3rem' }}>
-                Support us on {support.name}
+                Get support on {support.name}
               </span>
               <support.icon className="m-auto size-24 text-slate-100/70" />
             </div>

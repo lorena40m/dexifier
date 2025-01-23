@@ -254,9 +254,9 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
           <CurrencyInput
             type="number"
             id="currencyFrom"
-            min={rateData?.minAmount}
+            min={rateData?.minAmount || 0}
             max={rateData?.maxAmount}
-            value={amountFrom}
+            value={parseFloat(amountFrom) || undefined}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setAmountFrom(e.target.value)}
             placeholder={`Please enter ${rateData?.minAmount || 1} - ${rateData?.maxAmount || 42000000}`}
             currency={currencyFrom}

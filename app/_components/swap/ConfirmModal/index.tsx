@@ -23,6 +23,7 @@ import { formatChainName } from '@/app/utils/chainflip';
 import { DepositAddressRequestV2 } from '@chainflip/sdk/swap';
 import { DepositAddressResponseV2 } from '@/app/types/chainflip';
 import { ethers } from 'ethers';
+import { TbRefresh } from "react-icons/tb";
 
 type SwapToken = {
   amount: string,
@@ -303,7 +304,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
               </div>
             }
             <button className="w-[30px] px-1" onClick={confirmWallet}>
-              <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
+              <TbRefresh className="size-6 text-primary" />
             </button>
           </DialogDescription>
         </DialogHeader>

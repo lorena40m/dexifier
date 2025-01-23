@@ -42,7 +42,7 @@ const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
+      <DialogContent className="flex flex-col sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
         <DialogHeader className="flex flex-row justify-between">
           <DialogTitle className="text-2xl">{props.title}</DialogTitle>
           <DialogClose>
