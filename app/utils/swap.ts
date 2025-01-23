@@ -1,8 +1,10 @@
 import type {
   BestRouteRequest,
+  ConfirmRouteResponse,
   MultiRouteSimulationResult,
   SwapResult,
   Token,
+  WalletRequiredAssets,
 } from 'rango-types/mainApi';
 import { ConnectedWallet, PendingSwap, PendingSwapStep } from '@rango-dev/widget-embedded';
 import type { WalletType } from '@rango-dev/wallets-shared';
@@ -444,3 +446,54 @@ export function getWalletsForNewSwap(selectedWallets: Wallet[]) {
 
   return wallets;
 }
+
+// Function to check for validation errors in the confirmation response
+export function confirmHasError(confirmResponse: ConfirmRouteResponse | undefined) {
+  if (!confirmResponse) {
+    return {
+      error: false,
+      message: '',
+    };
+  }
+  if (!confirmResponse.ok) {
+    return {
+      error: true,
+      message: confirmResponse.error,
+    };
+  }
+
+  const validationStatuses = confirmResponse.result?.validationStatus ?? [];
+  const hasError = validationStatuses.some((status) =>
+    status.wallets.some((wallet) =>
+      wallet.requiredAssets.some((asset) => !asset.ok)
+    )
+  );
+
+  // Helper function to format asset amounts
+  const has = (asset: WalletRequiredAssets) => {
+    return `${Number(asset.currentAmount.amount) / Number(10 ** asset.currentAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`;
+  };
+
+  const need = (asset: WalletRequiredAssets) => {
+    return `${Number(asset.requiredAmount.amount) / Number(10 ** asset.requiredAmount.decimals)} ${asset.asset.symbol} [${asset.asset.blockchain}]`;
+  };
+
+  const require = (asset: WalletRequiredAssets) => {
+    const reason = asset.reason === "FEE" && "transaction fee" ||
+      asset.reason === "INPUT_ASSET" && "swap amount" ||
+      asset.reason === "FEE_AND_INPUT_ASSET" && "transaction fee and swap amount";
+    return `${need(asset)} for ${reason}`;
+  };
+
+  // Construct the error message if there are validation issues
+  const errorMessage = hasError ? 'Needed ≈' + validationStatuses[0].wallets[0].requiredAssets.map((asset) => {
+    if (!asset.ok) return require(asset);
+  }).join(' and ') + ' but You have ' + validationStatuses[0].wallets[0].requiredAssets.map((asset) => {
+    if (!asset.ok) return has(asset);
+  }).join(' and ') : '';
+
+  return {
+    error: hasError,
+    message: errorMessage,
+  };
+};

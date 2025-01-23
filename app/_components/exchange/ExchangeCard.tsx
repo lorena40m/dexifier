@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import CurrencyInput from "./CurrencyInput"
 import debounce from "lodash/debounce";
 import { useExchange } from "@/app/providers/ExchangeProvider"
-import { swapSDK, toastError } from "@/lib/utils"
+import { chainflipSDK, toastError } from "@/lib/utils"
 import CustomLoader from "../common/loader"
 import {
   Card,
@@ -106,7 +106,7 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
           quote: selectedQuote,
           destAddress: withdrawalAddress,
         }
-        const depositAddressResponse: DepositAddressResponseV2 = await swapSDK.requestDepositAddressV2(depositAddressRequest)
+        const depositAddressResponse: DepositAddressResponseV2 = await chainflipSDK.requestDepositAddressV2(depositAddressRequest)
         setDepositResponse(depositAddressResponse);
       }
     }
@@ -168,8 +168,8 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
         const srcChain = formatChainName(currencyFrom.network.network) as Chain;
         const destChain = formatChainName(currencyTo.network.network) as Chain;
         if (srcChain && destChain && rateResponse) {
-          const srcAsset = (await swapSDK.getAssets(srcChain)).find(asset => asset.symbol === currencyFrom.code)
-          const destAsset = (await swapSDK.getAssets(destChain)).find(asset => asset.symbol === currencyTo.code)
+          const srcAsset = (await chainflipSDK.getAssets(srcChain)).find(asset => asset.symbol === currencyFrom.code)
+          const destAsset = (await chainflipSDK.getAssets(destChain)).find(asset => asset.symbol === currencyTo.code)
           if (srcAsset && destAsset) {
             setSrcAsset(srcAsset);
             setDestAsset(destAsset);
@@ -185,7 +185,7 @@ const ExchangeCard = forwardRef<HTMLButtonElement, ExchangeCardProps>((props, re
               ],
             };
             try {
-              const quoteResponse = await swapSDK.getQuoteV2(quoteRequest);
+              const quoteResponse = await chainflipSDK.getQuoteV2(quoteRequest);
               const bestQuote = quoteResponse.quotes
                 .reduce((maxQuote, currentQuote) => {
                   const currentEgressAmount = Number(currentQuote.egressAmount);

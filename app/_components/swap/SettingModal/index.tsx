@@ -1,12 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import React, { PropsWithChildren, ReactNode, useState } from "react";
+import React, { PropsWithChildren, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { IoIosArrowForward } from "react-icons/io";
 import { CiCircleInfo } from "react-icons/ci";
 import { Switch } from "@/components/ui/switch";
-import { useSwap } from "@/app/providers/SwapProvider";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { SwapperMeta, SwapperType } from "rango-types/mainApi";
 import SwapperModal from "./SwapperModal";
@@ -17,11 +16,12 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import TooltipTemplate from "../../common/tooltip-template";
+import { useDexifier } from "@/app/providers/DexifireProvider";
 
 const PERCENTAGES = ['0.5', '1', '3']
 
 const SettingModal: React.FC<PropsWithChildren> = ({ children, ...props }) => {
-  const { settings, setSettings } = useSwap();
+  const { settings, setSettings } = useDexifier();
   const { meta } = useWidget();
   const { swappers } = meta;
 

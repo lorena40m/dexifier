@@ -132,7 +132,7 @@ const MainNavbar = () => {
                 {link.text}
               </Link>
             ))}
-            {pathname === '/dex/swap' && (!connectedWallets.length ?
+            {(!connectedWallets.length ?
               <WalletConnectModal>
                 <button className="flex text-[1.075rem] bg-primary rounded-full py-2 px-4 gap-2 items-center justify-center hover:opacity-80">
                   <Image

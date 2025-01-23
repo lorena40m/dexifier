@@ -31,4 +31,15 @@ const axiosExolix = axios.create({
   },
 })
 
-export { axiosRango, axiosExolix }
+// Create axios client for Coingecko
+const axiosCoingecko = axios.create({
+  baseURL: 'https://api.coingecko.com/api/v3',
+  headers: {
+    'Accept': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
+    'x-cg-demo-api-key': process.env.NEXT_PUBLIC_COINGECKO_API_KEY,
+  },
+})
+
+export { axiosRango, axiosExolix, axiosCoingecko }

@@ -22,9 +22,6 @@ import Image from "next/image";
 import CustomLoader from "../common/loader";
 import React, { ChangeEvent, useEffect, useMemo, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  getBestMultiRoutes,
-} from "@/app/api/rango";
 import ConfirmModal from "./ConfirmModal";
 import { useWidget } from "@rango-dev/widget-embedded";
 import WalletConnectModal from "./WalletConnectModal";
@@ -43,8 +40,7 @@ import HistoryModal from "./SettingModal/HistoryModal";
 import { Asset, Chain, QuoteRequest } from "@chainflip/sdk/swap";
 import { formatChainName } from "@/app/utils/chainflip";
 import { STATE, useQuote } from "@/app/providers/QuoteProvider";
-import { getQuoteV2 } from "@/app/api/chainflip";
-import { swapSDK } from "@/lib/utils";
+import { chainflipSDK, rangoSDK } from "@/lib/utils";
 
 const SwapCard: React.FC = () => {
   // Use custom hook to get connected wallet details
@@ -118,8 +114,8 @@ const SwapCard: React.FC = () => {
           const srcChain = formatChainName(tokenFrom.blockchain) as Chain;
           const destChain = formatChainName(tokenTo.blockchain) as Chain;
           if (srcChain && destChain) {
-            const srcAsset = (await swapSDK.getAssets(srcChain)).find(asset => asset.symbol === tokenFrom.symbol)
-            const destAsset = (await swapSDK.getAssets(destChain)).find(asset => asset.symbol === tokenTo.symbol)
+            const srcAsset = (await chainflipSDK.getAssets(srcChain)).find(asset => asset.symbol === tokenFrom.symbol)
+            const destAsset = (await chainflipSDK.getAssets(destChain)).find(asset => asset.symbol === tokenTo.symbol)
             if (srcAsset && destAsset) {
               setSrcAsset(srcAsset);
               setDestAsset(destAsset);
@@ -134,10 +130,10 @@ const SwapCard: React.FC = () => {
                   { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 50 }
                 ],
               };
-              setQuoteData(await getQuoteV2(quoteRequest));
+              setQuoteData(await chainflipSDK.getQuoteV2(quoteRequest));
             }
             /** */
-            setRouteData(await getBestMultiRoutes(routeRequest));
+            setRouteData(await rangoSDK.getAllRoutes(routeRequest));
           }
         } catch (error) {
           setError(error as string)

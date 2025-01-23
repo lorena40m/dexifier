@@ -4,13 +4,13 @@ import Search from "../../common/search";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useSwap } from "@/app/providers/SwapProvider";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { SwapperMeta, SwapperType } from "rango-types/mainApi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import TokenIcon from "../../common/token-icon";
 import { cn } from "@/lib/utils";
+import { useDexifier } from "@/app/providers/DexifireProvider";
 
 interface SwapperModalProps {
   title: string,
@@ -18,7 +18,7 @@ interface SwapperModalProps {
 }
 
 const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children, ...props }) => {
-  const { settings, setSettings } = useSwap();
+  const { settings, setSettings } = useDexifier();
   const { meta } = useWidget();
   const swappers = meta.swappers.filter((swapper: SwapperMeta) => swapper.types.includes(props.type))
   const [filteredSwappers, setFilteredSwappers] = useState<SwapperMeta[]>(swappers);

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useRef, useEffect, useMemo } from "react";
 import { AssetData, Quote, QuoteResponseV2, SwapStatusResponseV2 } from "@chainflip/sdk/swap";
-import { swapSDK } from "@/lib/utils";
+import { chainflipSDK } from "@/lib/utils";
 import { DepositAddressResponseV2 } from "../types/chainflip";
 
 interface QuoteContextType {
@@ -88,7 +88,7 @@ export const QuoteProvider = ({ children }: { children: ReactNode }) => {
 
       confirmIntervalRef.current = setInterval(async () => {
         try {
-          const statusData = await swapSDK.getStatusV2({
+          const statusData = await chainflipSDK.getStatusV2({
             id: depositResponse.depositChannelId
           });
           setDepositData(statusData);

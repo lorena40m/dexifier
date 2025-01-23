@@ -1,6 +1,6 @@
 import { Chain } from "@chainflip/sdk/swap";
 
-const chainsMap: Record<string, Chain> = {
+export const chainsMap: Record<string, Chain> = {
   BTC: "Bitcoin",
   ETH: "Ethereum",
   DOT: "Polkadot",

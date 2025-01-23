@@ -1,3 +1,3 @@
-import { swapSDK } from '@/lib/utils';
+import { chainflipSDK } from '@/lib/utils';
 
-export type DepositAddressResponseV2 = Awaited<ReturnType<typeof swapSDK.requestDepositAddressV2>>;
+export type DepositAddressResponseV2 = Awaited<ReturnType<typeof chainflipSDK.requestDepositAddressV2>>;

@@ -9,7 +9,7 @@ import dynamic from "next/dynamic";
 import "react-toastify/dist/ReactToastify.css";
 
 // Dynamically import DexifierProvider for client-side rendering
-const DexifierProvider = dynamic(() => import("./DexifierProvider"), {
+const DexifierProvider = dynamic(() => import("./providers/DexifireProvider"), {
   ssr: false, // Ensures this component renders only on the client side
 });
 

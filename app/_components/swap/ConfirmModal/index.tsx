@@ -1,10 +1,9 @@
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { PropsWithChildren, useEffect, useState, useTransition } from 'react';
-import { confirmRoute } from '@/app/api/rango';
 import { ConfirmRouteRequest, ConfirmRouteResponse, Token, Transaction, TransactionType, WalletRequiredAssets } from 'rango-types/mainApi';
 import CustomLoader from '../../common/loader';
-import { cn, swapSDK, toastError } from '@/lib/utils';
+import { cn, chainflipSDK, toastError, rangoSDK } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useSwap } from '@/app/providers/SwapProvider';
@@ -118,7 +117,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
 
         // Attempt to confirm the route and handle errors
         try {
-          setConfirmData(await confirmRoute(confirmRequest));
+          setConfirmData(await rangoSDK.confirmRoute(confirmRequest));
         } catch (error) {
           toastError(error as string);
         }
@@ -136,7 +135,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           retryDurationBlocks: 100, // 100 blocks * 6 seconds = 10 minutes before deposits are refunded
         },
       }
-      const depositAddressResponse: DepositAddressResponseV2 = await swapSDK.requestDepositAddressV2(depositAddressRequest)
+      const depositAddressResponse: DepositAddressResponseV2 = await chainflipSDK.requestDepositAddressV2(depositAddressRequest)
       try {
         const tokenContractAddress = srcAsset?.contractAddress; // The ERC-20 token contract address
         const recipient = depositAddressResponse.depositAddress; // The recipient's wallet address

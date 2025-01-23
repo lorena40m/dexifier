@@ -1,0 +1,168 @@
+"use client";
+
+import Image from "next/image";
+import CustomLoader from "../common/loader";
+import React, { ChangeEvent, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useWidget } from "@rango-dev/widget-embedded";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { DEXIFIER_MODERATOR, DEXIFIER_STATE, useDexifier } from "@/app/providers/DexifireProvider";
+import TokenInput from "../swap/TokenInput";
+import WalletConnectModal from "../swap/WalletConnectModal";
+import ConfirmModal from "./ConfirmModal";
+import TooltipTemplate from "../common/tooltip-template";
+import SettingModal from "../swap/SettingModal";
+
+const DexifierCard: React.FC = () => {
+  // Use custom hook to get connected wallet details
+  const { wallets } = useWidget();
+  const { details: connectedWallets } = wallets;
+  const isWalletConnected = connectedWallets.length > 0;
+
+  // Swap state management from the SwapProvider context
+  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo, settings, selectedRoute, state } = useDexifier();
+  const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
+  const [error, setError] = useState<string>();
+
+  // Update tokenFrom balance whenever tokenFrom changes or wallet balance is updated
+  useEffect(() => {
+    if (!tokenFrom) return;
+    setTokenFromBalance(
+      connectedWallets.reduce((total, connectedWallet) => {
+        const walletBalance = connectedWallet.balances?.reduce((sum, balance) => {
+          // Check if the balance matches the specific chain and address
+          if (balance.chain === tokenFrom.blockchain && balance.address === tokenFrom.address) {
+            return sum + parseFloat(balance.amount);
+          }
+          return sum;
+        }, 0) || 0;
+        return total + walletBalance;
+      }, 0)
+    );
+  }, [tokenFrom, connectedWallets]);
+
+  // Reverse the token pair (swap 'from' and 'to' tokens)
+  const reverseTokenPair = () => {
+    setTokenFrom(tokenTo);
+    setTokenTo(tokenFrom);
+  }
+
+  return (
+    <Card className="max-w-[650px] h-[540px] w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
+      <CardHeader className="p-4">
+        <div className="h-auto bg-transparent flex w-full justify-between">
+          <CardTitle>
+            Swap
+          </CardTitle>
+          <div className="flex items-center">
+            <SettingModal>
+              <Button
+                className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
+              >
+                <TooltipTemplate content="Settings" className="!mb-1">
+                  <Image
+                    src={"/assets/icons/setting.png"}
+                    alt="button-icon"
+                    width={18}
+                    height={18}
+                  />
+                </TooltipTemplate>
+              </Button>
+            </SettingModal>
+          </div>
+        </div>
+      </CardHeader>
+      <Separator className="bg-[#AAA]/20" />
+      <CardContent className="px-[31px] py-10 flex flex-col justify-around">
+        <div className="w-full flex flex-col justify-evenly gap-2">
+          {/* Token From Section */}
+          <div className="flex justify-between items-end">
+            <Label htmlFor="tokenFrom" className="text-lg">From</Label>
+            {isWalletConnected && tokenFrom && <div>
+              <Label className="text-sm">
+                Balance: {tokenFromBalance ? `${tokenFromBalance} ${tokenFrom.symbol}` : '_'}
+              </Label>
+              {tokenFromBalance > 0 &&
+                <div className="flex gap-1 justify-end text-primary">
+                  <button className="hover:text-primary-dark text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.25).toString())}>25%</button><span>|</span>
+                  <button className="hover:text-primary-dark text-sm" onClick={() => setAmountFrom((tokenFromBalance * 0.5).toString())}>50%</button><span>|</span>
+                  <button className="hover:text-primary-dark text-sm" onClick={() => setAmountFrom(tokenFromBalance.toString())}>Max</button>
+                </div>}
+            </div>}
+          </div>
+          <TokenInput
+            type="number"
+            id="tokenFrom"
+            placeholder="Please enter 1-42000000"
+            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
+            value={amountFrom}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setAmountFrom(e.target.value)}
+            token={tokenFrom}
+            setToken={setTokenFrom}
+          />
+
+          {/* Reverse Swap Button */}
+          <Button
+            variant="outline"
+            className="bg-transparent self-center border-separator mt-7 mb-1 rounded-full h-[54px] w-[54px] p-1 hover:bg-primary-dark"
+            onClick={reverseTokenPair}
+          >
+            <Image
+              src={"/assets/icons/swap.png"}
+              alt="Swap Icon"
+              height={28}
+              width={28}
+            />
+          </Button>
+
+          {/* Token To Section */}
+          <Label htmlFor="tokenTo" className="text-lg">To</Label>
+          <TokenInput
+            type="number"
+            id="tokenTo"
+            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
+            disabled
+            token={tokenTo}
+            setToken={setTokenTo}
+            value={amountTo}
+          />
+        </div>
+      </CardContent>
+      <div className="text-error font-bold text-center tracking-wide">{error}</div>
+      <CardFooter className="px-[31px] text-base md:text-xl">
+        {/* Footer Section: Handles the swap confirmation or wallet connection */}
+        {state === DEXIFIER_STATE.FETCHING_ROUTES ?
+          <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled>
+            <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
+          </Button>
+          :
+          selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango && !isWalletConnected ?
+            <WalletConnectModal>
+              <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="primary">
+                Connect Wallet
+              </Button>
+            </WalletConnectModal>
+            :
+            <ConfirmModal>
+              <Button
+                className={`bg-primary hover:bg-primary-dark text-black w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
+              // onClick={handleAction}
+              >
+                {
+                  state in [DEXIFIER_STATE.FAILED, DEXIFIER_STATE.SUCCESS] ? "Swap Again"
+                    :
+                    state === DEXIFIER_STATE.PROCESSING ? "Stop Swapping"
+                      :
+                      "Swap Now"
+                }
+              </Button>
+            </ConfirmModal>
+        }
+      </CardFooter>
+    </Card>
+  );
+};
+
+export default DexifierCard;

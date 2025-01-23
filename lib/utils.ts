@@ -1,6 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { toast } from "react-toastify";
 import { twMerge } from "tailwind-merge";
+import { SwapSDK } from "@chainflip/sdk/swap";
+import { RangoClient } from "rango-sdk";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -15,9 +17,7 @@ export const toastSuccess = (text: string) => toast.success(text, toastDetails);
 
 export const toastError = (text: string) => toast.error(text, toastDetails);
 
-import { SwapSDK, SwapSDKOptions } from "@chainflip/sdk/swap";
-
-const options: SwapSDKOptions = {
+export const chainflipSDK = new SwapSDK({
   network: "mainnet",
   backendUrl: "https://chainflip-swap.chainflip.io",
   // network: "perseverance", // Testnet
@@ -29,6 +29,6 @@ const options: SwapSDKOptions = {
   enabledFeatures: {
     dca: true,
   },
-};
+});
 
-export const swapSDK = new SwapSDK(options);
+export const rangoSDK = new RangoClient("30a7dc74-0886-4c5d-bc18-dc04e6280a96")
