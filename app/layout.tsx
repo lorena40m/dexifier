@@ -4,9 +4,13 @@ import MainNavbar from "./_components/navbar/MainNavbar";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
-import { WidgetConfig } from "@rango-dev/widget-embedded";
 import dynamic from "next/dynamic";
 import "react-toastify/dist/ReactToastify.css";
+
+// Dynamically import RangoProvider for client-side rendering
+const RangoProvider = dynamic(() => import("./providers/RangoProvider"), {
+  ssr: false, // Ensures this component renders only on the client side
+});
 
 // Dynamically import DexifierProvider for client-side rendering
 const DexifierProvider = dynamic(() => import("./providers/DexifireProvider"), {
@@ -29,10 +33,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body id="root" className={inter.className}>
-        <DexifierProvider>
-          <MainNavbar />
-          {children}
-        </DexifierProvider>
+        <RangoProvider>
+          <DexifierProvider>
+            <MainNavbar />
+            {children}
+          </DexifierProvider>
+        </RangoProvider>
         <ToastContainer />
       </body>
     </html>

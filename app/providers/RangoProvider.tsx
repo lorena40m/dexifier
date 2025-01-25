@@ -1,9 +1,8 @@
-"use client";
+'use client'
 
-import React, { useEffect } from "react";
+import React from "react";
 import { WidgetProvider, WidgetConfig } from "@rango-dev/widget-embedded";
-import QueueManager from "./providers/QueueManager";
-import { useRouter } from 'next/navigation'
+import QueueManager from "./QueueManager";
 
 const DEXIFIER_CONFIG: WidgetConfig = {
   apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || process.env.NEXT_PUBLIC_RANGO_API_KEY || '',
@@ -21,24 +20,11 @@ const DEXIFIER_CONFIG: WidgetConfig = {
   },
 };
 
-const DexifierProvider = ({
+const RangoProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const router = useRouter()
-  
-  const isMobileDevice = (): boolean => {
-    const userAgent = navigator.userAgent;
-    return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
-  };
-  
-  useEffect(() => {
-    if (isMobileDevice()) {
-      router.replace('/dex/exchange'); // Redirect to /dex/exchange for mobile device
-    }
-  }, []);
-  
   return (
     <WidgetProvider config={DEXIFIER_CONFIG}>
       <QueueManager apiKey={DEXIFIER_CONFIG.apiKey}>
@@ -46,6 +32,6 @@ const DexifierProvider = ({
       </QueueManager>
     </WidgetProvider>
   );
-};
+}
 
-export default DexifierProvider;
+export default RangoProvider

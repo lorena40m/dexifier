@@ -6,18 +6,18 @@
 // (useDexifier) is provided for easier consumption of the context in components.
 
 import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useEffect, useMemo, useRef } from "react";
-import { ConfirmRouteResponse, MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, Token } from "rango-types/mainApi"
+import { ConfirmRouteResponse, MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, Token, Transaction, TransactionType } from "rango-types/mainApi"
 import { Settings } from "../types/rango";
 import { Asset, Quote, QuoteRequest, SwapStatusResponseV2 } from "@chainflip/sdk/swap";
 import { axiosExolix } from "@/lib/axios";
 import { ExTxInfo, RateRequest, RateResponse } from "../types/exolix";
-import { ConnectedWallet, WidgetConfig, WidgetProvider } from "@rango-dev/widget-embedded";
-import QueueManager from "./QueueManager";
+import { ConnectedWallet, useWallets } from "@rango-dev/widget-embedded";
 import { debounce } from "lodash";
 import { chainsMap } from "../utils/chainflip";
 import { DepositAddressResponseV2 } from "../types/chainflip";
 import { chainflipSDK, rangoSDK } from "@/lib/utils";
 import { getTxInfo } from "../api/exolix";
+import { ethers } from 'ethers';
 
 // Define the type for the context
 interface DexifierContextType {
@@ -44,6 +44,11 @@ interface DexifierContextType {
   swapStatus?: SwapStatusResponseV2 | ExTxInfo,
   setSwapStatus: Dispatch<SetStateAction<SwapStatusResponseV2 | ExTxInfo | undefined>>,
   initialize: () => void,
+  stopConfirming: () => void,
+  sendTx: (recipient: string) => Promise<{
+    success: boolean;
+    data: any;
+  } | undefined>,
 }
 
 // Create the context with an initial value
@@ -55,22 +60,6 @@ const DEFAULT_SETTINS: Settings = {
   swappers: [],            // Array of available swap providers
   infiniteApproval: false, // Indicates whether infinite approval is enabled
 }
-
-const DEXIFIER_CONFIG: WidgetConfig = {
-  apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || process.env.NEXT_PUBLIC_RANGO_API_KEY || '',
-  title: 'Dexifier',
-  walletConnectProjectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
-  multiWallets: true,
-  excludeLiquiditySources: true,
-  customDestination: true,
-  trezorManifest: {
-    appUrl: 'https://widget.rango.exchange/',
-    email: 'hi+trezorwidget@rango.exchange',
-  },
-  tonConnect: {
-    manifestUrl: 'https://raw.githubusercontent.com/rango-exchange/assets/refs/heads/main/manifests/tonconnect/manifest.json'
-  },
-};
 
 export enum DEXIFIER_MODERATOR {
   Rango = "Rango",
@@ -105,6 +94,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const [swapData, setSwapData] = useState<DepositAddressResponseV2 | ExTxInfo | ConfirmRouteResponse>();
   const [swapStatus, setSwapStatus] = useState<SwapStatusResponseV2 | ExTxInfo>();
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
+  const { getSigners } = useWallets();
 
   const amountTo = useMemo(() => {
     if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
@@ -185,17 +175,64 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     return allRoutes
   }
 
-  useEffect(() => {
-    if (tokenFrom && tokenTo && amountFrom && parseFloat(amountFrom)) {
+  const debounceFetchRoutes = useMemo(
+    () =>
       debounce(async () => {
-        setState(DEXIFIER_STATE.FETCHING_ROUTES)
-        const allRoutes = await getRoutes(tokenFrom, tokenTo, amountFrom)
-        setRoutes(allRoutes)
-        if (allRoutes.length) setSelectedRoute(allRoutes[0])
-        setState(DEXIFIER_STATE.ROUTES)
-      }, 1000)() // 1s delay
-    }
+        if (tokenFrom && tokenTo && amountFrom && parseFloat(amountFrom)) {
+          setState(DEXIFIER_STATE.FETCHING_ROUTES)
+          const allRoutes = await getRoutes(tokenFrom, tokenTo, amountFrom)
+          setRoutes(allRoutes)
+          if (allRoutes.length) setSelectedRoute(allRoutes[0])
+          setState(DEXIFIER_STATE.ROUTES)
+        } else {
+          setState(DEXIFIER_STATE.START)
+          setRoutes([])
+          setSelectedRoute(undefined)
+        }
+      }, 1000), // 1s delay
+    [tokenFrom, tokenTo, amountFrom]
+  )
+
+  useEffect(() => {
+    debounceFetchRoutes()
+    return () => {
+      debounceFetchRoutes.cancel();
+    };
   }, [tokenFrom, tokenTo, amountFrom])
+
+  const sendTx = async (recipient: string) => {
+    if (walletFrom && typeof walletFrom !== 'string' && tokenFrom && amountFrom) {
+      const tokenContractAddress = tokenFrom.address; // The ERC-20 token contract address
+      const tokenAmount = amountFrom; // Amount of tokens to send (human-readable)
+      const decimals = tokenFrom.decimals; // Token decimals (usually 18 for ERC-20)
+
+      // Encode the transfer function data
+      const erc20Interface = new ethers.Interface([
+        'function transfer(address to, uint256 amount) public returns (bool)',
+      ]);
+      const amountInWei = ethers.parseUnits(tokenAmount, decimals); // Convert amount to smallest unit
+      const data = erc20Interface.encodeFunctionData('transfer', [recipient, amountInWei]);
+
+      const transaction: Transaction = {
+        from: walletFrom.address,
+        to: tokenContractAddress || recipient,
+        type: TransactionType.EVM,
+        blockChain: tokenFrom.blockchain || '',
+        isApprovalTx: true,
+        data: data,
+        value: tokenContractAddress ? null : amountInWei.toString(),
+        nonce: null,
+        gasLimit: null,
+        gasPrice: null,
+        maxPriorityFeePerGas: null,
+        maxFeePerGas: null,
+      };
+
+      return (await getSigners(walletFrom.walletType)).getSigner(TransactionType.EVM).signAndSendTx(transaction, walletFrom.address, null)
+        .then((hash) => ({ success: true, data: hash }))
+        .catch(error => ({ success: false, data: error }))
+    }
+  }
 
   const stopConfirming = () => {
     clearInterval(confirmIntervalRef.current);
@@ -235,34 +272,32 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   }, [swapData])
 
   return (
-    <WidgetProvider config={DEXIFIER_CONFIG}>
-      <QueueManager apiKey={DEXIFIER_CONFIG.apiKey}>
-        <DexifierContext.Provider
-          value={{
-            // tokenFrom, setTokenFrom, tokenTo, setTokenTo, routeData, setRouteData, selectedRoute, setSelectedRoute, confirmData, setConfirmData, settings, setSettings,
-            tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo,
-            settings,
-            setSettings,
-            routes,
-            selectedRoute,
-            setSelectedRoute,
-            state,
-            setState,
-            swapData,
-            setSwapData,
-            swapStatus,
-            setSwapStatus,
-            walletFrom,
-            setWalletFrom,
-            walletTo,
-            setWalletTo,
-            initialize,
-          }}
-        >
-          {children}
-        </DexifierContext.Provider>
-      </QueueManager>
-    </WidgetProvider>
+    <DexifierContext.Provider
+      value={{
+        // tokenFrom, setTokenFrom, tokenTo, setTokenTo, routeData, setRouteData, selectedRoute, setSelectedRoute, confirmData, setConfirmData, settings, setSettings,
+        tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo,
+        settings,
+        setSettings,
+        routes,
+        selectedRoute,
+        setSelectedRoute,
+        state,
+        setState,
+        swapData,
+        setSwapData,
+        swapStatus,
+        setSwapStatus,
+        walletFrom,
+        setWalletFrom,
+        walletTo,
+        setWalletTo,
+        initialize,
+        stopConfirming,
+        sendTx,
+      }}
+    >
+      {children}
+    </DexifierContext.Provider>
   )
 };
 

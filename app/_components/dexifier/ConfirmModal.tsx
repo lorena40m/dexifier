@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { X } from 'lucide-react';
-import { PropsWithChildren, useMemo, useState } from 'react';
-import { ConfirmRouteRequest, MultiRouteSimulationResult, Token, Transaction, TransactionType, WalletRequiredAssets } from 'rango-types/mainApi';
+import { PropsWithChildren, useMemo, useState, useTransition } from 'react';
+import { ConfirmRouteRequest, MultiRouteSimulationResult, Token, Transaction, TransactionType, WalletRequiredAssets, ConfirmRouteResponse } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
 import { chainflipSDK, cn, rangoSDK, toastError } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -48,6 +48,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { details: connectedWallets } = wallets; // Extract connected wallet details
   const { list } = useWalletList(); // Fetch the list of supported wallets
   const { selectedRoute, tokenFrom, tokenTo, amountFrom, walletFrom, setWalletFrom, walletTo, setWalletTo, setSwapData, settings, setState } = useDexifier();
+  const [isInitializingSwap, initializeSwap] = useTransition();
 
   // State hooks for managing the modal, wallets, and withdrawal address input
   const [open, setOpen] = useState<boolean>(false);
@@ -123,132 +124,98 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
     }
   }
 
-  const sendTx = async (wallet: ConnectedWallet, token: Token, amount: string, recipient: string, chain?: string) => {
-    try {
-      const tokenContractAddress = token.address; // The ERC-20 token contract address
-      const tokenAmount = amount; // Amount of tokens to send (human-readable)
-      const decimals = token.decimals; // Token decimals (usually 18 for ERC-20)
-
-      // Encode the transfer function data
-      const erc20Interface = new ethers.Interface([
-        'function transfer(address to, uint256 amount) public returns (bool)',
-      ]);
-      const amountInWei = ethers.parseUnits(tokenAmount, decimals); // Convert amount to smallest unit
-      const data = erc20Interface.encodeFunctionData('transfer', [recipient, amountInWei]);
-
-      const transaction: Transaction = {
-        from: wallet.address,
-        to: tokenContractAddress || recipient,
-        type: TransactionType.EVM,
-        blockChain: chain || '',
-        isApprovalTx: true,
-        data: data,
-        value: tokenContractAddress ? null : amountInWei.toString(),
-        nonce: null,
-        gasLimit: null,
-        gasPrice: null,
-        maxPriorityFeePerGas: null,
-        maxFeePerGas: null,
-      };
-
-      (await getSigners(wallet.walletType)).getSigner(TransactionType.EVM).signAndSendTx(transaction, wallet.address, null)
-        .catch(error => {
-          toastError(error.root)
-        })
-      setOpen(false);  // Close the modal after confirming the swap
-    } catch (error) { }
-  }
-
   const confirmSwap = async () => {
-    if (!walletFrom || !walletTo || !tokenFrom || !tokenTo || !amountFrom) return
-    if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Chainflip) {
-      const depositAddressRequest: DepositAddressRequestV2 = {
-        quote: selectedRoute as Quote,
-        destAddress: typeof walletTo === 'string' ? walletTo : (walletTo as ConnectedWallet).address,
-      }
-      const depositAddressResponse: DepositAddressResponseV2 = await chainflipSDK.requestDepositAddressV2(depositAddressRequest)
-      setSwapData(depositAddressResponse);
-      if (typeof walletFrom === 'string') return
-      sendTx(walletFrom, tokenFrom, amountFrom, depositAddressResponse.depositAddress, swapInfo?.from.blockchain)
-    }
-    if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Exolix) {
-      if (!tokenFrom || !tokenTo || !amountFrom) return
-      const txRequest: TxRequest = {
-        coinFrom: tokenFrom.symbol,
-        networkFrom: tokenFrom.blockchain,
-        coinTo: tokenTo.symbol,
-        networkTo: tokenTo.blockchain,
-        amount: parseFloat(amountFrom),
-        withdrawalAddress: typeof walletTo === 'string' ? walletTo : (walletTo as ConnectedWallet).address,
-        rateType: 'float',
-      }
-      try {
-        const txResponse = await createTransaction(txRequest);
-        setSwapData(txResponse)
-        if (typeof walletFrom === 'string') return
-        sendTx(walletFrom, tokenFrom, amountFrom, txResponse.depositAddress, swapInfo?.from.blockchain)
-      } catch (error: any) {
-        if (error.response.data.error) {
-          toastError(error.response.data.error)
+    if (!walletFrom || !walletTo || !tokenFrom || !tokenTo || !amountFrom || (walletTo === 'custom' && !withdrawalAddress)) return
+    initializeSwap(async () => {
+      if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Chainflip) {
+        const depositAddressRequest: DepositAddressRequestV2 = {
+          quote: selectedRoute as Quote,
+          destAddress: walletTo === 'custom' ? withdrawalAddress! : (walletTo as ConnectedWallet).address,
+        }
+        try {
+          const depositAddressResponse: DepositAddressResponseV2 = await chainflipSDK.requestDepositAddressV2(depositAddressRequest)
+          setSwapData(depositAddressResponse)
+        } catch (error) {
+          console.error(error)
         }
       }
-    }
-    if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
-      // Perform the confirmation when ready
-      const selectedWallets = [walletFrom, walletTo]
-        .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
-        .reduce<{ [key: string]: string }>((acc, wallet) => {
-          acc[wallet.chain] = wallet.address;
-          return acc;
-        }, {});
-
-      // Prepare request for confirming the route
-      const confirmRequest: ConfirmRouteRequest = {
-        requestId: (selectedRoute as MultiRouteSimulationResult).requestId,
-        selectedWallets: selectedWallets,
-        destination: typeof walletTo === 'string' ? walletTo : (walletTo as ConnectedWallet).address,
-      };
-
-      // Attempt to confirm the route and handle errors
-      try {
-        const confirmData = await rangoSDK.confirmRoute(confirmRequest);
-        if (confirmData && manager) {
-          setSwapData(confirmData);
-          const confirmSwapResult = confirmData.result;
-
-          if (!(confirmSwapResult && (confirmSwapResult as any).result)) return;
-
-          const selectedWallets = [walletFrom, walletTo]
-            .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
-            .map((wallet) => {
-              const _wallet: Wallet = wallet as Wallet;
-              return _wallet;
-            });
-
-          // Calculate the pending swap
-          const swap = calculatePendingSwap(
-            confirmSwapResult.requestAmount,
-            confirmSwapResult,
-            getWalletsForNewSwap(selectedWallets),
-            settings,
-            confirmHasError(confirmData).error,
-            { blockchains, tokens },
-          );
-
-          // Create the swap request via the manager
-          await manager.create(
-            "swap",
-            { swapDetails: swap },
-            { id: swap.requestId }
-          );
-
-          setOpen(false);  // Close the modal after confirming the swap
+      if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Exolix) {
+        const txRequest: TxRequest = {
+          coinFrom: tokenFrom.symbol,
+          networkFrom: tokenFrom.blockchain,
+          coinTo: tokenTo.symbol,
+          networkTo: tokenTo.blockchain,
+          amount: parseFloat(amountFrom),
+          withdrawalAddress: walletTo === 'custom' ? withdrawalAddress! : (walletTo as ConnectedWallet).address,
+          rateType: 'float',
         }
-      } catch (error) {
-        toastError(error as string);
+        try {
+          const txResponse = await createTransaction(txRequest);
+          setSwapData(txResponse)
+        } catch (error: any) {
+          if (error.response.data.error) {
+            toastError(error.response.data.error)
+          }
+        }
       }
-    }
-    setState(DEXIFIER_STATE.PENDING)
+      if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
+        // Perform the confirmation when ready
+        const selectedWallets = [walletFrom, walletTo]
+          .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
+          .reduce<{ [key: string]: string }>((acc, wallet) => {
+            acc[wallet.chain] = wallet.address;
+            return acc;
+          }, {});
+
+        // Prepare request for confirming the route
+        const confirmRequest: ConfirmRouteRequest = {
+          requestId: (selectedRoute as MultiRouteSimulationResult).requestId,
+          selectedWallets: selectedWallets,
+          destination: typeof walletTo === 'string' ? walletTo : (walletTo as ConnectedWallet).address,
+        };
+
+        // Attempt to confirm the route and handle errors
+        try {
+          const confirmData: ConfirmRouteResponse = await rangoSDK.confirmRoute(confirmRequest);
+          if (confirmData && manager) {
+            setSwapData(confirmData);
+            const confirmSwapResult = confirmData.result;
+
+            if (!(confirmSwapResult && confirmSwapResult.result)) {
+              throw Error(confirmData.error || '')
+            }
+
+            const selectedWallets = [walletFrom, walletTo]
+              .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
+              .map((wallet) => {
+                const _wallet: Wallet = wallet as Wallet;
+                return _wallet;
+              });
+
+            // Calculate the pending swap
+            const swap = calculatePendingSwap(
+              confirmSwapResult.requestAmount,
+              confirmSwapResult,
+              getWalletsForNewSwap(selectedWallets),
+              settings,
+              confirmHasError(confirmData).error,
+              { blockchains, tokens },
+            );
+
+            // Create the swap request via the manager
+            await manager.create(
+              "swap",
+              { swapDetails: swap },
+              { id: swap.requestId }
+            );
+          }
+        } catch (error) {
+          toastError(error as string);
+        }
+      }
+      setOpen(false);  // Close the modal after confirming the swap
+      setState(DEXIFIER_STATE.PROCESSING)
+    })
   }
 
   return (
@@ -309,21 +276,21 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                 >
                   {index ?
                     <RadioGroupPrimitive.Item
-                      className='w-full h-12 rounded-md flex items-center px-2 border data-[state=unchecked]:opacity-40 data-[state=unchecked]:hover:opacity-100 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary'
+                      className={cn('w-full h-12 rounded-md flex items-center p-0 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary')}
                       value={'custom'}
                     >
-
-                      <div id="withdrawal" className={`flex w-full items-center justify-between`}>
+                      <div id="withdrawal" className={`relative flex size-full items-center justify-between`}>
                         <Input
                           type='text'
                           placeholder='Enter recipient address'
-                          className="text-md placeholder:text-white/50 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="text-md size-full placeholder:text-white/50 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-16"
                           value={withdrawalAddress}
                           onChange={(e) => setWithdrawalAddress(e.target.value)}
                           required
+                          onFocus={() => setWalletTo('custom')}
                         />
                         <RadioGroupPrimitive.Indicator
-                          className="border border-primary text-primary rounded-lg p-1 text-xs h-full bg-transparent uppercase"
+                          className="absolute right-2 h-8 content-center border border-primary text-primary rounded-lg p-1 text-xs bg-transparent uppercase"
                           onClick={pasteWithdrawalAddressFromClipboard}
                         >
                           paste
@@ -332,7 +299,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                     </RadioGroupPrimitive.Item>
                     :
                     selectedRoute?.moderator !== DEXIFIER_MODERATOR.Rango && <RadioGroupPrimitive.Item
-                      className='w-full h-12 rounded-md flex items-center px-2 border data-[state=unchecked]:opacity-40 data-[state=unchecked]:hover:opacity-100 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary'
+                      className='w-full h-12 rounded-md flex items-center px-2 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary'
                       value={'no'}
                     >
                       <span className="flex items-center justify-center">
@@ -343,20 +310,22 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                   {/* Map over }the connected wallets and display each wallet */}
                   {connectedWallets.filter((wallet) => wallet.chain === chain).map((wallet: ConnectedWallet, index: number) => (
                     <RadioGroupPrimitive.Item
-                      className='w-full h-12 rounded-md flex items-center justify-between px-2 border data-[state=unchecked]:opacity-40 data-[state=unchecked]:hover:opacity-100 data-[state=checked]:border-primary'
+                      className='max-w-full relative overflow-hidden h-12 rounded-md flex items-center justify-between px-2 border data-[state=unchecked]:opacity-40 data-[state=checked]:border-primary transition-all duration-300'
                       value={wallet.walletType}
                       id={wallet.walletType}
                       key={index}
                     >
-                      <TokenIcon
-                        token={{
-                          image: list.find(detail => detail.type === wallet.walletType)?.image,
-                          alt: wallet.walletType,
-                          className: "size-8",
-                        }}
-                      />
-                      <span className="flex items-center justify-center text-sm">{wallet.address}</span> {/* Display abbreviated wallet address */}
-                      <div className='size-4 place-items-center'>
+                      <div className='flex items-center gap-2 pr-6 w-full'>
+                        <TokenIcon
+                          token={{
+                            image: list.find(detail => detail.type === wallet.walletType)?.image,
+                            alt: wallet.walletType,
+                            className: "size-8",
+                          }}
+                        />
+                        <span className="text-sm truncate">{wallet.address}</span> {/* Display abbreviated wallet address */}
+                      </div>
+                      <div className='absolute right-2 size-4 place-items-center'>
                         <ButtonCopyIcon text={wallet.address} /> {/* Copy button for wallet address */}
                       </div>
                     </RadioGroupPrimitive.Item>
@@ -375,12 +344,16 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           </div>
         </div>
         {/* <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message}</div> */}
-        <Button variant={"primary"}
+        <Button variant={isInitializingSwap ? "outline" : "primary"}
           onClick={confirmSwap}
           className="mx-auto h-12 w-48"
+          disabled={isInitializingSwap || !walletFrom || !walletTo || (walletTo === 'custom' && !withdrawalAddress)}
         >
-          {/* <CustomLoader className='!size-8' /> */}
-          Confirm
+          {isInitializingSwap ?
+            <CustomLoader className='!size-8' />
+            :
+            'Confirm'
+          }
         </Button>
       </DialogContent>
     </Dialog>

@@ -7,17 +7,18 @@ import { BlockchainMeta, MultiRouteSimulationResult, RouteTag, SwapResult, Token
 import TokenIcon from "../common/token-icon";
 import { Quote } from "@chainflip/sdk/swap";
 import { formatChainName } from "@/app/utils/chainflip";
-import { useDexifier } from "@/app/providers/DexifireProvider";
+import { DEXIFIER_STATE, useDexifier } from "@/app/providers/DexifireProvider";
 import { RateResponse } from "@/app/types/exolix";
 import { RadioGroup } from "@/components/ui/radio-group";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const RouteCard = () => {
   const { meta } = useWidget();  // Getting metadata
   const { tokens, blockchains } = meta;  // Extracting tokens & blockchains from the metadata
 
-  const { routes, setSelectedRoute, tokenFrom, tokenTo } = useDexifier();
+  const { routes, setSelectedRoute, tokenFrom, tokenTo, state } = useDexifier();
 
   // Helper function to render a single node with logo, symbol, and amount
   const singleNodeTemplate = (logo: string, symbol: string, amount: string, blockchainLogo?: string) => (
@@ -168,7 +169,7 @@ const RouteCard = () => {
   }
 
   return (
-    <Card className="max-w-[650px] h-[540px] flex flex-col w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
+    <Card className="max-w-[650px] h-full flex flex-col w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
       <CardHeader className="p-4">
         <div className="h-auto bg-transparent flex w-full justify-between">
           <CardTitle>
@@ -179,29 +180,59 @@ const RouteCard = () => {
         </div>
       </CardHeader>
       <CardContent className="overflow-y-auto p-0 pe-1">
-        <RadioGroup
-          defaultValue="0"
-          onValueChange={(value) => setSelectedRoute(routes[parseInt(value)])}
-          className="w-full h-full"
-        >
-          {routes.map((route, index) => {
-            return (
-              <RadioGroupPrimitive.Item value={index.toString()} id={index.toString()} key={index}
-                className='w-full rounded-lg border border-white/20 data-[state=checked]:border-primary p-4 bg-primary/5'
-              >
-                {
-                  route.moderator === "Rango" ? rangoRoute(route as MultiRouteSimulationResult)
-                    :
-                    route.moderator === "Chainflip" ? chainflipRoute(route as Quote)
+        {state === DEXIFIER_STATE.FETCHING_ROUTES ?
+          [0, 1].map((val) =>
+            <Skeleton className="h-[170px] w-full rounded-lg p-4 mb-2" key={val}>
+              <div className="flex gap-2">
+                <div className="flex flex-col items-center gap-2 w-12">
+                  <Skeleton className="size-12 rounded-full" />
+                  <Skeleton className="w-10 h-2 rounded-md" />
+                  <Skeleton className="w-10 h-2 rounded-md" />
+                </div>
+                <div>
+                  <div className="h-12 flex items-center">
+                    <Skeleton className="h-2 w-12 rounded-md" />
+                  </div>
+                  <div className="flex flex-col items-center gap-2 w-12 ml-6">
+                    <Skeleton className="size-12 rounded-full" />
+                    <Skeleton className="w-10 h-2 rounded-md" />
+                    <Skeleton className="w-10 h-2 rounded-md" />
+                  </div>
+                </div>
+                <Skeleton className="h-12 w-2 rounded-md mt-6" />
+                <div className="flex flex-col items-center gap-2 w-12" >
+                  <Skeleton className="size-12 rounded-full" />
+                  <Skeleton className="w-10 h-2 rounded-md" />
+                  <Skeleton className="w-10 h-2 rounded-md" />
+                </div>
+              </div>
+            </Skeleton>
+          )
+          :
+          <RadioGroup
+            defaultValue="0"
+            onValueChange={(value) => setSelectedRoute(routes[parseInt(value)])}
+            className="w-full h-full"
+          >
+            {routes.map((route, index) => {
+              return (
+                <RadioGroupPrimitive.Item value={index.toString()} id={index.toString()} key={index}
+                  className='w-full rounded-lg border border-white/20 data-[state=checked]:border-primary p-4 bg-primary/5 bg-opacity-50 transition duration-300 ease-out hover:bg-transparent'
+                >
+                  {
+                    route.moderator === "Rango" ? rangoRoute(route as MultiRouteSimulationResult)
                       :
-                      route.moderator === "Exolix" ? exolixRoute(route as RateResponse)
+                      route.moderator === "Chainflip" ? chainflipRoute(route as Quote)
                         :
-                        <></>
-                }
-              </RadioGroupPrimitive.Item>
-            )
-          })}
-        </RadioGroup>
+                        route.moderator === "Exolix" ? exolixRoute(route as RateResponse)
+                          :
+                          <></>
+                  }
+                </RadioGroupPrimitive.Item>
+              )
+            })}
+          </RadioGroup>
+        }
       </CardContent>
     </Card>
   );

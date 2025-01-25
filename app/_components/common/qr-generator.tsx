@@ -3,67 +3,44 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import QRCode from 'qrcode';
 import TooltipTemplate from './tooltip-template';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RiQrScan2Line } from "react-icons/ri";
 
 interface QrCodeGeneratorProps {
   text: string;
 }
 
 const QrCodeGenerator: React.FC<QrCodeGeneratorProps> = ({ text }) => {
-  const [isVisible, setIsVisible] = useState(false); // State to manage QR code visibility
+  const [open, setOpen] = useState(false); // State to manage QR code visibility
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Toggle the visibility of the QR code
-  const toggleQRCode = () => {
-    setIsVisible((prev) => !prev);
-  };
-
-  // Generate the QR code when the visibility changes to true
+  // Generate the QR code when the data is changed
   useEffect(() => {
-    if (isVisible && canvasRef.current) {
+    if (canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, text, (error) => {
         if (error) console.error(error);
       });
     }
-  }, [isVisible, text]);
-
-  // Hide QR code when clicked outside
-  const handleClickOutside = (event: MouseEvent) => {
-    if (canvasRef.current && !canvasRef.current.contains(event.target as Node)) {
-      setIsVisible(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isVisible) {
-      document.addEventListener('click', handleClickOutside);
-    } else {
-      document.removeEventListener('click', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [isVisible]);
+  }, [text, canvasRef.current]);
 
   return (
-    <div className='relative h-[18px] md:block hidden'>
-
-      <div className={`absolute bottom-[30px] right-[20px] ${isVisible ? "flex" : "hidden"}`}>
+    <Popover open={open} onOpenChange={(value) => setOpen(value)}>
+      <TooltipTemplate content={"QR Code"}>
+        <PopoverTrigger asChild>
+          <button>
+            <RiQrScan2Line size={20} className={open ? 'text-primary' : 'white'} />
+          </button>
+        </PopoverTrigger>
+      </TooltipTemplate>
+      <PopoverContent className="size-40 flex items-center justify-center">
         <div className='relative'>
-          <div className='absolute top-[55px] right-[55px] rounded-full bg-black p-1'>
+          <div className='absolute top-[calc(50%-19px)] left-[calc(50%-19px)] rounded-full bg-black p-1'>
             <Image src={"/assets/icons/logo-qr.png"} width={30} height={30} alt='logo-qr' />
           </div>
           <canvas ref={canvasRef} />
         </div>
-
-      </div>
-      <TooltipTemplate content={"QR Code"}>
-        <button onClick={toggleQRCode}>
-          {isVisible ? <Image src={"/assets/icons/qr-green.png"} width={18} height={18} alt={"qr-green"} /> : <Image src={"/assets/icons/qr.png"} width={18} height={18} alt={"qr"} />}
-        </button>
-      </TooltipTemplate>
-
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

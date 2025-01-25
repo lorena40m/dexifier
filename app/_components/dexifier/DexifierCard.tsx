@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import CustomLoader from "../common/loader";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { DEXIFIER_MODERATOR, DEXIFIER_STATE, useDexifier } from "@/app/providers/DexifireProvider";
+import { DEXIFIER_MODERATOR, useDexifier } from "@/app/providers/DexifireProvider";
 import TokenInput from "../swap/TokenInput";
 import WalletConnectModal from "../swap/WalletConnectModal";
 import ConfirmModal from "./ConfirmModal";
@@ -22,9 +21,8 @@ const DexifierCard: React.FC = () => {
   const isWalletConnected = connectedWallets.length > 0;
 
   // Swap state management from the SwapProvider context
-  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo, settings, selectedRoute, state } = useDexifier();
+  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo, selectedRoute, swapData } = useDexifier();
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
-  const [error, setError] = useState<string>();
 
   // Update tokenFrom balance whenever tokenFrom changes or wallet balance is updated
   useEffect(() => {
@@ -50,28 +48,24 @@ const DexifierCard: React.FC = () => {
   }
 
   return (
-    <Card className="max-w-[650px] h-[540px] w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
+    <Card className="max-w-[650px] h-full w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
       <CardHeader className="p-4">
-        <div className="h-auto bg-transparent flex w-full justify-between">
+        <div className="h-auto bg-transparent flex w-full justify-between items-center">
           <CardTitle>
             Swap
           </CardTitle>
-          <div className="flex items-center">
-            <SettingModal>
-              <Button
-                className="px-2 disabled:cursor-not-allowed bg-transparent hover:bg-transparent"
-              >
-                <TooltipTemplate content="Settings" className="!mb-1">
-                  <Image
-                    src={"/assets/icons/setting.png"}
-                    alt="button-icon"
-                    width={18}
-                    height={18}
-                  />
-                </TooltipTemplate>
-              </Button>
-            </SettingModal>
-          </div>
+          <SettingModal>
+            <Button className="bg-transparent hover:bg-transparent">
+              <TooltipTemplate content="Settings" className="!mb-1">
+                <Image
+                  src={"/assets/icons/setting.png"}
+                  alt="button-icon"
+                  width={18}
+                  height={18}
+                />
+              </TooltipTemplate>
+            </Button>
+          </SettingModal>
         </div>
       </CardHeader>
       <Separator className="bg-[#AAA]/20" />
@@ -98,7 +92,10 @@ const DexifierCard: React.FC = () => {
             placeholder="Please enter 1-42000000"
             className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
             value={amountFrom}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setAmountFrom(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              e.target.value = parseFloat(e.target.value).toString()
+              setAmountFrom(e.target.value)
+            }}
             token={tokenFrom}
             setToken={setTokenFrom}
           />
@@ -130,35 +127,23 @@ const DexifierCard: React.FC = () => {
           />
         </div>
       </CardContent>
-      <div className="text-error font-bold text-center tracking-wide">{error}</div>
-      <CardFooter className="px-[31px] text-base md:text-xl">
+      <CardFooter className="text-base md:text-xl p-0">
         {/* Footer Section: Handles the swap confirmation or wallet connection */}
-        {state === DEXIFIER_STATE.FETCHING_ROUTES ?
-          <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="outline" disabled>
-            <CustomLoader className="!w-[1.875rem] !h-[1.875rem]" />
-          </Button>
+        {selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango && !isWalletConnected ?
+          <WalletConnectModal>
+            <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="primary">
+              Connect Wallet
+            </Button>
+          </WalletConnectModal>
           :
-          selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango && !isWalletConnected ?
-            <WalletConnectModal>
-              <Button className="h-[50px] w-3/4 lg:w-[67%] mx-auto" variant="primary">
-                Connect Wallet
-              </Button>
-            </WalletConnectModal>
-            :
-            <ConfirmModal>
-              <Button
-                className={`bg-primary hover:bg-primary-dark text-black w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition-colors duration-300`}
-              // onClick={handleAction}
-              >
-                {
-                  state in [DEXIFIER_STATE.FAILED, DEXIFIER_STATE.SUCCESS] ? "Swap Again"
-                    :
-                    state === DEXIFIER_STATE.PROCESSING ? "Stop Swapping"
-                      :
-                      "Swap Now"
-                }
-              </Button>
-            </ConfirmModal>
+          <ConfirmModal>
+            <Button
+              className={`bg-primary hover:bg-primary-dark text-black w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition duration-300 ease-out`}
+              disabled={!selectedRoute || !!swapData}
+            >
+              Swap Now
+            </Button>
+          </ConfirmModal>
         }
       </CardFooter>
     </Card>
