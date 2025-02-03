@@ -13,12 +13,13 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const RouteCard = () => {
   const { meta } = useWidget();  // Getting metadata
   const { tokens, blockchains } = meta;  // Extracting tokens & blockchains from the metadata
 
-  const { routes, setSelectedRoute, tokenFrom, tokenTo, state } = useDexifier();
+  const { routes, setSelectedRoute, tokenFrom, tokenTo, state, isMobile } = useDexifier();
 
   // Helper function to render a single node with logo, symbol, and amount
   const singleNodeTemplate = (logo: string, symbol: string, amount: string, blockchainLogo?: string) => (
@@ -169,7 +170,7 @@ const RouteCard = () => {
   }
 
   return (
-    <Card className="max-w-[650px] h-full flex flex-col w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
+    <Card className={cn("h-full flex flex-col w-full border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white", isMobile ? "bg-primary/10 p-5" : "max-w-[650px] bg-modal/5 p-6 border")}>
       <CardHeader className="p-4">
         <div className="h-auto bg-transparent flex w-full justify-between">
           <CardTitle>

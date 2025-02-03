@@ -40,7 +40,7 @@ type ChainflipData = {
 
 const DexifierDetailChainflip = () => {
   const { swapStatus, selectedRoute } = useDexifier() as ChainflipData;
-  const { walletFrom, initialize, sendTx, stopConfirming } = useDexifier();
+  const { walletFrom, initialize, sendTx, stopConfirming, isMobile } = useDexifier();
   const isFinished = useMemo(() => swapStatus && swapStatus.state === "SENT", [swapStatus])
   const isFailed = useMemo(() => swapStatus && swapStatus.state === "FAILED", [swapStatus])
 
@@ -79,20 +79,26 @@ const DexifierDetailChainflip = () => {
 
   }
 
+  const handleCancel = () => {
+    
+  }
+
   return (
-    <Card className="max-w-[650px] min-h-[540px] w-full h-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-2 rounded-[2rem] shadow-lg text-white">
-      <CardHeader className="flex flex-row justify-between items-center">
-        <h1 className="text-2xl">Swap Details</h1>
+    <Card className={cn("w-full h-full border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white", 
+      isMobile ? "bg-primary/10 p-5" : "max-w-[650px] min-h-[540px] bg-modal/5")}>
+      <CardHeader className={cn("flex flex-row justify-between items-center", isMobile && "py-4 px-0")}>
+        <h1 className={cn(isMobile ? "text-xl" : "text-2xl")}>Swap Details</h1>
       </CardHeader>
-      <CardContent className="overflow-auto h-[380px] px-6">
+      <CardContent className={cn("flex flex-col", isMobile ? "px-0" : "overflow-auto h-[380px] px-6")}>
         {swapStatus ?
           <>
             {(typeof walletFrom === 'string') &&
               <div className="w-full mb-4">
-                <span className="text-lg font-semibold">Deposit Address:</span>
+                <span className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>Deposit Address:</span>
                 <div id="deposit" className={`relative flex max-w-full overflow-hidden justify-between items-center p-3 shadow-md max-h-[3.3125rem] bg-transparent`}>
                   <CopyText text={depositAddress} className="flex max-w-full">
-                    <span className="w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate">
+                    <span className={cn("w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate", 
+                      isMobile ? "text-xs" : "text-base")}>
                       {depositAddress}
                     </span>
                   </CopyText>
@@ -104,15 +110,16 @@ const DexifierDetailChainflip = () => {
             }
 
             <div className="w-full mb-4">
-              <span className="text-lg font-semibold">Withdrawal Address:</span>
+              <span className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>Withdrawal Address:</span>
               <div id="withdraw" className={`relative flex max-w-full overflow-hidden p-3 shadow-md max-h-[3.3125rem] bg-transparent`}>
-                <span className="w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate">
+                <span className={cn("w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate", 
+                  isMobile ? "text-xs" : "text-base")}>
                   {swapStatus.destAddress}
                 </span>
               </div>
             </div>
 
-            {selectedRoute && <div className="mb-7 flex flex-col items-center text-xs">
+            {selectedRoute && <div className={cn("flex flex-col items-center text-xs", isMobile && "mt-4")}>
               <div className="flex gap-1">
                 <SwapToken
                   asset={swapStatus.srcAsset}
@@ -145,17 +152,17 @@ const DexifierDetailChainflip = () => {
                 />
               </div>
               <div className="w-full mt-4">
-                <span className="text-lg font-semibold">Swap Steps:</span>
+                <span className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>Swap Steps:</span>
               </div>
-              <div className="mt-4 flex items-center gap-1">
+              <div className={cn("mt-4 flex gap-1 max-w-full", !isMobile && "items-center")}>
                 <SwapToken
                   asset={swapStatus.srcAsset}
                   chain={swapStatus.srcChain}
                   amount={selectedRoute.depositAmount}
                   variant={`primary`}
-                  className="flex justify-center gap-2"
+                  className={cn("flex justify-center gap-2", isMobile ? "flex-col w-1/4" : "flex-row")}
                 />
-                <div className="relative border-t border-dashed w-full min-w-24 h-[1px] flex-grow" >
+                <div className={cn("relative border-t border-dashed w-full min-w-24 h-[1px]", isMobile && "pt-4 top-4 flex flex-col items-center")} >
                   <div className="absolute w-full -top-2 flex justify-center">
                     <TooltipTemplate content={`Chainflip`}>
                       <TokenIcon
@@ -163,17 +170,20 @@ const DexifierDetailChainflip = () => {
                       />
                     </TooltipTemplate>
                   </div>
+                  {isMobile && <div className="text-white/50 ml-2 col-span-2">
+                    <StepState {...message} />
+                  </div>}
                 </div>
                 <SwapToken
                   asset={swapStatus.destAsset}
                   chain={swapStatus.destChain}
                   amount={selectedRoute.egressAmount}
                   variant={`primary`}
-                  className="flex justify-center gap-2"
+                  className={cn("flex justify-center gap-2", isMobile ? "flex-col w-1/4" : "flex-row")}
                 />
-                <div className="text-white/50 ml-2 col-span-2">
+                {!isMobile && <div className="text-white/50 ml-2 col-span-2">
                   <StepState {...message} />
-                </div>
+                </div>}
               </div>
               <div className="flex items-center justify-center p-3 text-sm">
                 <span className={cn(message.color, 'text-center first-letter:uppercase')}>{message.content}</span>
@@ -199,18 +209,17 @@ const DexifierDetailChainflip = () => {
           </div>
         }
       </CardContent>
-      <CardFooter>
+      <CardFooter className="p-0">
         <Button
-          className={cn('h-12 mx-auto')}
+          className={cn('mx-auto', isMobile ? "text-sm h-10" : "text-base h-12")}
           variant="outline"
           onClick={isFailed ? handleRetry
-            :
-            isFinished ? initialize
-              :
-              initialize
-          }
+            : isFinished ? initialize
+              : handleCancel}
         >
-          Cancel
+          {isFailed ? 'Retry'
+            : isFinished ? 'Return'
+              : 'Cancel'}
         </Button>
       </CardFooter>
     </Card>

@@ -37,7 +37,7 @@ type ExolixData = {
 
 const DexifierDetailExolix = () => {
   const { swapStatus } = useDexifier() as ExolixData;
-  const { tokenFrom, tokenTo, sendTx, stopConfirming, walletFrom } = useDexifier();
+  const { tokenFrom, tokenTo, sendTx, stopConfirming, walletFrom, isMobile } = useDexifier();
   const { initialize } = useDexifier();
   const [message, setMessage] = useState<StepStateProps>({ state: 'wait', color: 'text-white/50' });
   const isFinished = useMemo(() => swapStatus && ["success", "overdue", "refunded"].includes(swapStatus.status), [swapStatus])
@@ -93,19 +93,19 @@ const DexifierDetailExolix = () => {
   }
 
   return (
-    <Card className="max-w-[650px] min-h-[540px] w-full h-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
-      <CardHeader className="flex flex-row justify-between items-center">
-        <h1 className="text-2xl">Swap Details</h1>
+    <Card className={cn("w-full h-full border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white", isMobile ? "bg-primary/10 p-5" : "max-w-[650px] min-h-[540px] bg-modal/5")}>
+      <CardHeader className={cn("flex flex-row justify-between items-center", isMobile && "py-4 px-0")}>
+        <h1 className={cn(isMobile ? "text-xl" : "text-2xl")}>Swap Details</h1>
       </CardHeader>
-      <CardContent className="flex flex-col overflow-auto h-[380px] px-6">
+      <CardContent className={cn("flex flex-col", isMobile ? "px-0" : "overflow-auto h-[380px] px-6")}>
         {swapStatus ?
           <div>
             {(typeof walletFrom === 'string') &&
               <div className="w-full mb-4">
-                <span className="text-lg font-semibold">Deposit Address:</span>
+                <span className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>Deposit Address:</span>
                 <div id="deposit" className={`relative flex max-w-full overflow-hidden justify-between items-center p-3 shadow-md max-h-[3.3125rem] bg-transparent`}>
                   <CopyText text={swapStatus.depositAddress} className="flex max-w-full">
-                    <span className="w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate">
+                    <span className={cn("w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate", isMobile ? "text-xs" : "text-base")}>
                       {swapStatus.depositAddress}
                     </span>
                   </CopyText>
@@ -117,9 +117,9 @@ const DexifierDetailExolix = () => {
             }
 
             <div className="w-full mb-4">
-              <span className="text-lg font-semibold">Withdrawal Address:</span>
+              <span className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>Withdrawal Address:</span>
               <div id="withdraw" className={`relative flex max-w-full overflow-hidden p-3 shadow-md max-h-[3.3125rem] bg-transparent`}>
-                <span className="w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate">
+                <span className={cn("w-full pr-6 text-primary text-base bg-transparent rounded-md cursor-pointer truncate", isMobile ? "text-xs" : "text-base")}>
                   {swapStatus.withdrawalAddress}
                 </span>
               </div>
@@ -156,33 +156,36 @@ const DexifierDetailExolix = () => {
                 />
               </div>
               <div className="w-full mt-4">
-                <span className="text-lg font-semibold">Swap Steps:</span>
+                <span className={cn("font-semibold", isMobile ? "text-base" : "text-lg")}>Swap Steps:</span>
               </div>
-              <div className="mt-4 flex items-center gap-1">
+              <div className={cn("mt-4 flex gap-1 max-w-full", !isMobile && "items-center")}>
                 <SwapToken
                   token={tokenFrom}
                   amount={swapStatus.amount.toString()}
                   variant={`primary`}
-                  className="flex justify-center gap-2"
+                  className={cn("flex justify-center gap-2", isMobile ? "flex-col w-1/4" : "flex-row")}
                 />
-                <div className="relative border-t border-dashed w-full min-w-24 h-[1px] flex-grow" >
-                  <div className="absolute w-full -top-2 flex justify-center">
+                <div className={cn("relative border-t border-dashed w-full min-w-24 h-[1px]", isMobile && "pt-4 top-4 flex flex-col items-center")} >
+                  <div className={cn("absolute w-full -top-2 flex justify-center mb-4")}>
                     <TooltipTemplate content={`Exolix`}>
                       <TokenIcon
                         token={{ image: `https://exolix.com/favicon/favicon-32x32.png`, className: "size-4" }}
                       />
                     </TooltipTemplate>
                   </div>
+                  {isMobile && <div className="text-white/50 ml-2 col-span-2">
+                  <StepState {...message} />
+                </div>}
                 </div>
                 <SwapToken
                   token={tokenTo}
                   amount={swapStatus.amountTo.toString()}
                   variant={`primary`}
-                  className="flex justify-center gap-2"
+                  className={cn("flex justify-center gap-2", isMobile ? "flex-col w-1/4" : "flex-row")}
                 />
-                <div className="text-white/50 ml-2 col-span-2">
+                {!isMobile && <div className="text-white/50 ml-2 col-span-2">
                   <StepState {...message} />
-                </div>
+                </div>}
               </div>
               <div className="flex items-center justify-center p-3 text-sm">
                 <span className={cn(message.color, 'text-center first-letter:uppercase')}>{message.content}</span>
@@ -210,7 +213,7 @@ const DexifierDetailExolix = () => {
       </CardContent>
       <CardFooter className="p-0">
         <Button
-          className={cn('h-12 mx-auto text-base')}
+          className={cn('mx-auto', isMobile ? "text-sm h-10" : "text-base h-12")}
           variant="outline"
           onClick={message.state === 'failed' ? handleRetry
             : isFinished ? initialize

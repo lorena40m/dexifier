@@ -49,6 +49,7 @@ interface DexifierContextType {
     success: boolean;
     data: any;
   } | undefined>,
+  isMobile: boolean,
 }
 
 // Create the context with an initial value
@@ -95,6 +96,10 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const [swapStatus, setSwapStatus] = useState<SwapStatusResponseV2 | ExTxInfo>();
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
   const { getSigners } = useWallets();
+  const isMobile = useMemo(() => {
+    const userAgent = navigator.userAgent;
+    return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+  }, []);
 
   const amountTo = useMemo(() => {
     if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
@@ -138,6 +143,20 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) { }
     try {
+      const exolixRateRequest: RateRequest = {
+        coinFrom: tokenFrom.symbol,
+        networkFrom: tokenFrom.blockchain,
+        coinTo: tokenTo.symbol,
+        networkTo: tokenTo.blockchain,
+        amount: amount,
+        rateType: 'float',
+      }
+      const { data: exolixRateResponse }: { data: RateResponse } = await axiosExolix.get('/rate', {
+        params: exolixRateRequest
+      })
+      allRoutes.push({ ...exolixRateResponse, moderator: DEXIFIER_MODERATOR.Exolix })
+    } catch (error) { }
+    if (!isMobile) try {
       const rangoMultiRouteRequest: MultiRouteRequest = {
         amount: amount,
         from: {
@@ -157,20 +176,6 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
       const rangoMultiRouteResponse: MultiRouteResponse = await rangoSDK.getAllRoutes(rangoMultiRouteRequest)
       const rangoMultiRouteSimulationResults: MultiRouteSimulationResult[] = rangoMultiRouteResponse.results
       allRoutes.push(...rangoMultiRouteSimulationResults.map(result => ({ ...result, moderator: DEXIFIER_MODERATOR.Rango })))
-    } catch (error) { }
-    try {
-      const exolixRateRequest: RateRequest = {
-        coinFrom: tokenFrom.symbol,
-        networkFrom: tokenFrom.blockchain,
-        coinTo: tokenTo.symbol,
-        networkTo: tokenTo.blockchain,
-        amount: amount,
-        rateType: 'float',
-      }
-      const { data: exolixRateResponse }: { data: RateResponse } = await axiosExolix.get('/rate', {
-        params: exolixRateRequest
-      })
-      allRoutes.push({ ...exolixRateResponse, moderator: DEXIFIER_MODERATOR.Exolix })
     } catch (error) { }
     return allRoutes
   }
@@ -294,6 +299,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
         initialize,
         stopConfirming,
         sendTx,
+        isMobile,
       }}
     >
       {children}

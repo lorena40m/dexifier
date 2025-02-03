@@ -47,7 +47,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { wallets } = useWidget();
   const { details: connectedWallets } = wallets; // Extract connected wallet details
   const { list } = useWalletList(); // Fetch the list of supported wallets
-  const { selectedRoute, tokenFrom, tokenTo, amountFrom, walletFrom, setWalletFrom, walletTo, setWalletTo, setSwapData, settings, setState } = useDexifier();
+  const { selectedRoute, tokenFrom, tokenTo, amountFrom, walletFrom, setWalletFrom, walletTo, setWalletTo, setSwapData, settings, setState, isMobile } = useDexifier();
   const [isInitializingSwap, initializeSwap] = useTransition();
 
   // State hooks for managing the modal, wallets, and withdrawal address input
@@ -276,21 +276,21 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                 >
                   {index ?
                     <RadioGroupPrimitive.Item
-                      className={cn('w-full h-12 rounded-md flex items-center p-0 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary')}
+                      className={cn('w-full rounded-md flex items-center p-0 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary', isMobile ? "text-xs h-10" : "h-12")}
                       value={'custom'}
                     >
                       <div id="withdrawal" className={`relative flex size-full items-center justify-between`}>
                         <Input
                           type='text'
                           placeholder='Enter recipient address'
-                          className="text-md size-full placeholder:text-white/50 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-16"
+                          className={cn("size-full placeholder:text-white/50 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-16", isMobile ? "text-xs" : "text-base")}
                           value={withdrawalAddress}
                           onChange={(e) => setWithdrawalAddress(e.target.value)}
                           required
                           onFocus={() => setWalletTo('custom')}
                         />
                         <RadioGroupPrimitive.Indicator
-                          className="absolute right-2 h-8 content-center border border-primary text-primary rounded-lg p-1 text-xs bg-transparent uppercase"
+                          className={cn("absolute right-2 content-center border border-primary text-primary rounded-lg p-1 text-xs bg-transparent uppercase", isMobile ? "text-xs h-6" : "text-base h-8")}
                           onClick={pasteWithdrawalAddressFromClipboard}
                         >
                           paste
@@ -299,7 +299,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                     </RadioGroupPrimitive.Item>
                     :
                     selectedRoute?.moderator !== DEXIFIER_MODERATOR.Rango && <RadioGroupPrimitive.Item
-                      className='w-full h-12 rounded-md flex items-center px-2 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary'
+                      className={cn('w-full rounded-md flex items-center px-2 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary', isMobile ? "text-xs h-10" : "h-12")}
                       value={'no'}
                     >
                       <span className="flex items-center justify-center">
@@ -331,13 +331,15 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                     </RadioGroupPrimitive.Item>
                   ))}
                   {/* Modal to connect more wallets */}
-                  <div className='w-full flex justify-center'>
-                    <WalletConnectModal chain={chain}>
+                  {!isMobile &&
+                    <div className='w-full flex justify-center'>
+                      <WalletConnectModal chain={chain}>
                       <span className='w-1/2 h-12 rounded-md border place-content-center text-center cursor-pointer border-gray-600 hover:border-white'>
                         + More wallet...
                       </span>
-                    </WalletConnectModal>
-                  </div>
+                      </WalletConnectModal>
+                    </div>
+                  }
                 </RadioGroup>
               </>
             ))}

@@ -13,6 +13,7 @@ import WalletConnectModal from "../swap/WalletConnectModal";
 import ConfirmModal from "./ConfirmModal";
 import TooltipTemplate from "../common/tooltip-template";
 import SettingModal from "../swap/SettingModal";
+import { cn } from "@/lib/utils";
 
 const DexifierCard: React.FC = () => {
   // Use custom hook to get connected wallet details
@@ -21,7 +22,7 @@ const DexifierCard: React.FC = () => {
   const isWalletConnected = connectedWallets.length > 0;
 
   // Swap state management from the SwapProvider context
-  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo, selectedRoute, swapData } = useDexifier();
+  const { tokenFrom, setTokenFrom, tokenTo, setTokenTo, amountFrom, setAmountFrom, amountTo, selectedRoute, swapData, isMobile } = useDexifier();
   const [tokenFromBalance, setTokenFromBalance] = useState<number>(0);
 
   // Update tokenFrom balance whenever tokenFrom changes or wallet balance is updated
@@ -48,8 +49,8 @@ const DexifierCard: React.FC = () => {
   }
 
   return (
-    <Card className="max-w-[650px] h-full w-full bg-modal/5 border border-[#AAA]/20 backdrop-blur-lg p-6 rounded-[2rem] shadow-lg text-white">
-      <CardHeader className="p-4">
+    <Card className={cn("w-full border border-[#AAA]/20 backdrop-blur-lg rounded-[2rem] shadow-lg text-white", isMobile ? "p-0 bg-primary/10" : "max-w-[650px] p-6 h-full bg-modal/5")}>
+      {!isMobile && <><CardHeader className="p-4">
         <div className="h-auto bg-transparent flex w-full justify-between items-center">
           <CardTitle>
             Swap
@@ -61,19 +62,18 @@ const DexifierCard: React.FC = () => {
                   src={"/assets/icons/setting.png"}
                   alt="button-icon"
                   width={18}
-                  height={18}
-                />
+                  height={18} />
               </TooltipTemplate>
             </Button>
           </SettingModal>
         </div>
-      </CardHeader>
-      <Separator className="bg-[#AAA]/20" />
-      <CardContent className="px-[31px] py-10 flex flex-col justify-around">
+      </CardHeader><Separator className="hidden md:block bg-[#AAA]/20" /></>
+      }
+      <CardContent className={cn("flex flex-col justify-around", isMobile ? "px-5 py-[31px]" : "px-[31px] py-10")}>
         <div className="w-full flex flex-col justify-evenly gap-2">
           {/* Token From Section */}
           <div className="flex justify-between items-end">
-            <Label htmlFor="tokenFrom" className="text-lg">From</Label>
+            <Label htmlFor="tokenFrom" className="text-lg">{isMobile ? "You send" : "From"}</Label>
             {isWalletConnected && tokenFrom && <div>
               <Label className="text-sm">
                 Balance: {tokenFromBalance ? `${tokenFromBalance} ${tokenFrom.symbol}` : '_'}
@@ -90,7 +90,7 @@ const DexifierCard: React.FC = () => {
             type="number"
             id="tokenFrom"
             placeholder="Please enter 1-42000000"
-            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0"
+            className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0 placeholder:text-white/50"
             value={amountFrom}
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
               e.target.value = parseFloat(e.target.value).toString()
@@ -115,7 +115,7 @@ const DexifierCard: React.FC = () => {
           </Button>
 
           {/* Token To Section */}
-          <Label htmlFor="tokenTo" className="text-lg">To</Label>
+          <Label htmlFor="tokenTo" className="text-lg">{isMobile ? "You get" : "To"}</Label>
           <TokenInput
             type="number"
             id="tokenTo"
@@ -127,7 +127,7 @@ const DexifierCard: React.FC = () => {
           />
         </div>
       </CardContent>
-      <CardFooter className="text-base md:text-xl p-0">
+      {!isMobile && <CardFooter className="text-base md:text-xl p-0">
         {/* Footer Section: Handles the swap confirmation or wallet connection */}
         {selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango && !isWalletConnected ?
           <WalletConnectModal>
@@ -145,7 +145,7 @@ const DexifierCard: React.FC = () => {
             </Button>
           </ConfirmModal>
         }
-      </CardFooter>
+      </CardFooter>}
     </Card>
   );
 };
