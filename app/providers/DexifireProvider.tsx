@@ -174,7 +174,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
         swappersGroupsExclude: false,
       }
       const rangoMultiRouteResponse: MultiRouteResponse = await rangoSDK.getAllRoutes(rangoMultiRouteRequest)
-      const rangoMultiRouteSimulationResults: MultiRouteSimulationResult[] = rangoMultiRouteResponse.results
+      const rangoMultiRouteSimulationResults: MultiRouteSimulationResult[] = rangoMultiRouteResponse.results.sort((a, b) => a.swaps.length - b.swaps.length);
       allRoutes.push(...rangoMultiRouteSimulationResults.map(result => ({ ...result, moderator: DEXIFIER_MODERATOR.Rango })))
     } catch (error) { }
     return allRoutes

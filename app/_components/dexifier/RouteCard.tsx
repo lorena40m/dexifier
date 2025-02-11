@@ -98,6 +98,9 @@ const RouteCard = () => {
             </div>
           );
         })}
+        <div className="absolute top-0 right-2 px-2 py-1 rounded-md text-sm text-primary-dark border border-primary-dark">
+          {'Browser'}
+        </div>
       </div>
     );
   };
@@ -133,6 +136,9 @@ const RouteCard = () => {
             {singleNodeTemplate(tokenTo.image, tokenTo.symbol, (Number(route.egressAmount) / (10 ** tokenTo.decimals)).toFixed(2), blockchainTo.logo)}
           </div>
         </div>
+        <div className="absolute top-0 right-2 px-2 py-1 rounded-md text-sm text-primary-dark border border-primary-dark">
+          {'No wallet'}
+        </div>
       </div>
     )
   }
@@ -163,6 +169,9 @@ const RouteCard = () => {
             <div className={`mt-[3.125rem] ms-[22px] flex flex-col gap-y-1`}>
               {singleNodeTemplate(tokenTo.image, tokenTo.symbol, route.toAmount.toFixed(2), blockchainTo.logo)}
             </div>
+          </div>
+          <div className="absolute top-0 right-2 px-2 py-1 rounded-md text-sm text-primary-dark border border-primary-dark">
+            {'No wallet'}
           </div>
         </div>
       )

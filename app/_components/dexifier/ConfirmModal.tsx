@@ -26,6 +26,7 @@ import ButtonCopyIcon from '../common/coyp-button-icon';
 import WalletConnectModal from '../swap/WalletConnectModal';
 import TokenIcon from '../common/token-icon';
 import { createTransaction } from '@/app/api/exolix';
+import { getAbbrAddress } from "@/app/utils";
 
 type SwapToken = {
   amount: number,
@@ -127,37 +128,6 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const confirmSwap = async () => {
     if (!walletFrom || !walletTo || !tokenFrom || !tokenTo || !amountFrom || (walletTo === 'custom' && !withdrawalAddress)) return
     initializeSwap(async () => {
-      if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Chainflip) {
-        const depositAddressRequest: DepositAddressRequestV2 = {
-          quote: selectedRoute as Quote,
-          destAddress: walletTo === 'custom' ? withdrawalAddress! : (walletTo as ConnectedWallet).address,
-        }
-        try {
-          const depositAddressResponse: DepositAddressResponseV2 = await chainflipSDK.requestDepositAddressV2(depositAddressRequest)
-          setSwapData(depositAddressResponse)
-        } catch (error) {
-          console.error(error)
-        }
-      }
-      if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Exolix) {
-        const txRequest: TxRequest = {
-          coinFrom: tokenFrom.symbol,
-          networkFrom: tokenFrom.blockchain,
-          coinTo: tokenTo.symbol,
-          networkTo: tokenTo.blockchain,
-          amount: parseFloat(amountFrom),
-          withdrawalAddress: walletTo === 'custom' ? withdrawalAddress! : (walletTo as ConnectedWallet).address,
-          rateType: 'float',
-        }
-        try {
-          const txResponse = await createTransaction(txRequest);
-          setSwapData(txResponse)
-        } catch (error: any) {
-          if (error.response.data.error) {
-            toastError(error.response.data.error)
-          }
-        }
-      }
       if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
         // Perform the confirmation when ready
         const selectedWallets = [walletFrom, walletTo]
@@ -261,7 +231,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                   <span className='text-base'>Your {chain} wallet</span>
                 </Label>
                 {/* RadioGroup for selecting the wallet */}
-                <RadioGroup id={chain} className='gap-2'
+                <RadioGroup id={chain} className='flex flex-wrap justify-center gap-2'
                   value={index ? typeof walletTo === 'string' ? walletTo : walletTo?.walletType
                     : typeof walletFrom === 'string' ? walletFrom : walletFrom?.walletType}
                   onValueChange={(value) => {
@@ -274,72 +244,35 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
                     }
                   }} // Update the selected wallet when a new wallet type is chosen
                 >
-                  {index ?
-                    <RadioGroupPrimitive.Item
-                      className={cn('w-full rounded-md flex items-center p-0 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary', isMobile ? "text-xs h-10" : "h-12")}
-                      value={'custom'}
-                    >
-                      <div id="withdrawal" className={`relative flex size-full items-center justify-between`}>
-                        <Input
-                          type='text'
-                          placeholder='Enter recipient address'
-                          className={cn("size-full placeholder:text-white/50 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 pr-16", isMobile ? "text-xs" : "text-base")}
-                          value={withdrawalAddress}
-                          onChange={(e) => setWithdrawalAddress(e.target.value)}
-                          required
-                          onFocus={() => setWalletTo('custom')}
-                        />
-                        <RadioGroupPrimitive.Indicator
-                          className={cn("absolute right-2 content-center border border-primary text-primary rounded-lg p-1 text-xs bg-transparent uppercase", isMobile ? "text-xs h-6" : "text-base h-8")}
-                          onClick={pasteWithdrawalAddressFromClipboard}
-                        >
-                          paste
-                        </RadioGroupPrimitive.Indicator>
-                      </div>
-                    </RadioGroupPrimitive.Item>
-                    :
-                    selectedRoute?.moderator !== DEXIFIER_MODERATOR.Rango && <RadioGroupPrimitive.Item
-                      className={cn('w-full rounded-md flex items-center px-2 border data-[state=unchecked]:opacity-40 disabled:hover:opacity-40 disabled:cursor-not-allowed data-[state=checked]:border-primary', isMobile ? "text-xs h-10" : "h-12")}
-                      value={'no'}
-                    >
-                      <span className="flex items-center justify-center">
-                        Manual deposit (Deposit address will be provided)
-                      </span>
-                    </RadioGroupPrimitive.Item>
-                  }
                   {/* Map over }the connected wallets and display each wallet */}
                   {connectedWallets.filter((wallet) => wallet.chain === chain).map((wallet: ConnectedWallet, index: number) => (
-                    <RadioGroupPrimitive.Item
-                      className='max-w-full relative overflow-hidden h-12 rounded-md flex items-center justify-between px-2 border data-[state=unchecked]:opacity-40 data-[state=checked]:border-primary transition-all duration-300'
-                      value={wallet.walletType}
-                      id={wallet.walletType}
-                      key={index}
+                    <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType} key={index}
+                      className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30 hover:border-gray-500'
                     >
-                      <div className='flex items-center gap-2 pr-6 w-full'>
+                      <div className='flex justify-center'>
                         <TokenIcon
                           token={{
                             image: list.find(detail => detail.type === wallet.walletType)?.image,
                             alt: wallet.walletType,
-                            className: "size-8",
+                            className: "size-12",
                           }}
                         />
-                        <span className="text-sm truncate">{wallet.address}</span> {/* Display abbreviated wallet address */}
                       </div>
-                      <div className='absolute right-2 size-4 place-items-center'>
-                        <ButtonCopyIcon text={wallet.address} /> {/* Copy button for wallet address */}
-                      </div>
+                      <span className='capitalize'>{wallet.walletType}</span> {/* Display wallet type */}
+                      <span className="flex items-center justify-center text-xs">
+                        <span>{getAbbrAddress(wallet.address)}</span> {/* Display abbreviated wallet address */}
+                        <div className='size-4 place-items-center'>
+                          <ButtonCopyIcon text={wallet.address} /> {/* Copy button for wallet address */}
+                        </div>
+                      </span>
                     </RadioGroupPrimitive.Item>
                   ))}
                   {/* Modal to connect more wallets */}
-                  {!isMobile &&
-                    <div className='w-full flex justify-center'>
-                      <WalletConnectModal chain={chain}>
-                      <span className='w-1/2 h-12 rounded-md border place-content-center text-center cursor-pointer border-gray-600 hover:border-white'>
-                        + More wallet...
-                      </span>
-                      </WalletConnectModal>
+                  <WalletConnectModal chain={chain}>
+                    <div className='w-24 h-28 rounded-lg border flex text-center items-center hover:border-gray-500 cursor-pointer'>
+                      More wallet...
                     </div>
-                  }
+                  </WalletConnectModal>
                 </RadioGroup>
               </>
             ))}
