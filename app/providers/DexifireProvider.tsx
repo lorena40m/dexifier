@@ -79,7 +79,7 @@ export enum DEXIFIER_STATE {
   SUCCESS = "SUCCESS",
 }
 
-type DexifierRoute = (MultiRouteSimulationResult | Quote | RateResponse) & { moderator?: DEXIFIER_MODERATOR }
+export type DexifierRoute = (MultiRouteSimulationResult | Quote | RateResponse) & { moderator?: DEXIFIER_MODERATOR }
 
 const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const [tokenFrom, setTokenFrom] = useState<Token>();
