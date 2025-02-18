@@ -16,7 +16,7 @@ import {
   DEXIFIER_STATE,
   DexifierRoute,
   useDexifier,
-} from "@/app/providers/DexifireProvider";
+} from "@/app/providers/DexifierProvider";
 import { RateResponse } from "@/app/types/exolix";
 import { RadioGroup } from "@/components/ui/radio-group";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";

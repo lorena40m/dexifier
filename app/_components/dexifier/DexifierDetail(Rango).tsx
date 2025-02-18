@@ -15,7 +15,7 @@ import TokenIcon from "../common/token-icon";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useDexifier } from "@/app/providers/DexifireProvider";
+import { useDexifier } from "@/app/providers/DexifierProvider";
 
 interface SwapTokenProps {
   swapData: SwapResult, // Data related to the token being swapped

@@ -21,13 +21,14 @@ import { formatReadableDate } from "@/app/utils";
 import TokenIcon from "../common/token-icon";
 import {
   useDexifier,
-} from "@/app/providers/DexifireProvider";
+} from "@/app/providers/DexifierProvider";
 import { ChainflipError, ChainflipSwapStatus } from "@/app/types/chainflip";
 import { ExTxInfo, TxRequest } from "@/app/types/exolix";
 import { toastError } from "@/lib/utils";
 import { createTransaction } from "@/app/api/exolix";
 import { createSwap } from "@/app/api/chainflip";
 import { AxiosError } from "axios";
+import { Loader2 } from "lucide-react";
 
 const AddressesCard = () => {
   const {
@@ -535,7 +536,7 @@ const AddressesCard = () => {
               }
             }}
           >
-            {isLoading ? <CustomLoader className="w-4" /> : 'Start'}
+            {isLoading ? <Loader2 className="animate-spin text-primary" /> : 'Start'}
           </Button>
         </CardFooter>
       )}

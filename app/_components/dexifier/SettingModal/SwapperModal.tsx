@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Separator } from "@/components/ui/separator";
 import TokenIcon from "../../common/token-icon";
 import { cn } from "@/lib/utils";
-import { useDexifier } from "@/app/providers/DexifireProvider";
+import { useDexifier } from "@/app/providers/DexifierProvider";
 
 interface SwapperModalProps {
   title: string,

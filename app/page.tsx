@@ -1,6 +1,6 @@
 "use client";
 
-import { DEXIFIER_STATE, useDexifier } from "./providers/DexifireProvider";
+import { DEXIFIER_STATE, useDexifier } from "./providers/DexifierProvider";
 import DexifierCard from "./_components/dexifier/DexifierCard";
 import RouteCard from "./_components/dexifier/RouteCard";
 import DexifierDetailRango from "./_components/dexifier/DexifierDetail(Rango)";

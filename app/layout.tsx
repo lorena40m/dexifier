@@ -13,7 +13,7 @@ const RangoProvider = dynamic(() => import("./providers/RangoProvider"), {
 });
 
 // Dynamically import DexifierProvider for client-side rendering
-const DexifierProvider = dynamic(() => import("./providers/DexifireProvider"), {
+const DexifierProvider = dynamic(() => import("./providers/DexifierProvider"), {
   ssr: false, // Ensures this component renders only on the client side
 });
 

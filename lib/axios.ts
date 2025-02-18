@@ -38,7 +38,7 @@ const axiosCoingecko = axios.create({
     'Accept': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Content-Type': 'application/json',
-    'x-cg-demo-api-key': process.env.NEXT_PUBLIC_COINGECKO_API_KEY,
+    'x-cg-demo-api-key': process.env.NEXT_PUBLIC_COINGECKO_API_KEY || '',
   },
 })
 

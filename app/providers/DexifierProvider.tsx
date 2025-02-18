@@ -14,7 +14,7 @@ import { axiosExolix } from "@/lib/axios";
 import { ExTxInfo, RateRequest, RateResponse } from "../types/exolix";
 import { ConnectedWallet, useWallets } from "@rango-dev/widget-embedded";
 import { debounce } from "lodash";
-import { CHAINFLIP_BLOCKCHAIN_NAME_MAP, chainsMap } from "../utils/chainflip";
+import { CHAINFLIP_BLOCKCHAIN_NAME_MAP } from "../utils/chainflip";
 import { rangoSDK } from "@/lib/utils";
 import { getTxInfo } from "../api/exolix";
 import { ethers } from 'ethers';
@@ -127,21 +127,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const getRoutes = async (tokenFrom: Token, tokenTo: Token, amount: string): Promise<DexifierRoute[]> => {
     const allRoutes: DexifierRoute[] = []
     try {
-      if (tokenFrom.blockchain in chainsMap && tokenTo.blockchain in chainsMap) {
-        // const chainflipQuoteRequest: QuoteRequest = {
-        //   srcChain: chainsMap[tokenFrom.blockchain],
-        //   destChain: chainsMap[tokenTo.blockchain],
-        //   srcAsset: tokenFrom.symbol as Asset,
-        //   destAsset: tokenTo.symbol as Asset,
-        //   amount: (Number(amount) * (10 ** tokenFrom.decimals)).toString(),
-        //   brokerCommissionBps: 5, // 100 basis point = 1%
-        //   affiliateBrokers: [
-        //     { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 100 }
-        //   ],
-        // }
-        // const chainflipQuoteResponseV2 = await chainflipSDK.getQuoteV2(chainflipQuoteRequest)
-        // const chainflipQuotes = chainflipQuoteResponseV2.quotes
-
+      if (tokenFrom.blockchain in CHAINFLIP_BLOCKCHAIN_NAME_MAP && tokenTo.blockchain in CHAINFLIP_BLOCKCHAIN_NAME_MAP) {
         // Use the createQuotes function from api/chainflip.ts
         const chainflipQuotes = await createQuotes({
           sourceAsset: `${tokenFrom.symbol.toLowerCase()}.${CHAINFLIP_BLOCKCHAIN_NAME_MAP[tokenFrom.blockchain]}` as Asset,

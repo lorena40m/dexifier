@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import TooltipTemplate from "../../common/tooltip-template";
-import { useDexifier } from "@/app/providers/DexifireProvider";
+import { useDexifier } from "@/app/providers/DexifierProvider";
 
 const PERCENTAGES = ['0.5', '1', '3']
 

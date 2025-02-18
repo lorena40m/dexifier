@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { BlockchainMeta, Token } from "rango-types/mainApi";
 import { useWidget } from "@rango-dev/widget-embedded";
 import TokenIcon from "../common/token-icon";
-import { useDexifier } from "@/app/providers/DexifireProvider";
+import { useDexifier } from "@/app/providers/DexifierProvider";
 import { cn } from "@/lib/utils";
 
 // Defining the interface for TokenInput props

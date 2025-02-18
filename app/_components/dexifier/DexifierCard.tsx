@@ -16,12 +16,12 @@ import { Label } from "@/components/ui/label";
 import {
   DEXIFIER_STATE,
   useDexifier,
-} from "@/app/providers/DexifireProvider";
-import TokenInput from "../swap/TokenInput";
-import WalletConnectModal from "../swap/WalletConnectModal";
+} from "@/app/providers/DexifierProvider";
+import TokenInput from "./TokenInput";
+import WalletConnectModal from "./WalletConnectModal";
 import ConfirmModal from "./ConfirmModal";
 import TooltipTemplate from "../common/tooltip-template";
-import SettingModal from "../swap/SettingModal";
+import SettingModal from "./SettingModal";
 import { cn } from "@/lib/utils";
 
 const DexifierCard: React.FC = () => {
@@ -30,7 +30,7 @@ const DexifierCard: React.FC = () => {
   const { details: connectedWallets } = wallets;
   const isWalletConnected = connectedWallets.length > 0;
 
-  // Swap state management from the SwapProvider context
+  // Swap state management from the DexifierProvider context
   const {
     tokenFrom,
     setTokenFrom,
@@ -199,7 +199,7 @@ const DexifierCard: React.FC = () => {
       {!isMobile && (
         <CardFooter className="text-base md:text-xl p-0">
           {/* Footer Section: Handles the swap confirmation or wallet connection */}
-          {selectedRoute?.hasOwnProperty('outputAmount') ? (
+          {!selectedRoute?.hasOwnProperty('outputAmount') ? (
             <Button
               className={`bg-primary hover:bg-primary-dark text-black w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition duration-300 ease-out`}
               disabled={!selectedRoute || !!swapData}

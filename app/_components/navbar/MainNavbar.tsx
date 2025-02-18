@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useWalletList, useWidget } from "@rango-dev/widget-embedded";
 import CustomLoader from "../common/loader";
-import WalletConnectModal from "../swap/WalletConnectModal";
+import WalletConnectModal from "../dexifier/WalletConnectModal";
 import WalletDetails from "./WalletDetails";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";

@@ -12,11 +12,11 @@ import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { confirmHasError, getWalletsForNewSwap } from '@/app/utils/swap';
 import { Wallet } from '@/app/types/rango';
 import { Button } from '@/components/ui/button';
-import { DEXIFIER_STATE, useDexifier } from '@/app/providers/DexifireProvider';
+import { DEXIFIER_STATE, useDexifier } from '@/app/providers/DexifierProvider';
 import { RadioGroup } from '@/components/ui/radio-group';
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import ButtonCopyIcon from '../common/coyp-button-icon';
-import WalletConnectModal from '../swap/WalletConnectModal';
+import WalletConnectModal from './WalletConnectModal';
 import TokenIcon from '../common/token-icon';
 import { getAbbrAddress } from "@/app/utils";
 
