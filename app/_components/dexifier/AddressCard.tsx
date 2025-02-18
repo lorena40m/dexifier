@@ -7,7 +7,6 @@ import ButtonCopyIcon from "../common/coyp-button-icon";
 import StatusBar from "../common/status-bar";
 import CustomLoader from "../common/loader";
 import QrCodeGenerator from "../common/qr-generator";
-import { useExchange } from "@/app/providers/ExchangeProvider";
 import {
   Card,
   CardContent,
@@ -20,20 +19,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatReadableDate } from "@/app/utils";
 import TokenIcon from "../common/token-icon";
-import { useQuote } from "@/app/providers/QuoteProvider";
 import {
-  DEXIFIER_MODERATOR,
   useDexifier,
 } from "@/app/providers/DexifireProvider";
-import {
-  DepositAddressRequestV2,
-  Quote,
-  SwapStatusResponseV2,
-} from "@chainflip/sdk/swap";
-import { DepositAddressResponseV2 } from "@/app/types/chainflip";
+import { ChainflipError, ChainflipSwapStatus } from "@/app/types/chainflip";
 import { ExTxInfo, TxRequest } from "@/app/types/exolix";
-import { chainflipSDK, toastError } from "@/lib/utils";
+import { toastError } from "@/lib/utils";
 import { createTransaction } from "@/app/api/exolix";
+import { createSwap } from "@/app/api/chainflip";
+import { AxiosError } from "axios";
 
 const AddressesCard = () => {
   const {
@@ -185,16 +179,16 @@ const AddressesCard = () => {
     }
   };
 
-  const renderChainflipStatus = (state: SwapStatusResponseV2["state"]) => {
-    const chainflipStatus = swapStatus as SwapStatusResponseV2;
+  const renderChainflipStatus = (state: string) => {
+    const chainflipStatus = swapStatus as ChainflipSwapStatus;
     switch (state) {
       case "RECEIVING":
         return (
           <>
             <StatusBar
               steps={[
-                `Depositing ${chainflipStatus.srcAsset}`,
-                `${chainflipStatus.srcAsset} to ${chainflipStatus.destAsset}`,
+                `Depositing ${chainflipStatus.sourceAsset}`,
+                `${chainflipStatus.sourceAsset} to ${chainflipStatus.destinationAsset}`,
               ]}
               currentStep={0}
             />
@@ -206,8 +200,8 @@ const AddressesCard = () => {
           <>
             <StatusBar
               steps={[
-                `${chainflipStatus.srcAsset} to ${chainflipStatus.destAsset}`,
-                `Withdrawing ${chainflipStatus.destAsset}`,
+                `${chainflipStatus.sourceAsset} to ${chainflipStatus.destinationAsset}`,
+                `Withdrawing ${chainflipStatus.destinationAsset}`,
               ]}
               currentStep={0}
             />
@@ -218,7 +212,7 @@ const AddressesCard = () => {
         return (
           <>
             <StatusBar
-              steps={[`Withdrawing ${chainflipStatus.destAsset}`, "Finishing"]}
+              steps={[`Withdrawing ${chainflipStatus.destinationAsset}`, "Finishing"]}
               currentStep={0}
             />
             Withdrawing funds
@@ -228,7 +222,7 @@ const AddressesCard = () => {
         return (
           <>
             <StatusBar
-              steps={[`Withdrawing ${chainflipStatus.destAsset}`, "Finishing"]}
+              steps={[`Withdrawing ${chainflipStatus.destinationAsset}`, "Finishing"]}
               currentStep={1}
             />
             Withdraw succeed
@@ -238,7 +232,7 @@ const AddressesCard = () => {
         return (
           <>
             <StatusBar
-              steps={[`Withdrawing ${chainflipStatus.destAsset}`, "Finishing"]}
+              steps={[`Withdrawing ${chainflipStatus.destinationAsset}`, "Finishing"]}
               currentStep={2}
             />
             Transaction is completed and funds are received
@@ -287,7 +281,7 @@ const AddressesCard = () => {
                 }}
               />
               <div className="flex items-center gap-1 md:gap-2 ">
-                <span>{amountFrom}</span>
+                <span>{Number(amountFrom).toFixed(2)}</span>
                 <span>{tokenFrom.symbol}</span>
                 <span className="text-opacity-80 md:block hidden">
                   [{tokenFrom.blockchain}]
@@ -319,7 +313,7 @@ const AddressesCard = () => {
                 }}
               />
               <div className="flex items-center gap-1 md:gap-2">
-                <span>{amountTo}</span>
+                <span>{Number(amountTo).toFixed(2)}</span>
                 <span>{tokenTo.symbol}</span>
                 <span className="text-opacity-80 md:block hidden">
                   [{tokenTo.blockchain}]
@@ -341,9 +335,8 @@ const AddressesCard = () => {
           </Label>
           <div
             id="withdrawal"
-            className={`${
-              withdrawalAddress ? "border-[#695F5F]" : "border-primary"
-            } md:border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] my-3 md:bg-[#000]/30 bg-primary/30 backdrop-blur-lg`}
+            className={`${withdrawalAddress ? "border-[#695F5F]" : "border-primary"
+              } md:border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] my-3 md:bg-[#000]/30 bg-primary/30 backdrop-blur-lg`}
           >
             <Input
               type="text"
@@ -456,11 +449,10 @@ const AddressesCard = () => {
               </Label>
               <div
                 id="deposit"
-                className={`${
-                  status.depositAddress
-                    ? "border-primary/40"
-                    : "border-[#695F5F]"
-                } border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] md:my-3 mt-1 mb-3 bg-transparent`}
+                className={`${status.depositAddress
+                  ? "border-primary/40"
+                  : "border-[#695F5F]"
+                  } border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] md:my-3 mt-1 mb-3 bg-transparent`}
               >
                 <Input
                   type="text"
@@ -475,13 +467,13 @@ const AddressesCard = () => {
                   </>
                 )}
               </div>
-              {
+              {selectedRoute &&
                 <div className="flex flex-col items-center text-primary">
-                  {selectedRoute?.moderator === DEXIFIER_MODERATOR.Chainflip &&
+                  {'egressAmount' in selectedRoute &&
                     renderChainflipStatus(
-                      status.status as SwapStatusResponseV2["state"]
+                      status.status as string
                     )}
-                  {selectedRoute?.moderator === DEXIFIER_MODERATOR.Exolix &&
+                  {'toAmount' in selectedRoute &&
                     renderExolixStatus(status.status as ExTxInfo["status"])}
                 </div>
               }
@@ -489,7 +481,7 @@ const AddressesCard = () => {
           )}
         </div>
       </CardContent>
-      {!swapStatus && (
+      {!swapStatus && selectedRoute && (
         <CardFooter>
           <Button
             disabled={isLoading || !withdrawalAddress}
@@ -499,22 +491,30 @@ const AddressesCard = () => {
               if (!withdrawalAddress || !tokenFrom || !tokenTo || !amountFrom)
                 return;
               setIsLoading(true);
-              if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Chainflip) {
-                const depositAddressRequest: DepositAddressRequestV2 = {
-                  quote: selectedRoute as Quote,
-                  destAddress: withdrawalAddress,
-                };
+              if ('egressAmount' in selectedRoute) {
+                // const depositAddressRequest: DepositAddressRequestV2 = {
+                //   quote: selectedRoute as Quote,
+                //   destAddress: withdrawalAddress,
+                // };
                 try {
-                  const depositAddressResponse: DepositAddressResponseV2 =
-                    await chainflipSDK.requestDepositAddressV2(
-                      depositAddressRequest
-                    );
+                  // const depositAddressResponse: DepositAddressResponseV2 =
+                  //   await chainflipSDK.requestDepositAddressV2(
+                  //     depositAddressRequest
+                  //   );
+                  const depositAddressResponse = await createSwap({
+                    sourceAsset: selectedRoute.ingressAsset,
+                    destinationAsset: selectedRoute.egressAsset,
+                    destinationAddress: withdrawalAddress,
+                  })
                   setSwapData(depositAddressResponse);
                 } catch (error) {
+                  if (error instanceof AxiosError) {
+                    return error.response?.data as ChainflipError;
+                  }
                   console.error(error);
                 }
               }
-              if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Exolix) {
+              if ('toAmount' in selectedRoute) {
                 const txRequest: TxRequest = {
                   coinFrom: tokenFrom.symbol,
                   networkFrom: tokenFrom.blockchain,
@@ -535,7 +535,7 @@ const AddressesCard = () => {
               }
             }}
           >
-            {isLoading ? <CustomLoader className="w-4" />: 'Start'}
+            {isLoading ? <CustomLoader className="w-4" /> : 'Start'}
           </Button>
         </CardFooter>
       )}

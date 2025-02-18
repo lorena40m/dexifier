@@ -4,8 +4,6 @@ import { DEXIFIER_STATE, useDexifier } from "./providers/DexifireProvider";
 import DexifierCard from "./_components/dexifier/DexifierCard";
 import RouteCard from "./_components/dexifier/RouteCard";
 import DexifierDetailRango from "./_components/dexifier/DexifierDetail(Rango)";
-import DexifierDetailChainflip from "./_components/dexifier/DexifierDetail(Chainflip)";
-import DexifierDetailExolix from "./_components/dexifier/DexifierDetail(Exolix)";
 import { AnimatePresence, motion } from "framer-motion";
 import ConfirmModal from "./_components/dexifier/ConfirmModal";
 import { Button } from "@/components/ui/button";
@@ -44,7 +42,7 @@ export default function SwapPage() {
         <DexifierCard />
 
         {state === DEXIFIER_STATE.FETCHING_ROUTES ||
-        state === DEXIFIER_STATE.ROUTES ? (
+          state === DEXIFIER_STATE.ROUTES ? (
           <AnimatePresence>
             {tokenFrom && tokenTo && amountFrom ? (
               <motion.div
@@ -79,13 +77,13 @@ export default function SwapPage() {
         ) : state === DEXIFIER_STATE.WITHDRAWAL_ADDRESS ? (
           <AddressesCard />
         ) : swapData ? (
-          "depositChannelId" in swapData ? (
-            <DexifierDetailChainflip />
-          ) : "traceId" in swapData ? (
-            <DexifierDetailRango />
-          ) : (
-            "id" in swapData && <DexifierDetailExolix />
-          )
+          // "depositChannelId" in swapData ? (
+          //   <DexifierDetailChainflip />
+          // ) : "traceId" in swapData ? (
+          <DexifierDetailRango />
+          // ) : (
+          //   "id" in swapData && <DexifierDetailExolix />
+          // )
         ) : (
           <></>
         )}

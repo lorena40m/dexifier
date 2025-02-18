@@ -1,18 +1,17 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useMemo, useState } from "react"; // Importing React hooks
+import React, { useMemo, useState } from "react"; // Importing React hooks
 import TooltipTemplate from "../common/tooltip-template"; // Import TooltipTemplate component for displaying tooltips
 import { useWidget } from "@rango-dev/widget-embedded"; // Importing hook from the Rango widget
 import {
   BlockchainMeta,
   MultiRouteSimulationResult,
-  RouteTag,
   SwapResult,
   Token,
 } from "rango-types/mainApi"; // Import types for the swap logic
 import TokenIcon from "../common/token-icon";
-import { Quote } from "@chainflip/sdk/swap";
-import { formatChainName } from "@/app/utils/chainflip";
+import { ChainflipQuote } from "@/app/types/chainflip";
+import { CHAINFLIP_BLOCKCHAIN_NAME_MAP } from "@/app/utils/chainflip";
 import {
   DEXIFIER_STATE,
   DexifierRoute,
@@ -76,9 +75,8 @@ const RouteCard = () => {
           return (
             <div key={index} className="flex items-start">
               <div
-                className={`relative ${!isEven && "mt-[3.125rem] ml-[24px]"} ${
-                  index !== 0 && isEven ? "ml-[40px]" : ""
-                } ${containerClasses}`}
+                className={`relative ${!isEven && "mt-[3.125rem] ml-[24px]"} ${index !== 0 && isEven ? "ml-[40px]" : ""
+                  } ${containerClasses}`}
               >
                 {singleNodeTemplate(
                   singleNode.from.logo as string,
@@ -93,11 +91,10 @@ const RouteCard = () => {
                       width={59}
                       height={21}
                       alt="Arrow down"
-                      className={`absolute ${
-                        index !== 0
+                      className={`absolute ${index !== 0
                           ? "-right-[3.5625rem]"
                           : "-right-[3.0625rem]"
-                      } top-6`}
+                        } top-6`}
                     />
                     <TooltipTemplate content={`${singleNode.swapperId}`}>
                       <TokenIcon
@@ -106,11 +103,10 @@ const RouteCard = () => {
                           alt: singleNode.swapperId,
                           className: "size-5",
                         }}
-                        className={`absolute ${
-                          index !== 0
+                        className={`absolute ${index !== 0
                             ? "-right-[2.425rem]"
                             : "-right-[2.125rem]"
-                        } top-4`}
+                          } top-4`}
                       />
                     </TooltipTemplate>
                   </div>
@@ -139,9 +135,8 @@ const RouteCard = () => {
 
               {route.swaps.length === index + 1 && (
                 <div
-                  className={`${
-                    isEven ? "mt-[3.125rem] ms-[22px]" : "ms-[42px]"
-                  } ${containerClasses}`}
+                  className={`${isEven ? "mt-[3.125rem] ms-[22px]" : "ms-[42px]"
+                    } ${containerClasses}`}
                 >
                   {singleNodeTemplate(
                     singleNode.to.logo as string,
@@ -162,24 +157,26 @@ const RouteCard = () => {
   };
 
   // Function to render each quote with relevant information
-  const chainflipRoute = (route: Quote) => {
+  const chainflipRoute = (route: ChainflipQuote) => {
+    const [ingressAsset, ingressChain] = route.ingressAsset.split('.')
+    const [egressAsset, egressChain] = route.egressAsset.split('.')
     const tokenFrom: Token = tokens.find(
       (token: Token) =>
-        formatChainName(token.blockchain) === route.srcAsset.chain &&
-        token.symbol === route.srcAsset.asset
+        token.blockchain === CHAINFLIP_BLOCKCHAIN_NAME_MAP[ingressChain] &&
+        token.symbol === ingressAsset.toUpperCase()
     );
     const tokenTo: Token = tokens.find(
       (token: Token) =>
-        formatChainName(token.blockchain) === route.destAsset.chain &&
-        token.symbol === route.destAsset.asset
+        token.blockchain === CHAINFLIP_BLOCKCHAIN_NAME_MAP[egressChain] &&
+        token.symbol === egressAsset.toUpperCase()
     );
     const blockchainFrom: BlockchainMeta = blockchains.find(
       (blockchain: BlockchainMeta) =>
-        formatChainName(blockchain.name) === route.srcAsset.chain
+        blockchain.name === CHAINFLIP_BLOCKCHAIN_NAME_MAP[ingressChain]
     );
     const blockchainTo: BlockchainMeta = blockchains.find(
       (blockchain: BlockchainMeta) =>
-        formatChainName(blockchain.name) === route.destAsset.chain
+        blockchain.name === CHAINFLIP_BLOCKCHAIN_NAME_MAP[egressChain]
     );
     return (
       <div className={`relative w-full flex overflow-x-auto`}>
@@ -188,9 +185,7 @@ const RouteCard = () => {
             {singleNodeTemplate(
               tokenFrom.image,
               tokenFrom.symbol,
-              (Number(route.depositAmount) / 10 ** tokenFrom.decimals).toFixed(
-                2
-              ),
+              route.ingressAmount.toFixed(2),
               blockchainFrom.logo
             )}
             <div>
@@ -217,7 +212,7 @@ const RouteCard = () => {
             {singleNodeTemplate(
               tokenTo.image,
               tokenTo.symbol,
-              (Number(route.egressAmount) / 10 ** tokenTo.decimals).toFixed(2),
+              route.egressAmount.toFixed(2),
               blockchainTo.logo
             )}
           </div>
@@ -339,7 +334,7 @@ const RouteCard = () => {
       let value: number;
       if ("outputAmount" in route) {
         value =
-          route.scores.find((score) => score.preferenceType === "FEE")?.score ||
+          route.scores.find((score: any) => score.preferenceType === "FEE")?.score ||
           0; // MultiRouteSimulationResult
       } else if ("egressAmount" in route) {
         value = 0; // Quote
@@ -364,7 +359,7 @@ const RouteCard = () => {
       let value: number;
       if ("outputAmount" in route) {
         value =
-          route.scores.find((score) => score.preferenceType === "SPEED")
+          route.scores.find((score: any) => score.preferenceType === "SPEED")
             ?.score || 0; // MultiRouteSimulationResult
       } else if ("egressAmount" in route) {
         value = 0; // Quote
@@ -474,7 +469,7 @@ const RouteCard = () => {
                     <FloatingTooltip
                       key={index}
                       description={
-                        route.moderator === "Rango"
+                        'outputAmount' in route
                           ? "Browser wallet connection needed"
                           : "No wallet connection needed"
                       }
@@ -485,12 +480,12 @@ const RouteCard = () => {
                         key={index}
                         className="w-full rounded-lg border border-white/20 data-[state=checked]:border-primary p-4 bg-primary/5 bg-opacity-50 transition duration-300 ease-out hover:bg-transparent"
                       >
-                        {route.moderator === "Rango" ? (
-                          rangoRoute(route as MultiRouteSimulationResult)
-                        ) : route.moderator === "Chainflip" ? (
-                          chainflipRoute(route as Quote)
-                        ) : route.moderator === "Exolix" ? (
-                          exolixRoute(route as RateResponse)
+                        {'outputAmount' in route ? (
+                          rangoRoute(route)
+                        ) : 'egressAmount' in route ? (
+                          chainflipRoute(route)
+                        ) : 'toAmount' in route ? (
+                          exolixRoute(route)
                         ) : (
                           <></>
                         )}

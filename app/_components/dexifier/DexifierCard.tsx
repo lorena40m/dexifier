@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
-  DEXIFIER_MODERATOR,
   DEXIFIER_STATE,
   useDexifier,
 } from "@/app/providers/DexifireProvider";
@@ -200,7 +199,7 @@ const DexifierCard: React.FC = () => {
       {!isMobile && (
         <CardFooter className="text-base md:text-xl p-0">
           {/* Footer Section: Handles the swap confirmation or wallet connection */}
-          {selectedRoute?.moderator !== DEXIFIER_MODERATOR.Rango ? (
+          {selectedRoute?.hasOwnProperty('outputAmount') ? (
             <Button
               className={`bg-primary hover:bg-primary-dark text-black w-full md:max-w-[75%] lg:max-w-[67%] font-semibold h-[3.125rem] mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition duration-300 ease-out`}
               disabled={!selectedRoute || !!swapData}

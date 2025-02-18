@@ -8,16 +8,18 @@
 import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useEffect, useMemo, useRef } from "react";
 import { ConfirmRouteResponse, MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, Token, Transaction, TransactionType } from "rango-types/mainApi"
 import { Settings } from "../types/rango";
-import { Asset, Quote, QuoteRequest, SwapStatusResponseV2 } from "@chainflip/sdk/swap";
+import { Asset } from "@chainflip/sdk/swap";
+import { ChainflipSwapResponse, ChainflipQuote, ChainflipError, ChainflipSwapStatus } from "../types/chainflip";
 import { axiosExolix } from "@/lib/axios";
 import { ExTxInfo, RateRequest, RateResponse } from "../types/exolix";
 import { ConnectedWallet, useWallets } from "@rango-dev/widget-embedded";
 import { debounce } from "lodash";
-import { chainsMap } from "../utils/chainflip";
-import { DepositAddressResponseV2 } from "../types/chainflip";
-import { chainflipSDK, rangoSDK } from "@/lib/utils";
+import { CHAINFLIP_BLOCKCHAIN_NAME_MAP, chainsMap } from "../utils/chainflip";
+import { rangoSDK } from "@/lib/utils";
 import { getTxInfo } from "../api/exolix";
 import { ethers } from 'ethers';
+import { createQuotes, getSwapStatus } from "../api/chainflip";
+import { AxiosError } from "axios";
 
 // Define the type for the context
 interface DexifierContextType {
@@ -39,10 +41,10 @@ interface DexifierContextType {
   setWalletFrom: Dispatch<SetStateAction<ConnectedWallet | string | undefined>>,
   walletTo?: ConnectedWallet | string,
   setWalletTo: Dispatch<SetStateAction<ConnectedWallet | string | undefined>>,
-  swapData?: DepositAddressResponseV2 | ExTxInfo | ConfirmRouteResponse,
-  setSwapData: Dispatch<SetStateAction<DepositAddressResponseV2 | ExTxInfo | ConfirmRouteResponse | undefined>>,
-  swapStatus?: SwapStatusResponseV2 | ExTxInfo,
-  setSwapStatus: Dispatch<SetStateAction<SwapStatusResponseV2 | ExTxInfo | undefined>>,
+  swapData?: ChainflipSwapResponse | ExTxInfo | ConfirmRouteResponse,
+  setSwapData: Dispatch<SetStateAction<ChainflipSwapResponse | ExTxInfo | ConfirmRouteResponse | undefined>>,
+  swapStatus?: ChainflipSwapStatus | ExTxInfo,
+  setSwapStatus: Dispatch<SetStateAction<ChainflipSwapStatus | ExTxInfo | undefined>>,
   initialize: () => void,
   stopConfirming: () => void,
   sendTx: (recipient: string) => Promise<{
@@ -79,7 +81,7 @@ export enum DEXIFIER_STATE {
   SUCCESS = "SUCCESS",
 }
 
-export type DexifierRoute = (MultiRouteSimulationResult | Quote | RateResponse) & { moderator?: DEXIFIER_MODERATOR }
+export type DexifierRoute = MultiRouteSimulationResult | ChainflipQuote | RateResponse
 
 const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const [tokenFrom, setTokenFrom] = useState<Token>();
@@ -92,8 +94,8 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   // const [withdrawalAddress, setWithdrawalAddress] = useState<string>('');
   const [walletFrom, setWalletFrom] = useState<ConnectedWallet | string>();
   const [walletTo, setWalletTo] = useState<ConnectedWallet | string>();
-  const [swapData, setSwapData] = useState<DepositAddressResponseV2 | ExTxInfo | ConfirmRouteResponse>();
-  const [swapStatus, setSwapStatus] = useState<SwapStatusResponseV2 | ExTxInfo>();
+  const [swapData, setSwapData] = useState<ChainflipSwapResponse | ExTxInfo | ConfirmRouteResponse>();
+  const [swapStatus, setSwapStatus] = useState<ChainflipSwapStatus | ExTxInfo>();
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
   const { getSigners } = useWallets();
   const isMobile = useMemo(() => {
@@ -102,13 +104,13 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const amountTo = useMemo(() => {
-    if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
-      return (selectedRoute as MultiRouteSimulationResult).outputAmount
-    }
-    else if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Chainflip) {
-      return Number((selectedRoute as Quote).egressAmount) / (10 ** (tokenTo?.decimals || 0))
-    } else if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Exolix) {
-      return (selectedRoute as RateResponse).toAmount
+    if (!selectedRoute) return 0
+    else if ('outputAmount' in selectedRoute) {
+      return Number(selectedRoute.outputAmount)
+    } else if ('egressAmount' in selectedRoute) {
+      return selectedRoute.egressAmount
+    } else if ('toAmount' in selectedRoute) {
+      return selectedRoute.toAmount
     } else return 0
   }, [selectedRoute])
 
@@ -126,20 +128,29 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     const allRoutes: DexifierRoute[] = []
     try {
       if (tokenFrom.blockchain in chainsMap && tokenTo.blockchain in chainsMap) {
-        const chainflipQuoteRequest: QuoteRequest = {
-          srcChain: chainsMap[tokenFrom.blockchain],
-          destChain: chainsMap[tokenTo.blockchain],
-          srcAsset: tokenFrom.symbol as Asset,
-          destAsset: tokenTo.symbol as Asset,
-          amount: (Number(amount) * (10 ** tokenFrom.decimals)).toString(),
-          brokerCommissionBps: 100, // 100 basis point = 1%
-          affiliateBrokers: [
-            { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 50 }
-          ],
-        }
-        const chainflipQuoteResponseV2 = await chainflipSDK.getQuoteV2(chainflipQuoteRequest)
-        const chainflipQuotes = chainflipQuoteResponseV2.quotes
-        if (allRoutes.push(...chainflipQuotes.map(quote => ({ ...quote, moderator: DEXIFIER_MODERATOR.Chainflip })))) return allRoutes
+        // const chainflipQuoteRequest: QuoteRequest = {
+        //   srcChain: chainsMap[tokenFrom.blockchain],
+        //   destChain: chainsMap[tokenTo.blockchain],
+        //   srcAsset: tokenFrom.symbol as Asset,
+        //   destAsset: tokenTo.symbol as Asset,
+        //   amount: (Number(amount) * (10 ** tokenFrom.decimals)).toString(),
+        //   brokerCommissionBps: 5, // 100 basis point = 1%
+        //   affiliateBrokers: [
+        //     { account: process.env.NEXT_PUBLIC_CHAINFLIP_ACCOUNT_ID || '', commissionBps: 100 }
+        //   ],
+        // }
+        // const chainflipQuoteResponseV2 = await chainflipSDK.getQuoteV2(chainflipQuoteRequest)
+        // const chainflipQuotes = chainflipQuoteResponseV2.quotes
+
+        // Use the createQuotes function from api/chainflip.ts
+        const chainflipQuotes = await createQuotes({
+          sourceAsset: `${tokenFrom.symbol.toLowerCase()}.${CHAINFLIP_BLOCKCHAIN_NAME_MAP[tokenFrom.blockchain]}` as Asset,
+          destinationAsset: `${tokenTo.symbol.toLowerCase()}.${CHAINFLIP_BLOCKCHAIN_NAME_MAP[tokenTo.blockchain]}` as Asset,
+          amount: amount,
+          commissionBps: 15,
+        });
+
+        if (allRoutes.push(...chainflipQuotes)) return allRoutes
       }
     } catch (error) { }
     try {
@@ -154,7 +165,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
       const { data: exolixRateResponse }: { data: RateResponse } = await axiosExolix.get('/rate', {
         params: exolixRateRequest
       })
-      allRoutes.push({ ...exolixRateResponse, moderator: DEXIFIER_MODERATOR.Exolix })
+      allRoutes.push(exolixRateResponse)
     } catch (error) { }
     if (!isMobile) try {
       const rangoMultiRouteRequest: MultiRouteRequest = {
@@ -175,7 +186,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
       }
       const rangoMultiRouteResponse: MultiRouteResponse = await rangoSDK.getAllRoutes(rangoMultiRouteRequest)
       const rangoMultiRouteSimulationResults: MultiRouteSimulationResult[] = rangoMultiRouteResponse.results.sort((a, b) => a.swaps.length - b.swaps.length);
-      allRoutes.push(...rangoMultiRouteSimulationResults.map(result => ({ ...result, moderator: DEXIFIER_MODERATOR.Rango })))
+      allRoutes.push(...rangoMultiRouteSimulationResults)
     } catch (error) { }
     return allRoutes
   }
@@ -249,20 +260,25 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
       // Clear any existing interval before starting a new one
       stopConfirming();
 
-      if ('depositChannelId' in swapData) {
+      if ('channelId' in swapData) {
         confirmIntervalRef.current = setInterval(async () => {
           try {
-            const statusData = await chainflipSDK.getStatusV2({
-              id: swapData.depositChannelId
-            });
+            // const statusData = await chainflipSDK.getStatusV2({
+            //   id: swapData.depositChannelId
+            // });
+            const statusData = await getSwapStatus(swapData.id);
             setSwapStatus(statusData);
             if (statusData.state === "COMPLETED" || statusData.state === "FAILED") {
               stopConfirming();
             }
-          } catch (error) { }
+          } catch (error) {
+            if (error instanceof AxiosError) {
+              return error.response?.data as ChainflipError;
+            }
+          }
         }, 10000); // Poll every 10 seconds (adjust as needed)
       }
-      if ('id' in swapData) {
+      if ('amountTo' in swapData) {
         confirmIntervalRef.current = setInterval(async () => {
           const txInfo = await getTxInfo(swapData.id);
           setSwapStatus(txInfo);

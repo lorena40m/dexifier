@@ -42,4 +42,24 @@ const axiosCoingecko = axios.create({
   },
 })
 
-export { axiosRango, axiosExolix, axiosCoingecko }
+// Create axios client for Chainflip
+const axiosChainflip = axios.create({
+  baseURL: 'https://chainflip-broker.io',
+  headers: {
+    'Accept': '*/*',
+    'Access-Control-Allow-Origin': '*',
+  },
+})
+
+// Attach Rango API Key for every request
+axiosChainflip.interceptors.request.use((config) => {
+  config.params = config.params || {}
+
+  config.params['apiKey'] = process.env.NEXT_PUBLIC_CHAINFLIP_API_KEY
+
+  return config
+}, (error) => {
+  return Promise.reject(error)
+})
+
+export { axiosRango, axiosExolix, axiosCoingecko, axiosChainflip }

@@ -1,31 +1,23 @@
-import Image from 'next/image';
 import { X } from 'lucide-react';
 import { PropsWithChildren, useMemo, useState, useTransition } from 'react';
-import { ConfirmRouteRequest, MultiRouteSimulationResult, Token, Transaction, TransactionType, WalletRequiredAssets, ConfirmRouteResponse } from 'rango-types/mainApi';
+import { ConfirmRouteRequest, ConfirmRouteResponse } from 'rango-types/mainApi';
 import CustomLoader from '../common/loader';
-import { chainflipSDK, cn, rangoSDK, toastError } from '@/lib/utils';
+import { rangoSDK, toastError } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { ConnectedWallet, useWidget, useWallets, useWalletList } from '@rango-dev/widget-embedded';
-import { Input } from '@/components/ui/input';
 import { useManager } from "@rango-dev/queue-manager-react";
 import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
 import { confirmHasError, getWalletsForNewSwap } from '@/app/utils/swap';
 import { Wallet } from '@/app/types/rango';
 import { Button } from '@/components/ui/button';
-import { formatChainName } from '@/app/utils/chainflip';
-import { DepositAddressRequestV2, Quote } from '@chainflip/sdk/swap';
-import { DepositAddressResponseV2 } from '@/app/types/chainflip';
-import { ethers } from 'ethers';
-import { DEXIFIER_MODERATOR, DEXIFIER_STATE, useDexifier } from '@/app/providers/DexifireProvider';
-import { RateResponse, TxRequest } from '@/app/types/exolix';
+import { DEXIFIER_STATE, useDexifier } from '@/app/providers/DexifireProvider';
 import { RadioGroup } from '@/components/ui/radio-group';
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import ButtonCopyIcon from '../common/coyp-button-icon';
 import WalletConnectModal from '../swap/WalletConnectModal';
 import TokenIcon from '../common/token-icon';
-import { createTransaction } from '@/app/api/exolix';
 import { getAbbrAddress } from "@/app/utils";
 
 type SwapToken = {
@@ -57,59 +49,60 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const [withdrawalAddress, setWithdrawalAddress] = useState<string>();
 
   const swapInfo: SwapInfo | undefined = useMemo(() => {
-    switch (selectedRoute?.moderator) {
-      case DEXIFIER_MODERATOR.Rango:
-        const routeRango = selectedRoute as MultiRouteSimulationResult
-        const tokenFromRango = routeRango.swaps.at(0);
-        const tokenToRango = routeRango.swaps.at(-1);
-        if (!tokenFromRango || !tokenToRango) return
-        return {
-          from: {
-            amount: Number(tokenFromRango.fromAmount),
-            symbol: tokenFromRango.from.symbol,
-            blockchain: tokenFromRango.from.blockchain,
-          },
-          to: {
-            amount: Number(tokenToRango.toAmount),
-            symbol: tokenToRango.to.symbol,
-            blockchain: tokenToRango.to.blockchain,
-          },
-        }
-      case DEXIFIER_MODERATOR.Chainflip:
-        const routeChainflip = selectedRoute as Quote
-        const tokenFromChainflip: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === routeChainflip.srcAsset.chain && token.symbol === routeChainflip.srcAsset.asset)
-        const tokenToChainflip: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === routeChainflip.destAsset.chain && token.symbol === routeChainflip.destAsset.asset)
-        if (!tokenFromChainflip || !tokenToChainflip) return
-        return {
-          from: {
-            amount: parseFloat(routeChainflip.depositAmount) / (10 ** tokenFromChainflip.decimals),
-            symbol: routeChainflip.srcAsset.asset as string,
-            blockchain: formatChainName(routeChainflip.srcAsset.chain),
-          },
-          to: {
-            amount: parseFloat(routeChainflip.egressAmount) / (10 ** tokenToChainflip.decimals),
-            symbol: routeChainflip.destAsset.asset as string,
-            blockchain: formatChainName(routeChainflip.destAsset.chain),
-          },
-        }
-      case DEXIFIER_MODERATOR.Exolix:
-        const routeExolix = selectedRoute as RateResponse
-        if (!tokenFrom || !tokenTo) return
-        return {
-          from: {
-            amount: routeExolix.fromAmount,
-            symbol: tokenFrom.symbol,
-            blockchain: tokenFrom.blockchain,
-          },
-          to: {
-            amount: routeExolix.toAmount,
-            symbol: tokenTo.symbol,
-            blockchain: tokenTo.blockchain,
-          },
-        }
-      default:
-        break;
+    if (!selectedRoute) return
+    if ('outputAmount' in selectedRoute) {
+      const tokenFromRango = selectedRoute.swaps.at(0);
+      const tokenToRango = selectedRoute.swaps.at(-1);
+      if (!tokenFromRango || !tokenToRango) return
+      return {
+        from: {
+          amount: Number(tokenFromRango.fromAmount),
+          symbol: tokenFromRango.from.symbol,
+          blockchain: tokenFromRango.from.blockchain,
+        },
+        to: {
+          amount: Number(tokenToRango.toAmount),
+          symbol: tokenToRango.to.symbol,
+          blockchain: tokenToRango.to.blockchain,
+        },
+      }
     }
+    // Handle chainflip & exolix swap
+    {/*
+    if ('egressAmount' in selectedRoute) {
+      const tokenFromChainflip: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === selectedRoute.srcAsset.chain && token.symbol === selectedRoute.srcAsset.asset)
+      const tokenToChainflip: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === selectedRoute.destAsset.chain && token.symbol === selectedRoute.destAsset.asset)
+      if (!tokenFromChainflip || !tokenToChainflip) return
+      return {
+        from: {
+          amount: parseFloat(selectedRoute.depositAmount) / (10 ** tokenFromChainflip.decimals),
+          symbol: selectedRoute.srcAsset.asset as string,
+          blockchain: formatChainName(selectedRoute.srcAsset.chain),
+        },
+        to: {
+          amount: parseFloat(selectedRoute.egressAmount) / (10 ** tokenToChainflip.decimals),
+          symbol: selectedRoute.destAsset.asset as string,
+          blockchain: formatChainName(selectedRoute.destAsset.chain),
+        },
+      }
+    }
+    if ('toAmount' in selectedRoute) {
+      const routeExolix = selectedRoute as RateResponse
+      if (!tokenFrom || !tokenTo) return
+      return {
+        from: {
+          amount: routeExolix.fromAmount,
+          symbol: tokenFrom.symbol,
+          blockchain: tokenFrom.blockchain,
+        },
+        to: {
+          amount: routeExolix.toAmount,
+          symbol: tokenTo.symbol,
+          blockchain: tokenTo.blockchain,
+        },
+      }
+    }
+    */}
   }, [selectedRoute, tokenFrom, tokenTo])
 
   async function pasteWithdrawalAddressFromClipboard() {
@@ -126,9 +119,9 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   }
 
   const confirmSwap = async () => {
-    if (!walletFrom || !walletTo || !tokenFrom || !tokenTo || !amountFrom || (walletTo === 'custom' && !withdrawalAddress)) return
+    if (!selectedRoute || !walletFrom || !walletTo || !tokenFrom || !tokenTo || !amountFrom || (walletTo === 'custom' && !withdrawalAddress)) return
     initializeSwap(async () => {
-      if (selectedRoute?.moderator === DEXIFIER_MODERATOR.Rango) {
+      if ('outputAmount' in selectedRoute) {
         // Perform the confirmation when ready
         const selectedWallets = [walletFrom, walletTo]
           .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
@@ -139,7 +132,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
 
         // Prepare request for confirming the route
         const confirmRequest: ConfirmRouteRequest = {
-          requestId: (selectedRoute as MultiRouteSimulationResult).requestId,
+          requestId: selectedRoute.requestId,
           selectedWallets: selectedWallets,
           destination: typeof walletTo === 'string' ? walletTo : (walletTo as ConnectedWallet).address,
         };

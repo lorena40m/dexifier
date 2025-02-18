@@ -1,4 +1,4 @@
-import { Chain } from "@chainflip/sdk/swap";
+import { Asset, Chain, ChainsAndAssets, Quote } from "@chainflip/sdk/swap";
 
 export const chainsMap: Record<string, Chain> = {
   BTC: "Bitcoin",
@@ -6,6 +6,14 @@ export const chainsMap: Record<string, Chain> = {
   DOT: "Polkadot",
   ARBITRUM: "Arbitrum",
   SOLANA: "Solana",
+  SOL: "Solana",
+}
+
+export const DEXIFIER_BLOCKCHAIN_NAME_MAP: Record<string, Chain> = {
+  BTC: "Bitcoin",
+  ETH: "Ethereum",
+  DOT: "Polkadot",
+  ARB: "Arbitrum",
   SOL: "Solana",
 }
 
@@ -20,4 +28,17 @@ export function formatChainName(chain: string): Chain | string | undefined {
   }
 
   return undefined;
+}
+
+export const CHAINFLIP_BLOCKCHAIN_NAME_MAP: Record<string, string> = {
+  "ETH": "eth",
+  "SOLANA": "sol",
+  "BTC": "btc",
+  "ARBITRUM": "arb",
+  "POLKADOT": "dot",
+  "eth": "ETH",
+  "sol": "SOLANA",
+  "btc": "BTC",
+  "arb": "ARBITRUM",
+  "dot": "POLKADOT",
 }
