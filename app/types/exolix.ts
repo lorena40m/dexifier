@@ -24,12 +24,17 @@ export type Currency = {
   network: Network	                // Currency network
 }
 
-export type CurrencyResponse = {
+export type CurrencyData = {
   code: string	                    // Currency code
   name: string	                    // Currency name
   icon: string	                    // Currency icon
   notes: string	                    // Currency notes
   networks: Network[]               // List of currency networks *Only withNetworks=true
+}
+
+export type CurrencyResponse = {
+  count: number,                    // Number of currencies in response
+  data: CurrencyData[]              // Array of currency
 }
 
 export type RateRequest = {

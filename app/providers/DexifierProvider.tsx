@@ -20,6 +20,7 @@ import { getTxInfo } from "../api/exolix";
 import { ethers } from 'ethers';
 import { createQuotes, getSwapStatus } from "../api/chainflip";
 import { AxiosError } from "axios";
+import { EXOLIX_BLOCKCHAIN_NAME_MAP } from "../utils/exolix";
 
 // Define the type for the context
 interface DexifierContextType {
@@ -142,9 +143,9 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     try {
       const exolixRateRequest: RateRequest = {
         coinFrom: tokenFrom.symbol,
-        networkFrom: tokenFrom.blockchain,
+        networkFrom: EXOLIX_BLOCKCHAIN_NAME_MAP[tokenFrom.blockchain],
         coinTo: tokenTo.symbol,
-        networkTo: tokenTo.blockchain,
+        networkTo: EXOLIX_BLOCKCHAIN_NAME_MAP[tokenTo.blockchain],
         amount: amount,
         rateType: 'float',
       }
