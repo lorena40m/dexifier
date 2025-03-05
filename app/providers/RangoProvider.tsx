@@ -5,7 +5,7 @@ import { WidgetProvider, WidgetConfig } from "@rango-dev/widget-embedded";
 import QueueManager from "./QueueManager";
 
 const DEXIFIER_CONFIG: WidgetConfig = {
-  apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || process.env.NEXT_PUBLIC_RANGO_API_KEY || '',
+  apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY || process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || '',
   title: 'Dexifier',
   walletConnectProjectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
   multiWallets: true,

@@ -13,7 +13,7 @@ const axiosRango = axios.create({
 axiosRango.interceptors.request.use((config) => {
   config.params = config.params || {}
 
-  config.params['apiKey'] = process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
+  config.params['apiKey'] = process.env.NEXT_PUBLIC_RANGO_API_KEY || process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
 
   return config
 }, (error) => {

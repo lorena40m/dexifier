@@ -16,3 +16,7 @@ export const EXOLIX_BLOCKCHAIN_NAME_MAP: Record<string, string> = {
   "LTC": "LTC",
   "Taiko": "TAIKO",
 }
+
+export function getExolixflipBlockchainName(key: string): string | undefined {
+  return EXOLIX_BLOCKCHAIN_NAME_MAP[key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()];
+}
