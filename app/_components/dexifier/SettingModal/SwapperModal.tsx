@@ -4,13 +4,13 @@ import Search from "../../common/search";
 import React, { PropsWithChildren, useEffect, useState } from "react";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useSwap } from "@/app/providers/SwapProvider";
 import { useWidget } from "@rango-dev/widget-embedded";
 import { SwapperMeta, SwapperType } from "rango-types/mainApi";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import TokenIcon from "../../common/token-icon";
 import { cn } from "@/lib/utils";
+import { useDexifier } from "@/app/providers/DexifierProvider";
 
 interface SwapperModalProps {
   title: string,
@@ -18,7 +18,7 @@ interface SwapperModalProps {
 }
 
 const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children, ...props }) => {
-  const { settings, setSettings } = useSwap();
+  const { settings, setSettings } = useDexifier();
   const { meta } = useWidget();
   const swappers = meta.swappers.filter((swapper: SwapperMeta) => swapper.types.includes(props.type))
   const [filteredSwappers, setFilteredSwappers] = useState<SwapperMeta[]>(swappers);
@@ -42,7 +42,7 @@ const SwapperModal: React.FC<PropsWithChildren<SwapperModalProps>> = ({ children
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
+      <DialogContent className="flex flex-col sm:max-w-md bg-transparent max-h-[90vh] max-w-[90vw] p-4 md:p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
         <DialogHeader className="flex flex-row justify-between">
           <DialogTitle className="text-2xl">{props.title}</DialogTitle>
           <DialogClose>

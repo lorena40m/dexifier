@@ -23,6 +23,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { getAbbrAddress } from "@/app/utils";
 import { TokenBalance } from "@rango-dev/widget-embedded/dist/store/wallets";
 import TokenIcon from "../common/token-icon";
+import { TbRefresh } from "react-icons/tb";
 
 enum MORE_SETTINGS {
   HIDE_SMALL_BALANCE = "Hide small balances",
@@ -142,7 +143,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
           <SheetDescription className="flex justify-between p-2 pt-0">
             <span className="text-2xl font-bold text-white">Your Wallet</span>
             <button onClick={handleRefresh}>
-              <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
+              <TbRefresh className="size-6 text-primary" />
             </button>
           </SheetDescription>
         </SheetHeader>
@@ -161,7 +162,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
             }}
             defaultValue={selectedWalletTypesMemo}
             placeholder="No Wallet"
-            className="bg-primary border-none hover:bg-primary-dark flex-1"
+            className="bg-primary text-black border-none hover:bg-primary-dark flex-1"
             unit="wallet"
           />
           <MultiSelect
@@ -177,7 +178,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
               setSelectedChains(values);
             }}
             placeholder="No Blockchain"
-            className="bg-primary border-none hover:bg-primary-dark flex-1"
+            className="bg-primary text-black border-none hover:bg-primary-dark flex-1"
             unit="chain"
           />
           <MultiSelect
@@ -192,7 +193,7 @@ const WalletDetails: React.FC<WalletDetailsProps> = ({ children }) => {
             }}
             defaultValue={moreSettingsMemo}
             placeholder="..."
-            className="bg-primary border-none hover:bg-primary-dark flex-none h-10 w-10"
+            className="bg-primary text-black border-none hover:bg-primary-dark flex-none h-10 w-10"
             config={{
               showSelectAll: false,
               showContent: false,

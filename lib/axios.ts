@@ -13,7 +13,7 @@ const axiosRango = axios.create({
 axiosRango.interceptors.request.use((config) => {
   config.params = config.params || {}
 
-  config.params['apiKey'] = process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
+  config.params['apiKey'] = process.env.NEXT_PUBLIC_RANGO_API_KEY || process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC
 
   return config
 }, (error) => {
@@ -31,4 +31,35 @@ const axiosExolix = axios.create({
   },
 })
 
-export { axiosRango, axiosExolix }
+// Create axios client for Coingecko
+const axiosCoingecko = axios.create({
+  baseURL: 'https://api.coingecko.com/api/v3',
+  headers: {
+    'Accept': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
+    'x-cg-demo-api-key': process.env.NEXT_PUBLIC_COINGECKO_API_KEY || '',
+  },
+})
+
+// Create axios client for Chainflip
+const axiosChainflip = axios.create({
+  baseURL: 'https://chainflip-broker.io',
+  headers: {
+    'Accept': '*/*',
+    'Access-Control-Allow-Origin': '*',
+  },
+})
+
+// Attach Rango API Key for every request
+axiosChainflip.interceptors.request.use((config) => {
+  config.params = config.params || {}
+
+  config.params['apiKey'] = process.env.NEXT_PUBLIC_CHAINFLIP_API_KEY
+
+  return config
+}, (error) => {
+  return Promise.reject(error)
+})
+
+export { axiosRango, axiosExolix, axiosCoingecko, axiosChainflip }

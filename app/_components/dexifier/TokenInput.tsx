@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { BlockchainMeta, Token } from "rango-types/mainApi";
 import { useWidget } from "@rango-dev/widget-embedded";
 import TokenIcon from "../common/token-icon";
+import { useDexifier } from "@/app/providers/DexifierProvider";
+import { cn } from "@/lib/utils";
 
 // Defining the interface for TokenInput props
 interface TokenInputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -16,13 +18,15 @@ interface TokenInputProps extends InputHTMLAttributes<HTMLInputElement> {
 const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) => {
   const { meta } = useWidget();
   const { blockchains } = meta; // Get the list of available blockchains
+  const { isMobile } = useDexifier();
   // Find the selected blockchain's metadata
   const selectedBlochchain = useMemo<BlockchainMeta | undefined>(() => {
     if(token) return blockchains.find((blockchain: BlockchainMeta) => blockchain.name === token.blockchain)
   }, [blockchains, token]);
 
+
   return (
-    <div className={`flex border border-[#695F5F]/40 items-center justify-between bg-[#000]/30 backdrop-blur-lg rounded-lg p-2 shadow-md h-[3.3125rem]`}>
+    <div className={cn(`flex border-[#695F5F]/40 items-center justify-between backdrop-blur-lg rounded-lg p-2 shadow-md`, isMobile ? "bg-primary/30 h-12" : "border h-[53px] bg-[#000]/30")}>
       {/* Input field for token amount */}
       <div className="flex flex-col flex-1">
         <Input {...props} /> {/* Custom input for entering token amount */}
@@ -34,10 +38,10 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
         </span>
       </div>
       {/* Separator between input field and token selection button */}
-      <Separator orientation="vertical" className="bg-separator" />
+      <Separator orientation="vertical" className={isMobile ? "bg-white" : "bg-separator"} />
       {/* Token selection button */}
       <TokenModal selectedToken={token} setToken={setToken}>
-        <Button className="md:w-[150px] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2 text-sm">
+        <Button className={cn("md:w-[150px] w-[6rem] bg-transparent ring-0 border-none flex items-center justify-center gap-2", isMobile ? "p-1 text-xs" : "text-sm")}>
           {/* Display selected token info or default "Select Token" */}
           {token ?
             <>
@@ -45,11 +49,12 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
                 token={{
                   image: token.image!,
                   alt: token.name!,
+                  className: isMobile ? "size-8" : undefined,
                 }}
                 blockchain={{
                   image: selectedBlochchain?.logo,
                   alt: selectedBlochchain?.name,
-                  className: "size-6",
+                  className: isMobile ? "size-4" : "size-6",
                 }}
               />
               <div className="flex flex-col overflow-hidden">

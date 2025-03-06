@@ -9,13 +9,13 @@ import { PendingSwap } from "rango-types";
 import { useManager } from "@rango-dev/queue-manager-react";
 import ButtonCopyIcon from "../common/coyp-button-icon";
 import TooltipTemplate from "../common/tooltip-template";
-import { SwapResult } from "rango-types/mainApi";
-import { useSwap } from "@/app/providers/SwapProvider";
+import { ConfirmRouteResponse, MultiRouteSimulationResult, SwapResult } from "rango-types/mainApi";
 import { getSwapMessages, getSwapDate, getStepState, getPendingSwaps } from "@/app/utils/swap";
 import TokenIcon from "../common/token-icon";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useDexifier } from "@/app/providers/DexifierProvider";
 
 interface SwapTokenProps {
   swapData: SwapResult, // Data related to the token being swapped
@@ -28,16 +28,23 @@ interface StepStateProps {
   currentStep: number // Current step of the swap process
 }
 
-const SwapDetailsCard = () => {
+type RangoData = {
+  swapData: ConfirmRouteResponse;
+  selectedRoute: MultiRouteSimulationResult;
+};
+
+
+const DexifierDetailRango = () => {
   const { manager } = useManager(); // Manager from the Rango queue
 
   const isSwapMade = false;
-  const { selectedRoute, confirmData, setConfirmData, setSelectedRoute } = useSwap();
-  const swaps = selectedRoute?.swaps; // List of swaps involved in the current route
+  const { selectedRoute, swapData } = useDexifier() as RangoData;
+  const { initialize } = useDexifier();
+  const swaps = selectedRoute.swaps; // List of swaps involved in the current route
   const pendingSwaps = getPendingSwaps(manager); // Fetch pending swaps from the manager
 
-  const selectedSwap = confirmData?.result?.requestId
-    ? pendingSwaps.find(({ swap }) => swap.requestId === confirmData?.result?.requestId)
+  const selectedSwap = swapData.result?.requestId
+    ? pendingSwaps.find(({ swap }) => swap.requestId === swapData.result?.requestId)
     : undefined;
   const pendingSwap = selectedSwap?.swap; // Get the selected swap from the pending swaps
 
@@ -47,8 +54,7 @@ const SwapDetailsCard = () => {
       const swap = manager.get(selectedSwap.id);
       if (swap) {
         cancelSwap(swap);
-        setConfirmData(undefined);
-        setSelectedRoute(undefined);
+        initialize();
       }
     }
   };
@@ -57,8 +63,7 @@ const SwapDetailsCard = () => {
   const onDelete = async () => {
     if (selectedSwap && manager) {
       manager.deleteQueue(selectedSwap.id);
-      setConfirmData(undefined);
-      setSelectedRoute(undefined);
+      initialize();
     }
   };
 
@@ -135,7 +140,7 @@ const SwapDetailsCard = () => {
           </div>
         </div>
 
-        {confirmData && confirmData.result && swaps && <div className="mb-7 flex flex-col items-center text-xs">
+        {(swapData as ConfirmRouteResponse).result && swaps && <div className="mb-7 flex flex-col items-center text-xs">
           <div className="flex gap-1">
             <SwapToken swapData={swaps[0]} isFrom={true} />
             <div className="relative border-t border-dashed min-w-24 flex-grow mt-8">
@@ -201,7 +206,7 @@ const SwapDetailsCard = () => {
       </CardFooter>
     </Card>
   );
-};
+}
 
 // Component to display token details for the swap
 const SwapToken: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
@@ -297,4 +302,4 @@ const SwapSteps: FC<SwapTokenProps> = ({ className, swapData, isFrom }) => {
   );
 };
 
-export default SwapDetailsCard;
+export default DexifierDetailRango;

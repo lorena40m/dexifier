@@ -1,15 +1,15 @@
 import { axiosExolix } from "@/lib/axios";
 import { AxiosResponse } from "axios";
-import { RateRequest, RateResponse, TxRequest, ExTxInfo, Currency, CurrencyResponse, Network } from "../types/exolix";
+import { RateRequest, RateResponse, TxRequest, ExTxInfo, Currency, CurrencyData, Network } from "../types/exolix";
 
 export async function getCurrencies(search: string, page: number = 1): Promise<Currency[]> {
   try {
     const response = await axiosExolix.get(`/currencies?&withNetworks=true&page=${page}&search=${search}`);
 
-    const { data, count }: { data: CurrencyResponse[], count: number } = response.data;
+    const { data, count }: { data: CurrencyData[], count: number } = response.data;
 
     const currencies: Currency[] = [];
-    data.forEach((currency: CurrencyResponse) => {
+    data.forEach((currency: CurrencyData) => {
       const { networks, ...currencyMeta } = currency;
       currency.networks.forEach((network: Network) => {
         currencies.push({
