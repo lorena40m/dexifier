@@ -4,14 +4,11 @@ import React, { useMemo, useState } from "react"; // Importing React hooks
 import TooltipTemplate from "../common/tooltip-template"; // Import TooltipTemplate component for displaying tooltips
 import { useWidget } from "@rango-dev/widget-embedded"; // Importing hook from the Rango widget
 import {
-  BlockchainMeta,
   MultiRouteSimulationResult,
   SwapResult,
-  Token,
 } from "rango-types/mainApi"; // Import types for the swap logic
 import TokenIcon from "../common/token-icon";
 import { ChainflipQuote } from "@/app/types/chainflip";
-import { CHAINFLIP_BLOCKCHAIN_NAME_MAP } from "@/app/utils/chainflip";
 import {
   DEXIFIER_STATE,
   DexifierRoute,
@@ -24,13 +21,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import FloatingTooltip from "../common/floating-tooltip";
+import { Blockchain, Token } from "@/app/types/dexifier";
+import { MAP_BLOCKCHAIN_RANGO_2_EXOLIX } from "@/app/utils/exolix";
 
 const FILTERS = ["Shortest", "Best rate", "Lowest fee", "Fastest"];
 
 const RouteCard = () => {
-  const { meta } = useWidget(); // Getting metadata
-  const { tokens, blockchains } = meta; // Extracting tokens & blockchains from the metadata
-  const { routes, setSelectedRoute, tokenFrom, tokenTo, state, isMobile } =
+  const { chains, coins, routes, setSelectedRoute, tokenFrom, tokenTo, state, isMobile } =
     useDexifier();
   const [filter, setFilter] = useState<string>("Shortest");
 
@@ -92,8 +89,8 @@ const RouteCard = () => {
                       height={21}
                       alt="Arrow down"
                       className={`absolute ${index !== 0
-                          ? "-right-[3.5625rem]"
-                          : "-right-[3.0625rem]"
+                        ? "-right-[3.5625rem]"
+                        : "-right-[3.0625rem]"
                         } top-6`}
                     />
                     <TooltipTemplate content={`${singleNode.swapperId}`}>
@@ -104,8 +101,8 @@ const RouteCard = () => {
                           className: "size-5",
                         }}
                         className={`absolute ${index !== 0
-                            ? "-right-[2.425rem]"
-                            : "-right-[2.125rem]"
+                          ? "-right-[2.425rem]"
+                          : "-right-[2.125rem]"
                           } top-4`}
                       />
                     </TooltipTemplate>
@@ -160,33 +157,33 @@ const RouteCard = () => {
   const chainflipRoute = (route: ChainflipQuote) => {
     const [ingressAsset, ingressChain] = route.ingressAsset.split('.')
     const [egressAsset, egressChain] = route.egressAsset.split('.')
-    const tokenFrom: Token = tokens.find(
+    const tokenFrom: Token | undefined = coins.find(
       (token: Token) =>
-        token.blockchain === CHAINFLIP_BLOCKCHAIN_NAME_MAP[ingressChain] &&
+        token.blockchain === ingressChain || token.blockchain === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[ingressChain] &&
         token.symbol === ingressAsset.toUpperCase()
     );
-    const tokenTo: Token = tokens.find(
+    const tokenTo: Token | undefined = coins.find(
       (token: Token) =>
-        token.blockchain === CHAINFLIP_BLOCKCHAIN_NAME_MAP[egressChain] &&
+        token.blockchain === egressChain || token.blockchain === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[egressChain] &&
         token.symbol === egressAsset.toUpperCase()
     );
-    const blockchainFrom: BlockchainMeta = blockchains.find(
-      (blockchain: BlockchainMeta) =>
-        blockchain.name === CHAINFLIP_BLOCKCHAIN_NAME_MAP[ingressChain]
+    const blockchainFrom: Blockchain | undefined = chains.find(
+      (blockchain: Blockchain) =>
+        blockchain.name === ingressChain || blockchain.name === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[ingressChain]
     );
-    const blockchainTo: BlockchainMeta = blockchains.find(
-      (blockchain: BlockchainMeta) =>
-        blockchain.name === CHAINFLIP_BLOCKCHAIN_NAME_MAP[egressChain]
+    const blockchainTo: Blockchain | undefined = chains.find(
+      (blockchain: Blockchain) =>
+        blockchain.name === egressChain || blockchain.name === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[egressChain]
     );
     return (
       <div className={`relative w-full flex overflow-x-auto`}>
         <div className="flex items-start">
           <div className={`relative flex flex-col gap-y-1`}>
             {singleNodeTemplate(
-              tokenFrom.image,
-              tokenFrom.symbol,
+              tokenFrom?.image || '',
+              tokenFrom?.symbol || '',
               route.ingressAmount.toFixed(2),
-              blockchainFrom.logo
+              blockchainFrom?.logo || ''
             )}
             <div>
               <Image
@@ -210,10 +207,10 @@ const RouteCard = () => {
           </div>
           <div className={`mt-[50px] ms-[22px] flex flex-col gap-y-1`}>
             {singleNodeTemplate(
-              tokenTo.image,
-              tokenTo.symbol,
+              tokenTo?.image || '',
+              tokenTo?.symbol || '',
               route.egressAmount.toFixed(2),
-              blockchainTo.logo
+              blockchainTo?.logo || ''
             )}
           </div>
         </div>
@@ -226,21 +223,23 @@ const RouteCard = () => {
 
   const exolixRoute = (route: RateResponse) => {
     if (tokenFrom && tokenTo) {
-      const blockchainFrom: BlockchainMeta = blockchains.find(
-        (blockchain: BlockchainMeta) => blockchain.name === tokenFrom.blockchain
+      const blockchainFrom: Blockchain | undefined = chains.find(
+        (blockchain: Blockchain) =>
+          blockchain.name === tokenFrom.blockchain || tokenFrom.blockchain && blockchain.name === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[tokenFrom.blockchain]
       );
-      const blockchainTo: BlockchainMeta = blockchains.find(
-        (blockchain: BlockchainMeta) => blockchain.name === tokenTo.blockchain
+      const blockchainTo: Blockchain | undefined = chains.find(
+        (blockchain: Blockchain) =>
+          blockchain.name === tokenTo.blockchain || tokenTo.blockchain && blockchain.name === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[tokenTo.blockchain]
       );
       return (
         <div className={`relative w-full flex overflow-x-auto`}>
           <div className="flex items-start">
             <div className={`relative flex flex-col gap-y-1`}>
               {singleNodeTemplate(
-                tokenFrom.image,
+                tokenFrom.image || '',
                 tokenFrom.symbol,
                 route.fromAmount.toFixed(2),
-                blockchainFrom.logo
+                blockchainFrom?.logo || ''
               )}
               <div>
                 <Image
@@ -264,10 +263,10 @@ const RouteCard = () => {
             </div>
             <div className={`mt-[3.125rem] ms-[22px] flex flex-col gap-y-1`}>
               {singleNodeTemplate(
-                tokenTo.image,
+                tokenTo.image || '',
                 tokenTo.symbol,
                 route.toAmount.toFixed(2),
-                blockchainTo.logo
+                blockchainTo?.logo || ''
               )}
             </div>
           </div>

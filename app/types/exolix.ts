@@ -1,7 +1,8 @@
 export type Network = {
+  coinNetworkId: number
   network: string	                  // Network code
   name: string	                    // Network name
-  shortName: string	                // Network short name
+  shortName: string | null	        // Network short name
   addresRegex: string | null	      // Address regex
   notes: string	                    // Network notes
   isDefault: boolean	              // Is network default
@@ -12,16 +13,25 @@ export type Network = {
   memoNeeded: boolean	              // Network has extra ID
   memoName: string | null	          // Network extra name
   memoRegex: string | null	        // Memo regex
-  precision: boolean	              // Network precision
+  precision: number	                // Network precision
   contract: string | null	          // Contract address
 }
 
 export type Currency = {
   code: string	                    // Currency code
   name: string	                    // Currency name
-  icon: string	                    // Currency icon
+  icon?: string	                    // Currency icon
   notes: string	                    // Currency notes
   network: Network	                // Currency network
+}
+
+export type DCurrency = Omit<Currency, 'network'> & {
+  id: number
+  networkId: number
+}
+
+export type DNetwork = Network & {
+  id: number,
 }
 
 export type CurrencyData = {

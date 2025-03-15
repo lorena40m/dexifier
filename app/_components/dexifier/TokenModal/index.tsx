@@ -18,12 +18,14 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import _ from 'lodash';
-import { BlockchainMeta, Token } from "rango-types/mainApi";
 import { useWidget } from "@rango-dev/widget-embedded";
 import Blockchains from "./Blockchains";
 import { getAbbrAddress, getContrastRatio } from "@/app/utils";
 import TokenIcon from "../../common/token-icon";
 import { cn } from "@/lib/utils";
+import { Blockchain, Token } from "@/app/types/dexifier";
+import { useDexifier } from "@/app/providers/DexifierProvider";
+import { MAP_BLOCKCHAIN_RANGO_2_EXOLIX } from "@/app/utils/exolix";
 
 const PAGE_SIZE = 50; // Number of tokens to load per page for infinite scrolling
 
@@ -36,21 +38,22 @@ interface TokenModalProps {
 const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, selectedToken, setToken }) => {
   const page = useRef<number>(1); // Ref to keep track of the current page for infinite scroll
   const [search, setSearch] = useState<string>(''); // State to store the search query
-  const [selectedBlockchain, setSelectedBlockchain] = useState<BlockchainMeta>(); // State to store the selected blockchain
+  const [selectedBlockchain, setSelectedBlockchain] = useState<Blockchain>(); // State to store the selected blockchain
   const [blockchainTokens, setBlockChainTokens] = useState<Token[]>([]); // State to store tokens filtered by blockchain
   const [filteredTokens, setFilteredTokens] = useState<Token[]>([]); // State to store the filtered list of tokens based on search query
 
   const { meta, wallets } = useWidget(); // Fetch the metadata using the custom hook
-  const { tokens } = meta; // Extract tokens from the metadata
+  // const { tokens } = meta; // Extract tokens from the metadata
   const { details: connectedWallets } = wallets;
+  const { coins } = useDexifier();
 
   // Effect to filter tokens based on the selected blockchain
   useEffect(() => {
     if (selectedBlockchain) {
-      setBlockChainTokens(tokens.filter((token: Token) => token.blockchain === selectedBlockchain.name)
-        .sort((a, b) => b.isPopular - a.isPopular)); // Sort tokens by popularity
+      setBlockChainTokens(coins.filter((coin: Token) => coin.blockchain === selectedBlockchain.name || coin.blockchain === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[selectedBlockchain.name])
+        .sort((a, b) => (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0))); // Sort tokens by popularity
     }
-  }, [selectedBlockchain]);
+  }, [coins, selectedBlockchain]);
 
   // Effect to filter tokens based on the search query
   useEffect(() => {
@@ -134,13 +137,13 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
                           />
                           <div className="flex flex-col">
                             <TooltipTemplate
-                              content={token.name || "Null"} // Show token name in a tooltip
+                              content={token.symbol || "Null"} // Show token name in a tooltip
                               className="!-mb-1"
                             >
                               <span className="text-base font-bold">
                                 {token.symbol}
                                 <span className="ml-1 text-sm" style={{ color: selectedBlockchain.color ? getContrastRatio(selectedBlockchain.color, "#02140c00") ? selectedBlockchain.color : "white" : "white" }}>
-                                  ({selectedBlockchain.displayName})
+                                  ({selectedBlockchain.name})
                                 </span>
                               </span>
                             </TooltipTemplate>

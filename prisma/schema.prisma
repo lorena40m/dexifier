@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Currency {
+  id        Int     @id @default(autoincrement()) // Add an id field
+  code      String
+  name      String
+  icon      String?
+  notes     String?
+  networkId Int
+  network   Network @relation(fields: [networkId], references: [id], onDelete: Cascade)
+}
+
+model Network {
+  id               Int        @id @default(autoincrement())
+  network          String     @unique
+  name             String
+  shortName        String?
+  addressRegex     String?
+  notes            String?
+  isDefault        Boolean
+  decimal          Int?
+  icon             String?
+  blockExplorer    String?
+  depositMinAmount Float?
+  memoNeeded       Boolean
+  memoName         String?
+  memoRegex        String?
+  precision        Int
+  contract         String?
+  currencies       Currency[]
+}
