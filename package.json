@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "npx prisma generate",
     "db:init": "npx prisma generate && npx prisma migrate reset --force && npx prisma migrate deploy && npx tsx prisma/seed.ts",
     "dev": "next dev",
     "build": "next build",
