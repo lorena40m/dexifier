@@ -3,11 +3,10 @@ import { Dispatch, InputHTMLAttributes, SetStateAction, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import TokenModal from "./TokenModal";
 import { Button } from "@/components/ui/button";
-import { BlockchainMeta, Token } from "rango-types/mainApi";
-import { useWidget } from "@rango-dev/widget-embedded";
 import TokenIcon from "../common/token-icon";
 import { useDexifier } from "@/app/providers/DexifierProvider";
 import { cn } from "@/lib/utils";
+import { Blockchain, Token } from "@/app/types/dexifier";
 
 // Defining the interface for TokenInput props
 interface TokenInputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -16,13 +15,11 @@ interface TokenInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) => {
-  const { meta } = useWidget();
-  const { blockchains } = meta; // Get the list of available blockchains
-  const { isMobile } = useDexifier();
+  const { isMobile, chains } = useDexifier();
   // Find the selected blockchain's metadata
-  const selectedBlochchain = useMemo<BlockchainMeta | undefined>(() => {
-    if(token) return blockchains.find((blockchain: BlockchainMeta) => blockchain.name === token.blockchain)
-  }, [blockchains, token]);
+  const selectedBlochchain = useMemo<Blockchain | undefined>(() => {
+    if (token) return chains.find((blockchain: Blockchain) => blockchain.name === token.blockchain)
+  }, [chains, token]);
 
 
   return (
@@ -48,17 +45,17 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
               <TokenIcon
                 token={{
                   image: token.image!,
-                  alt: token.name!,
+                  alt: token.symbol!,
                   className: isMobile ? "size-8" : undefined,
                 }}
                 blockchain={{
-                  image: selectedBlochchain?.logo,
+                  image: selectedBlochchain?.logo || '',
                   alt: selectedBlochchain?.name,
                   className: isMobile ? "size-4" : "size-6",
                 }}
               />
               <div className="flex flex-col overflow-hidden">
-                <span>{token.name}</span>
+                <span>{token.symbol}</span>
                 <span className="text-xs opacity-80">
                   {/* Display blockchain name */}
                   {token.blockchain}

@@ -6,21 +6,22 @@
 // (useDexifier) is provided for easier consumption of the context in components.
 
 import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useEffect, useMemo, useRef } from "react";
-import { ConfirmRouteResponse, MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, Token, Transaction, TransactionType } from "rango-types/mainApi"
+import { BlockchainMeta, ConfirmRouteResponse, MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, Token as RangoToken, Transaction, TransactionType } from "rango-types/mainApi"
 import { Settings } from "../types/rango";
 import { Asset } from "@chainflip/sdk/swap";
 import { ChainflipSwapResponse, ChainflipQuote, ChainflipError, ChainflipSwapStatus } from "../types/chainflip";
 import { axiosExolix } from "@/lib/axios";
-import { ExTxInfo, RateRequest, RateResponse } from "../types/exolix";
-import { ConnectedWallet, useWallets } from "@rango-dev/widget-embedded";
+import { DCurrency, DNetwork, ExTxInfo, RateRequest, RateResponse } from "../types/exolix";
+import { ConnectedWallet, useWallets, useWidget } from "@rango-dev/widget-embedded";
 import { debounce } from "lodash";
 import { CHAINFLIP_BLOCKCHAIN_NAME_MAP } from "../utils/chainflip";
 import { rangoSDK } from "@/lib/utils";
 import { getTxInfo } from "../api/exolix";
 import { ethers } from 'ethers';
 import { createQuotes, getSwapStatus } from "../api/chainflip";
-import { AxiosError } from "axios";
-import { getExolixflipBlockchainName } from "../utils/exolix";
+import axios, { AxiosError } from "axios";
+import { getExolixflipBlockchainName, MAP_BLOCKCHAIN_RANGO_2_EXOLIX } from "../utils/exolix";
+import { Blockchain, Token } from "../types/dexifier";
 
 // Define the type for the context
 interface DexifierContextType {
@@ -53,6 +54,9 @@ interface DexifierContextType {
     data: any;
   } | undefined>,
   isMobile: boolean,
+  currencies: DCurrency[],
+  chains: Blockchain[],
+  coins: Token[]
 }
 
 // Create the context with an initial value
@@ -97,12 +101,51 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const [walletTo, setWalletTo] = useState<ConnectedWallet | string>();
   const [swapData, setSwapData] = useState<ChainflipSwapResponse | ExTxInfo | ConfirmRouteResponse>();
   const [swapStatus, setSwapStatus] = useState<ChainflipSwapStatus | ExTxInfo>();
+  const [currencies, setCurrencies] = useState<DCurrency[]>([]);
+  const [networks, setNetworks] = useState<DNetwork[]>([]);
   const confirmIntervalRef = useRef<NodeJS.Timeout>();
   const { getSigners } = useWallets();
   const isMobile = useMemo(() => {
     const userAgent = navigator.userAgent;
     return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
   }, []);
+  const { meta } = useWidget(); // Fetch widget metadata using the custom hook
+  const { blockchains, tokens } = meta; // Extract blockchains from the metadata
+
+  const chains: Blockchain[] = useMemo(() => {
+    const bc = blockchains.map((blockchain: BlockchainMeta) => ({
+      id: blockchain.chainId,
+      name: blockchain.name,
+      logo: blockchain.logo,
+      color: blockchain.color,
+    }))
+    const nt = networks?.map(network => ({
+      id: network.id + 100000000,
+      name: network.network,
+      logo: network.icon,
+    })).filter(network => !bc.some(blockchain => blockchain.name === network.name || MAP_BLOCKCHAIN_RANGO_2_EXOLIX[blockchain.name] === network.name));
+
+    return [...bc, ...nt];
+  }, [blockchains, networks]);
+
+  const coins: Token[] = useMemo(() => {
+    const tk = tokens.map((token: RangoToken) => ({
+      address: token.address,
+      isPopular: token.isPopular,
+      symbol: token.symbol,
+      blockchain: token.blockchain,
+      image: token.image,
+      decimals: token.decimals,
+      usdPrice: token.usdPrice,
+    }))
+    const cu = currencies?.map(currency => ({
+      address: null,
+      symbol: currency.code,
+      blockchain: networks.find(n => n.id === currency.networkId)?.network,
+      image: currency.icon,
+    }))
+    return [...tk, ...cu];
+  }, [networks, tokens, currencies])
 
   const amountTo = useMemo(() => {
     if (!selectedRoute) return 0
@@ -127,6 +170,7 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
 
   const getRoutes = async (tokenFrom: Token, tokenTo: Token, amount: string): Promise<DexifierRoute[]> => {
     const allRoutes: DexifierRoute[] = []
+    if (!tokenFrom.blockchain || !tokenTo.blockchain) return [];
     try {
       if (tokenFrom.blockchain in CHAINFLIP_BLOCKCHAIN_NAME_MAP && tokenTo.blockchain in CHAINFLIP_BLOCKCHAIN_NAME_MAP) {
         // Use the createQuotes function from api/chainflip.ts
@@ -279,6 +323,27 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [swapData])
 
+  useEffect(() => {
+    axios.get(
+      `/api/exolix/currency`
+    ).then(result => {
+      try {
+        if (!result.data['success']) {
+          setCurrencies(result.data as DCurrency[])
+        }
+      } catch (error) { }
+    });
+    axios.get(
+      `/api/exolix/network`
+    ).then(result => {
+      try {
+        if (!result.data['success']) {
+          setNetworks(result.data as DNetwork[])
+        }
+      } catch (error) { }
+    });
+  }, [])
+
   return (
     <DexifierContext.Provider
       value={{
@@ -303,6 +368,9 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
         stopConfirming,
         sendTx,
         isMobile,
+        currencies,
+        chains,
+        coins,
       }}
     >
       {children}
