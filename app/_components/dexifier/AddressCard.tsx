@@ -40,9 +40,11 @@ const AddressesCard = () => {
     tokenTo,
     amountFrom,
     amountTo,
+    settings,
   } = useDexifier();
   // const { selectedQuote, srcAsset, destAsset, depositData } = useQuote();
   const [withdrawalAddress, setWithdrawalAddress] = useState<string>();
+  const [refundAddress, setRefundAddress] = useState<string>();
   const [steps, setSteps] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -71,11 +73,11 @@ const AddressesCard = () => {
     }
   }, [swapStatus]);
 
-  async function pasteWithdrawalAddressFromClipboard() {
+  async function pasteFromClipboard(setFunc: React.Dispatch<React.SetStateAction<string | undefined>>) {
     try {
       if (navigator.clipboard) {
         const clipboardText = await navigator.clipboard.readText();
-        setWithdrawalAddress(clipboardText);
+        setFunc(clipboardText);
       } else {
         console.error("Clipboard API not supported.");
       }
@@ -350,15 +352,53 @@ const AddressesCard = () => {
             <Button
               className="border border-primary text-primary rounded-lg p-1 md:text-base text-xs h-full bg-transparent md:lowercase uppercase"
               disabled={!!swapStatus}
-              onClick={pasteWithdrawalAddressFromClipboard}
+              onClick={() => pasteFromClipboard(setWithdrawalAddress)}
             >
               paste
             </Button>
           </div>
 
           {!withdrawalAddress && (
-            <span className="text-primary md:block hidden">
+            <span className="text-primary md:block hidden mb-6">
               Enter the Recipient Address first !
+            </span>
+          )}
+
+          <Label
+            htmlFor="refund"
+            className="md:text-lg text-sm md:capitalize uppercase md:text-white text-primary"
+          >
+            Refund{" "}
+            <span className="text-primary">
+              {tokenFrom?.blockchain} {tokenFrom?.symbol}
+            </span>{" "}
+            address
+          </Label>
+          <div
+            id="refund"
+            className={`${refundAddress ? "border-[#695F5F]" : "border-primary"
+              } md:border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] my-3 md:bg-[#000]/30 bg-primary/30 backdrop-blur-lg`}
+          >
+            <Input
+              type="text"
+              value={refundAddress}
+              onChange={(e) => setRefundAddress(e.target.value)}
+              placeholder="Enter refund address"
+              className="md:text-base text-xs placeholder:text-white/50 md:px-3 px-1 bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              disabled={!!swapStatus}
+            />
+            <Button
+              className="border border-primary text-primary rounded-lg p-1 md:text-base text-xs h-full bg-transparent md:lowercase uppercase"
+              disabled={!!swapStatus}
+              onClick={() => pasteFromClipboard(setRefundAddress)}
+            >
+              paste
+            </Button>
+          </div>
+
+          {!refundAddress && (
+            <span className="text-primary md:block hidden">
+              Enter the Refund Address!
             </span>
           )}
           {status && (
@@ -502,10 +542,14 @@ const AddressesCard = () => {
                   //   await chainflipSDK.requestDepositAddressV2(
                   //     depositAddressRequest
                   //   );
+                  const minimumPrice = selectedRoute.egressAmount * (1 - parseFloat(settings.slippage) / 100);
                   const depositAddressResponse = await createSwap({
                     sourceAsset: selectedRoute.ingressAsset,
                     destinationAsset: selectedRoute.egressAsset,
                     destinationAddress: withdrawalAddress,
+                    minimumPrice: minimumPrice,
+                    refundAddress: refundAddress,
+                    retryDurationInBlocks: 100,
                   })
                   setSwapData(depositAddressResponse);
                 } catch (error) {
