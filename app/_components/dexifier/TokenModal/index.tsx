@@ -51,7 +51,21 @@ const TokenModal: React.FC<PropsWithChildren<TokenModalProps>> = ({ children, se
   useEffect(() => {
     if (selectedBlockchain) {
       setBlockChainTokens(coins.filter((coin: Token) => coin.blockchain === selectedBlockchain.name || coin.blockchain === MAP_BLOCKCHAIN_RANGO_2_EXOLIX[selectedBlockchain.name])
-        .sort((a, b) => (b.isPopular ? 1 : 0) - (a.isPopular ? 1 : 0))); // Sort tokens by popularity
+        .sort((a, b) => {
+          // First, sort by popularity (popular coins come first)
+          if (b.isPopular !== a.isPopular) {
+            return b.isPopular ? 1 : -1;
+          }
+
+          // If both are popular, sort by address (null addresses come first)
+          if (a.isPopular && b.isPopular) {
+            if (a.address === null && b.address !== null) return -1; // a comes first
+            if (a.address !== null && b.address === null) return 1;  // b comes first
+          }
+
+          // If both are not popular or have the same address status, maintain the original order
+          return 0;
+        })); // Sort tokens by popularity
     }
   }, [coins, selectedBlockchain]);
 

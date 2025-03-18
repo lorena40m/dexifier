@@ -8,6 +8,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
     return NextResponse.json(networks)
   } catch (error) {
     console.error("Error fetching networks", error);
-    return NextResponse.json({ success: false })
+    return NextResponse.json([])
   }
 }

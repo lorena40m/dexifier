@@ -21,12 +21,12 @@ interface BlockchainsProps {
 const Blockchains: React.FC<BlockchainsProps> = ({ selectedBlockchain, setSelectedBlockchain }) => {
   const { meta } = useWidget(); // Fetch widget metadata using the custom hook
   const { blockchains } = meta; // Extract blockchains from the metadata
-  const { chains } = useDexifier();
+  const { chains } = useDexifier()
 
   return (
     <div className="grid grid-cols-4 gap-x-6 gap-y-5 px-6">
       {/* Map over the blockchains and render the first 7 blockchains */}
-      {_.sortBy(chains, (chain: Blockchain) => (chain.id === selectedBlockchain?.id ? 0 : 1)) // Sort to show selected blockchain first
+      {_.sortBy(chains, (chain: Blockchain) => (chain.displayName === selectedBlockchain?.displayName ? 0 : 1)) // Sort to show selected blockchain first
         .slice(0, 7) // Limit the displayed blockchains to the first 7
         .map((blockchain: Blockchain, index: number) => (
           // Tooltip component to display the blockchain name when hovered
@@ -38,7 +38,7 @@ const Blockchains: React.FC<BlockchainsProps> = ({ selectedBlockchain, setSelect
             <div
               className={cn(
                 'px-1 py-2.5 flex items-center justify-center border rounded-3xl bg-transparent hover:bg-white/5 transition-colors duration-300 cursor-pointer',
-                selectedBlockchain?.id === blockchain.id ? "border-primary" : "border-separator" // Conditional border color for selected blockchain
+                selectedBlockchain?.displayName === blockchain.displayName ? "border-primary" : "border-separator" // Conditional border color for selected blockchain
               )}
               onClick={() => setSelectedBlockchain(blockchain)} // Set selected blockchain when clicked
             >
