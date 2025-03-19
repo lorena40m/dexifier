@@ -1,6 +1,8 @@
 export type Blockchain = {
   id: number | string | null,
   name: string,
+  displayName: string,
+  shortName: string | null,
   logo: string | null,
   color?: string,
 }

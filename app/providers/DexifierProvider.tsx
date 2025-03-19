@@ -116,12 +116,16 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     const bc = blockchains.map((blockchain: BlockchainMeta) => ({
       id: blockchain.chainId,
       name: blockchain.name,
+      displayName: blockchain.displayName,
+      shortName: blockchain.shortName,
       logo: blockchain.logo,
       color: blockchain.color,
     }))
     const nt = networks?.map(network => ({
       id: network.id + 100000000,
       name: network.network,
+      displayName: network.name,
+      shortName: network.shortName,
       logo: network.icon,
     })).filter(network => !bc.some(blockchain => blockchain.name === network.name || MAP_BLOCKCHAIN_RANGO_2_EXOLIX[blockchain.name] === network.name));
 
@@ -327,20 +331,12 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     axios.get(
       `/api/exolix/currency`
     ).then(result => {
-      try {
-        if (!result.data['success']) {
-          setCurrencies(result.data as DCurrency[])
-        }
-      } catch (error) { }
+      setCurrencies(result.data as DCurrency[])
     });
     axios.get(
       `/api/exolix/network`
     ).then(result => {
-      try {
-        if (!result.data['success']) {
-          setNetworks(result.data as DNetwork[])
-        }
-      } catch (error) { }
+      setNetworks(result.data as DNetwork[])
     });
   }, [])
 

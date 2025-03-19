@@ -6,7 +6,7 @@ import QueueManager from "./QueueManager";
 
 const DEXIFIER_CONFIG: WidgetConfig = {
   // apiUrl: 'https://api-edge.rango.exchange',
-  apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY || process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || '',
+  apiKey: process.env.NEXT_PUBLIC_RANGO_API_KEY_BASIC || process.env.NEXT_PUBLIC_RANGO_API_KEY || '',
   title: 'Dexifier',
   walletConnectProjectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || '',
   multiWallets: true,

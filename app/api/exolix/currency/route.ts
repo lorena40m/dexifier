@@ -9,6 +9,6 @@ export async function GET(req: NextRequest, res: NextResponse) {
     return NextResponse.json(currencies)
   } catch (error) {
     console.error("Error fetching currencies", error);
-    return NextResponse.json({ success: false })
+    return NextResponse.json([])
   }
 }

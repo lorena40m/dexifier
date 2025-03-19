@@ -3,7 +3,7 @@
 // The component relies on various UI elements like Dialog, ScrollArea, and Avatar from a custom UI library and external dependencies.
 
 import React, { Dispatch, PropsWithChildren, SetStateAction, useEffect, useMemo, useState } from "react";
-import { isEqual } from "lodash";
+import { chain, isEqual } from "lodash";
 import {
   Dialog,
   DialogClose,
@@ -39,8 +39,10 @@ const BlockchainModal: React.FC<PropsWithChildren<BlockchainModalProps>> = ({ ch
 
   // Effect to filter the blockchain list based on the search query
   useEffect(() => {
-    setFilteredBlockchains(chains.filter((blockchain: Blockchain) => blockchain.name.toLowerCase().includes(search.toLowerCase())))
-  }, [search])
+    setFilteredBlockchains(chains.filter((blockchain: Blockchain) =>
+      blockchain.name.toLowerCase().includes(search.toLowerCase()) || blockchain.displayName.toLowerCase().includes(search.toLowerCase()) || blockchain.shortName?.toLowerCase().includes(search.toLowerCase())
+    ))
+  }, [search, chains])
 
   return (
     <Dialog>
@@ -59,7 +61,7 @@ const BlockchainModal: React.FC<PropsWithChildren<BlockchainModalProps>> = ({ ch
         <Separator className="bg-separator" />
 
         {/* Search input to filter blockchains */}
-        <Search onChange={(e) => setSearch(e.target.value)} />
+        <Search onChange={(e) => setSearch(e.target.value)} value={search} />
 
         {/* Scrollable list of blockchains */}
         <ScrollArea className="h-96">
