@@ -214,61 +214,64 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         </DialogHeader>
         <div className='h-[40vh] overflow-y-auto pe-1'>
           <div className='space-y-4'>
-            {[swapInfo?.from.blockchain, swapInfo?.to.blockchain].map((chain, index) => (
-              <>
-                {/* Label for the wallet section */}
-                <Label htmlFor={chain} className='flex items-center gap-2'>
-                  <div className="rounded-full size-6 bg-primary font-bold grid place-content-center text-black">
-                    <div>{index + 1}</div>
-                  </div>
-                  <span className='text-base'>Your {chain} wallet</span>
-                </Label>
-                {/* RadioGroup for selecting the wallet */}
-                <RadioGroup id={chain} className='flex flex-wrap justify-center gap-2'
-                  value={index ? typeof walletTo === 'string' ? walletTo : walletTo?.walletType
-                    : typeof walletFrom === 'string' ? walletFrom : walletFrom?.walletType}
-                  onValueChange={(value) => {
-                    if (index) {
-                      const walletT = connectedWallets.find(wallet => wallet.walletType === value && wallet.chain === chain)
-                      walletT ? setWalletTo(walletT) : setWalletTo(withdrawalAddress);
-                    } else {
-                      const walletF = connectedWallets.find(wallet => wallet.walletType === value && wallet.chain === chain)
-                      walletF ? setWalletFrom(walletF) : setWalletFrom(value);
-                    }
-                  }} // Update the selected wallet when a new wallet type is chosen
-                >
-                  {/* Map over }the connected wallets and display each wallet */}
-                  {connectedWallets.filter((wallet) => wallet.chain === chain).map((wallet: ConnectedWallet, index: number) => (
-                    <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType} key={index}
-                      className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30 hover:border-gray-500'
-                    >
-                      <div className='flex justify-center'>
-                        <TokenIcon
-                          token={{
-                            image: list.find(detail => detail.type === wallet.walletType)?.image,
-                            alt: wallet.walletType,
-                            className: "size-12",
-                          }}
-                        />
-                      </div>
-                      <span className='capitalize'>{wallet.walletType}</span> {/* Display wallet type */}
-                      <span className="flex items-center justify-center text-xs">
-                        <span>{getAbbrAddress(wallet.address)}</span> {/* Display abbreviated wallet address */}
-                        <div className='size-4 place-items-center'>
-                          <ButtonCopyIcon text={wallet.address} /> {/* Copy button for wallet address */}
-                        </div>
-                      </span>
-                    </RadioGroupPrimitive.Item>
-                  ))}
-                  {/* Modal to connect more wallets */}
-                  <WalletConnectModal chain={chain}>
-                    <div className='w-24 h-28 rounded-lg border flex text-center items-center hover:border-gray-500 cursor-pointer'>
-                      More wallet...
+            {[swapInfo?.from.blockchain, swapInfo?.to.blockchain].map((chain, index) => {
+              const availableWallets = connectedWallets.filter((wallet) => wallet.chain === chain)
+              return (
+                <>
+                  {/* Label for the wallet section */}
+                  <Label htmlFor={chain} className='flex items-center gap-2'>
+                    <div className="rounded-full size-6 bg-primary font-bold grid place-content-center text-black">
+                      <div>{index + 1}</div>
                     </div>
-                  </WalletConnectModal>
-                </RadioGroup>
-              </>
-            ))}
+                    <span className='text-base'>Your {chain} wallet</span>
+                  </Label>
+                  {/* RadioGroup for selecting the wallet */}
+                  <RadioGroup id={chain} defaultValue={availableWallets[0]?.walletType} className='flex flex-wrap justify-center gap-2'
+                    value={index ? typeof walletTo === 'string' ? walletTo : walletTo?.walletType
+                      : typeof walletFrom === 'string' ? walletFrom : walletFrom?.walletType}
+                    onValueChange={(value) => {
+                      if (index) {
+                        const walletT = connectedWallets.find(wallet => wallet.walletType === value && wallet.chain === chain)
+                        walletT ? setWalletTo(walletT) : setWalletTo(withdrawalAddress);
+                      } else {
+                        const walletF = connectedWallets.find(wallet => wallet.walletType === value && wallet.chain === chain)
+                        walletF ? setWalletFrom(walletF) : setWalletFrom(value);
+                      }
+                    }} // Update the selected wallet when a new wallet type is chosen
+                  >
+                    {/* Map over }the connected wallets and display each wallet */}
+                    {availableWallets.map((wallet: ConnectedWallet, index: number) => (
+                      <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType} key={index}
+                        className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30 hover:border-gray-500'
+                      >
+                        <div className='flex justify-center'>
+                          <TokenIcon
+                            token={{
+                              image: list.find(detail => detail.type === wallet.walletType)?.image,
+                              alt: wallet.walletType,
+                              className: "size-12",
+                            }}
+                          />
+                        </div>
+                        <span className='capitalize'>{wallet.walletType}</span> {/* Display wallet type */}
+                        <span className="flex items-center justify-center text-xs">
+                          <span>{getAbbrAddress(wallet.address)}</span> {/* Display abbreviated wallet address */}
+                          <div className='size-4 place-items-center'>
+                            <ButtonCopyIcon text={wallet.address} /> {/* Copy button for wallet address */}
+                          </div>
+                        </span>
+                      </RadioGroupPrimitive.Item>
+                    ))}
+                    {/* Modal to connect more wallets */}
+                    <WalletConnectModal chain={chain}>
+                      <div className='w-24 h-28 rounded-lg border flex text-center items-center hover:border-gray-500 cursor-pointer'>
+                        More wallet...
+                      </div>
+                    </WalletConnectModal>
+                  </RadioGroup>
+                </>
+              )
+            })}
           </div>
         </div>
         {/* <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message}</div> */}

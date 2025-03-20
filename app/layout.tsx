@@ -17,6 +17,11 @@ const DexifierProvider = dynamic(() => import("./providers/DexifierProvider"), {
   ssr: false, // Ensures this component renders only on the client side
 });
 
+// Dynamically import NotificationProvider for client-side rendering
+const NotificationProvider = dynamic(() => import("./providers/NotificationProvider"), {
+  ssr: false, // Ensures this component renders only on the client side
+});
+
 const inter = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -35,8 +40,10 @@ export default function RootLayout({
       <body id="root" className={inter.className}>
         <RangoProvider>
           <DexifierProvider>
-            <MainNavbar />
-            {children}
+            <NotificationProvider>
+              <MainNavbar />
+              {children}
+            </NotificationProvider>
           </DexifierProvider>
         </RangoProvider>
         <ToastContainer />
