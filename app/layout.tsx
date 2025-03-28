@@ -27,7 +27,7 @@ const inter = Plus_Jakarta_Sans({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Dexifier",
   description:
-    "Dexifier is a cutting-edge project built using NEXT14 and SHADCN, dedicated to providing easy and infinite exchange routes.",
+    "Trade crypto securely on Dexifier, the best decentralized exchange for fast, low-fee, and anonymous transactions. No sign-ups, just seamless trading.",
 };
 
 export default function RootLayout({

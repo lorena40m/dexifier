@@ -57,7 +57,7 @@ const DexifierDetailRango = () => {
       const amountTo = Number(pendingSwap.simulationResult.outputAmount).toFixed(2);
       notify('Swap success!', {
         body: `${tokenFrom.blockchain} ${amountFrom} ${tokenFrom.symbol} -> ${tokenTo.blockchain} ${amountTo} ${tokenTo.symbol}`,
-        icon: '/'
+        icon: '/assets/logo.png',
       })
     }
   }, [pendingSwap])
