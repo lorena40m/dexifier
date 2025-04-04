@@ -6,6 +6,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import dynamic from "next/dynamic";
 import "react-toastify/dist/ReactToastify.css";
+import GoogleAnalytics from "./GoogleAnalytics";
 
 // Dynamically import RangoProvider for client-side rendering
 const RangoProvider = dynamic(() => import("./providers/RangoProvider"), {
@@ -52,6 +53,9 @@ export const metadata: Metadata = {
     initialScale: 1,
     maximumScale: 1,
   },
+  verification: {
+    google: 'AZAQ3ajFzkdwX4XX-agcNjf6mIRASqRdeAWvxzgFsv8',
+  },
 };
 
 export default function RootLayout({
@@ -61,6 +65,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <GoogleAnalytics />
+      </head>
       <body id="root" className={inter.className}>
         <RangoProvider>
           <DexifierProvider>
