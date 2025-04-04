@@ -28,6 +28,30 @@ export const metadata: Metadata = {
   title: "Dexifier",
   description:
     "Trade crypto securely on Dexifier, the best decentralized exchange for fast, low-fee, and anonymous transactions. No sign-ups, just seamless trading.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-256x256.png", sizes: "256x256", type: "image/png" },
+      { url: "/icon-384x384.png", sizes: "384x384", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/logo.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  themeColor: "#ffffff",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Dexifier",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({
