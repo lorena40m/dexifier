@@ -30,7 +30,7 @@ const TokenInput: React.FC<TokenInputProps> = ({ token, setToken, ...props }) =>
         <span className="text-xs px-3 opacity-50">
           {/* Display estimated USD value of the token */}
           ~
-          {token?.usdPrice && props.value ? Number(props.value) * token.usdPrice : 0}
+          {token?.usdPrice && props.value ? (Number(props.value) * token.usdPrice).toFixed(2) : 0}
           $
         </span>
       </div>

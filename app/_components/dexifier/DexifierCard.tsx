@@ -192,7 +192,7 @@ const DexifierCard: React.FC = () => {
             disabled
             token={tokenTo}
             setToken={setTokenTo}
-            value={amountTo}
+            value={Number(amountTo).toFixed(2)}
           />
         </div>
       </CardContent>

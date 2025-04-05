@@ -16,6 +16,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useDexifier } from "@/app/providers/DexifierProvider";
+import { useNotification } from "@/app/providers/NotificationProvider";
 
 interface SwapTokenProps {
   swapData: SwapResult, // Data related to the token being swapped
@@ -37,16 +38,29 @@ type RangoData = {
 const DexifierDetailRango = () => {
   const { manager } = useManager(); // Manager from the Rango queue
 
-  const isSwapMade = false;
   const { selectedRoute, swapData } = useDexifier() as RangoData;
   const { initialize } = useDexifier();
   const swaps = selectedRoute.swaps; // List of swaps involved in the current route
   const pendingSwaps = getPendingSwaps(manager); // Fetch pending swaps from the manager
+  const { notify } = useNotification();
 
   const selectedSwap = swapData.result?.requestId
     ? pendingSwaps.find(({ swap }) => swap.requestId === swapData.result?.requestId)
     : undefined;
   const pendingSwap = selectedSwap?.swap; // Get the selected swap from the pending swaps
+
+  useEffect(() => {
+    if (pendingSwap?.status === "failed") {
+      const tokenFrom = pendingSwap.simulationResult.swaps[0].from;
+      const tokenTo = pendingSwap.simulationResult.swaps[-1].to;
+      const amountFrom = Number(pendingSwap.inputAmount).toFixed(2);
+      const amountTo = Number(pendingSwap.simulationResult.outputAmount).toFixed(2);
+      notify('Swap success!', {
+        body: `${tokenFrom.blockchain} ${amountFrom} ${tokenFrom.symbol} -> ${tokenTo.blockchain} ${amountTo} ${tokenTo.symbol}`,
+        icon: '/assets/logo.png',
+      })
+    }
+  }, [pendingSwap])
 
   // Handle canceling the swap
   const onCancel = () => {
@@ -196,12 +210,12 @@ const DexifierDetailRango = () => {
       </CardContent>
       <CardFooter>
         <Button
-          className={cn('h-12 mx-auto', isSwapMade ? 'opacity-80' : 'hover:opacity-80')}
+          className={cn('h-12 mx-auto')}
           variant="outline"
           onClick={onCancel}
-          disabled={isSwapMade}
+          disabled={pendingSwap?.status === "running"}
         >
-          Cancel
+          {pendingSwap?.status === "success" ? "Swap again" : "Cancel"}
         </Button>
       </CardFooter>
     </Card>
