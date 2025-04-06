@@ -5,10 +5,10 @@ import DexifierCard from "./_components/dexifier/DexifierCard";
 import RouteCard from "./_components/dexifier/RouteCard";
 import DexifierDetailRango from "./_components/dexifier/DexifierDetail(Rango)";
 import { AnimatePresence, motion } from "framer-motion";
-import ConfirmModal from "./_components/dexifier/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import AddressesCard from "./_components/dexifier/AddressCard";
+import { Loader2 } from "lucide-react";
 
 export default function SwapPage() {
   const {
@@ -19,6 +19,9 @@ export default function SwapPage() {
     amountFrom,
     selectedRoute,
     isMobile,
+    setState,
+    createSwap,
+    initialize,
   } = useDexifier();
 
   return (
@@ -42,7 +45,7 @@ export default function SwapPage() {
         <DexifierCard />
 
         {state === DEXIFIER_STATE.FETCHING_ROUTES ||
-          state === DEXIFIER_STATE.ROUTES ? (
+        state === DEXIFIER_STATE.ROUTES ? (
           <AnimatePresence>
             {tokenFrom && tokenTo && amountFrom ? (
               <motion.div
@@ -74,30 +77,46 @@ export default function SwapPage() {
               </motion.div>
             ) : null}
           </AnimatePresence>
-        ) : state === DEXIFIER_STATE.WITHDRAWAL_ADDRESS ? (
+        ) : state >= DEXIFIER_STATE.WITHDRAWAL_ADDRESS ? (
           <AddressesCard />
         ) : swapData ? (
           // "depositChannelId" in swapData ? (
           //   <DexifierDetailChainflip />
           // ) : "traceId" in swapData ? (
           <DexifierDetailRango />
+        ) : (
           // ) : (
           //   "id" in swapData && <DexifierDetailExolix />
           // )
-        ) : (
           <></>
         )}
       </section>
       {isMobile && (
         <div className="flex-1 py-12">
-          <ConfirmModal>
-            <Button
-              className={`bg-primary text-black w-full font-semibold h-12 rounded-[10px]`}
-              disabled={!selectedRoute || !!swapData}
-            >
-              Swap Now
-            </Button>
-          </ConfirmModal>
+          <Button
+            className={`text-black w-full font-semibold h-12 rounded-[10px]`}
+            variant={state === DEXIFIER_STATE.PENDING ? 'outline' : 'primary'}
+            disabled={!selectedRoute || state === DEXIFIER_STATE.PENDING}
+            onClick={() => {
+              if (state === DEXIFIER_STATE.WITHDRAWAL_ADDRESS) {
+                createSwap();
+              } else if (state >= DEXIFIER_STATE.PROCESSING) {
+                initialize();
+              } else {
+                setState(DEXIFIER_STATE.WITHDRAWAL_ADDRESS);
+              }
+            }}
+          >
+            {state === DEXIFIER_STATE.WITHDRAWAL_ADDRESS ? (
+              "Start"
+            ) : state === DEXIFIER_STATE.PENDING ? (
+              <Loader2 className="animate-spin text-primary" />
+            ) : state === DEXIFIER_STATE.PROCESSING ? (
+              "Cancel"
+            ) : state === DEXIFIER_STATE.FAILED || state === DEXIFIER_STATE.SUCCESS ? (
+              "Swap Again"
+            ) : "Swap Now"}
+          </Button>
         </div>
       )}
     </main>

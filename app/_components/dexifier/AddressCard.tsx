@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { formatReadableDate } from "@/app/utils";
 import TokenIcon from "../common/token-icon";
 import {
+  DEXIFIER_STATE,
   useDexifier,
 } from "@/app/providers/DexifierProvider";
 import { ChainflipError, ChainflipSwapStatus } from "@/app/types/chainflip";
@@ -41,13 +42,18 @@ const AddressesCard = () => {
     amountFrom,
     amountTo,
     settings,
+    isMobile,
+    createSwap,
+    withdrawalAddress,
+    setWithdrawalAddress,
+    refundAddress,
+    setRefundAddress,
+    state,
   } = useDexifier();
   // const { selectedQuote, srcAsset, destAsset, depositData } = useQuote();
-  const [withdrawalAddress, setWithdrawalAddress] = useState<string>();
-  const [refundAddress, setRefundAddress] = useState<string>();
   const [steps, setSteps] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // const [isLoading, setIsLoading] = useState<boolean>(false);
   const status = useMemo(() => {
     if (swapStatus) {
       if ("state" in swapStatus) {
@@ -73,7 +79,7 @@ const AddressesCard = () => {
     }
   }, [swapStatus]);
 
-  async function pasteFromClipboard(setFunc: React.Dispatch<React.SetStateAction<string | undefined>>) {
+  async function pasteFromClipboard(setFunc: React.Dispatch<React.SetStateAction<string>>) {
     try {
       if (navigator.clipboard) {
         const clipboardText = await navigator.clipboard.readText();
@@ -86,9 +92,9 @@ const AddressesCard = () => {
     }
   }
 
-  useEffect(() => {
-    if (!swapStatus) setIsLoading(false);
-  }, [swapStatus]);
+  // useEffect(() => {
+  //   if (!swapStatus) setIsLoading(false);
+  // }, [swapStatus]);
 
   // useEffect(() => {
   //   if (!txData) return
@@ -523,64 +529,24 @@ const AddressesCard = () => {
         </div>
       </CardContent>
       {!swapStatus && selectedRoute && (
-        <CardFooter>
+        <CardFooter className={`${isMobile && 'hidden'}`}>
           <Button
-            disabled={isLoading || !withdrawalAddress}
+            disabled={state === DEXIFIER_STATE.PENDING || !withdrawalAddress}
             className={`w-full md:max-w-[50%] lg:max-w-[33%] font-semibold h-10 mx-auto text-xl disabled:cursor-not-allowed cursor-pointer transition duration-300 ease-out`}
             variant={"outline"}
             onClick={async () => {
-              if (!withdrawalAddress || !tokenFrom || !tokenTo || !amountFrom)
-                return;
-              setIsLoading(true);
-              if ('egressAmount' in selectedRoute) {
-                // const depositAddressRequest: DepositAddressRequestV2 = {
-                //   quote: selectedRoute as Quote,
-                //   destAddress: withdrawalAddress,
-                // };
-                try {
-                  // const depositAddressResponse: DepositAddressResponseV2 =
-                  //   await chainflipSDK.requestDepositAddressV2(
-                  //     depositAddressRequest
-                  //   );
-                  const minimumPrice = selectedRoute.egressAmount * (1 - parseFloat(settings.slippage) / 100);
-                  const depositAddressResponse = await createSwap({
-                    sourceAsset: selectedRoute.ingressAsset,
-                    destinationAsset: selectedRoute.egressAsset,
-                    destinationAddress: withdrawalAddress,
-                    minimumPrice: minimumPrice,
-                    refundAddress: refundAddress,
-                    retryDurationInBlocks: 100,
-                  })
-                  setSwapData(depositAddressResponse);
-                } catch (error) {
-                  if (error instanceof AxiosError) {
-                    return error.response?.data as ChainflipError;
-                  }
-                  console.error(error);
-                }
-              }
-              if ('toAmount' in selectedRoute) {
-                const txRequest: TxRequest = {
-                  coinFrom: tokenFrom.symbol,
-                  networkFrom: tokenFrom.blockchain,
-                  coinTo: tokenTo.symbol,
-                  networkTo: tokenTo.blockchain,
-                  amount: parseFloat(amountFrom),
-                  withdrawalAddress: withdrawalAddress,
-                  rateType: "float",
-                };
-                try {
-                  const txResponse = await createTransaction(txRequest);
-                  setSwapData(txResponse);
-                } catch (error: any) {
-                  if (error.response.data.error) {
-                    toastError(error.response.data.error);
-                  }
+              try {
+                await createSwap();
+              } catch (error) {
+                if (error instanceof Error) {
+                  toastError(error.message);
+                } else {
+                  toastError("An error occurred during swap creation");
                 }
               }
             }}
           >
-            {isLoading ? <Loader2 className="animate-spin text-primary" /> : 'Start'}
+            {state === DEXIFIER_STATE.PENDING ? <Loader2 className="animate-spin text-primary" /> : 'Start'}
           </Button>
         </CardFooter>
       )}
