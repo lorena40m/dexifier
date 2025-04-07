@@ -400,20 +400,20 @@ const RouteCard = () => {
         isMobile ? "bg-primary/10 p-5" : "max-w-[650px] bg-modal/5 p-6 border"
       )}
     >
-      <CardHeader className="p-4">
+      <CardHeader className="md:p-4 py-4 px-0">
         <div className="h-auto bg-transparent flex w-full justify-between">
           <CardTitle>Routes</CardTitle>
           <RadioGroup
             defaultValue={FILTERS[0]}
             onValueChange={(value) => setFilter(value)}
-            className="flex items-center"
+            className="flex items-center justify-end w-2/3 overflow-x-scroll"            
           >
             {FILTERS.map((filter) => (
               <RadioGroupPrimitive.Item
                 value={filter}
                 id={filter}
                 key={filter}
-                className="rounded-full border border-primary px-2 py-1 bg-primary/5 transition duration-300 ease-out hover:bg-transparent text-white text-xs data-[state=checked]:bg-primary data-[state=checked]:text-black"
+                className="rounded-full border border-primary px-2 py-1 bg-primary/5 text-nowrap transition duration-300 ease-out hover:bg-transparent text-white text-xs data-[state=checked]:bg-primary data-[state=checked]:text-black"
               >
                 {filter}
               </RadioGroupPrimitive.Item>

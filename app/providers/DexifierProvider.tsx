@@ -5,26 +5,30 @@
 // make the state accessible through the React Context API. Additionally, a custom hook
 // (useDexifier) is provided for easier consumption of the context in components.
 
-import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useEffect, useMemo, useRef } from "react";
+import { createContext, useContext, ReactNode, SetStateAction, Dispatch, useState, useEffect, useMemo, useRef, RefObject } from "react";
 import { BlockchainMeta, ConfirmRouteResponse, MultiRouteRequest, MultiRouteResponse, MultiRouteSimulationResult, Token as RangoToken, Transaction, TransactionType } from "rango-types/mainApi"
 import { Settings } from "../types/rango";
 import { Asset } from "@chainflip/sdk/swap";
 import { ChainflipSwapResponse, ChainflipQuote, ChainflipError, ChainflipSwapStatus } from "../types/chainflip";
 import { axiosExolix } from "@/lib/axios";
-import { DCurrency, DNetwork, ExTxInfo, RateRequest, RateResponse } from "../types/exolix";
+import { DCurrency, DNetwork, ExTxInfo, RateRequest, RateResponse, TxRequest } from "../types/exolix";
 import { ConnectedWallet, useWallets, useWidget } from "@rango-dev/widget-embedded";
 import { debounce } from "lodash";
 import { CHAINFLIP_BLOCKCHAIN_NAME_MAP } from "../utils/chainflip";
 import { rangoSDK } from "@/lib/utils";
-import { getTxInfo } from "../api/exolix";
+import { createTransaction, getTxInfo } from "../api/exolix";
 import { ethers } from 'ethers';
-import { createQuotes, getSwapStatus } from "../api/chainflip";
+import { createQuotes, createSwap as createChainflipSwap, getSwapStatus } from "../api/chainflip";
 import axios, { AxiosError } from "axios";
 import { getExolixflipBlockchainName, MAP_BLOCKCHAIN_RANGO_2_EXOLIX } from "../utils/exolix";
 import { Blockchain, Token } from "../types/dexifier";
 
 // Define the type for the context
 interface DexifierContextType {
+  withdrawalAddress: string,                                                                  // The token being swapped from
+  setWithdrawalAddress: Dispatch<SetStateAction<string>>,                          // Setter for tokenFrom
+  refundAddress: string,                                                                    // The token being swapped to
+  setRefundAddress: Dispatch<SetStateAction<string>>,       
   tokenFrom?: Token,                                                                  // The token being swapped from
   setTokenFrom: Dispatch<SetStateAction<Token | undefined>>,                          // Setter for tokenFrom
   tokenTo?: Token,                                                                    // The token being swapped to
@@ -56,7 +60,8 @@ interface DexifierContextType {
   isMobile: boolean,
   currencies: DCurrency[],
   chains: Blockchain[],
-  coins: Token[]
+  coins: Token[],
+  createSwap: () => Promise<any>,
 }
 
 // Create the context with an initial value
@@ -76,14 +81,14 @@ export enum DEXIFIER_MODERATOR {
 }
 
 export enum DEXIFIER_STATE {
-  START = "START",
-  FETCHING_ROUTES = "FETCHING_ROUTES",
-  ROUTES = "ROUTES",
-  WITHDRAWAL_ADDRESS = "WITHDRAWAL_ADDRESS",
-  PENDING = "PENDING",
-  PROCESSING = "PROCESSING",
-  FAILED = "FAILED",
-  SUCCESS = "SUCCESS",
+  START = 1,
+  FETCHING_ROUTES = 2,
+  ROUTES = 3,
+  WITHDRAWAL_ADDRESS = 4,
+  PENDING = 5,
+  PROCESSING = 6,
+  FAILED = 7,
+  SUCCESS = 8,
 }
 
 export type DexifierRoute = MultiRouteSimulationResult | ChainflipQuote | RateResponse
@@ -96,7 +101,8 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   const [routes, setRoutes] = useState<DexifierRoute[]>([]);
   const [selectedRoute, setSelectedRoute] = useState<DexifierRoute>();
   const [state, setState] = useState<DEXIFIER_STATE>(DEXIFIER_STATE.START);
-  // const [withdrawalAddress, setWithdrawalAddress] = useState<string>('');
+  const [withdrawalAddress, setWithdrawalAddress] = useState<string>('');
+  const [refundAddress, setRefundAddress] = useState<string>('');
   const [walletFrom, setWalletFrom] = useState<ConnectedWallet | string>();
   const [walletTo, setWalletTo] = useState<ConnectedWallet | string>();
   const [swapData, setSwapData] = useState<ChainflipSwapResponse | ExTxInfo | ConfirmRouteResponse>();
@@ -226,6 +232,61 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
     return allRoutes
   }
 
+  const createSwap = async () => {
+    if (!withdrawalAddress || !tokenFrom || !tokenTo || !amountFrom || !selectedRoute)
+      return;
+    setState(DEXIFIER_STATE.PENDING);
+    if ('egressAmount' in selectedRoute) {
+      // const depositAddressRequest: DepositAddressRequestV2 = {
+      //   quote: selectedRoute as Quote,
+      //   destAddress: withdrawalAddress,
+      // };
+      try {
+        // const depositAddressResponse: DepositAddressResponseV2 =
+        //   await chainflipSDK.requestDepositAddressV2(
+        //     depositAddressRequest
+        //   );
+        const minimumPrice = selectedRoute.egressAmount * (1 - parseFloat(settings.slippage) / 100);
+        const depositAddressResponse = await createChainflipSwap({
+          sourceAsset: selectedRoute.ingressAsset,
+          destinationAsset: selectedRoute.egressAsset,
+          destinationAddress: withdrawalAddress,
+          minimumPrice: minimumPrice,
+          refundAddress: refundAddress,
+          retryDurationInBlocks: 100,
+        })
+        setSwapData(depositAddressResponse);
+      } catch (error) {
+        setState(DEXIFIER_STATE.WITHDRAWAL_ADDRESS);
+        if (error instanceof AxiosError) {
+          throw new Error((error.response?.data as ChainflipError).detail || '')
+        }
+        throw error;
+      }
+    }
+    if ('toAmount' in selectedRoute) {
+      const txRequest: TxRequest = {
+        coinFrom: tokenFrom.symbol,
+        networkFrom: tokenFrom.blockchain,
+        coinTo: tokenTo.symbol,
+        networkTo: tokenTo.blockchain,
+        amount: parseFloat(amountFrom),
+        withdrawalAddress: withdrawalAddress,
+        rateType: "float",
+      };
+      try {
+        const txResponse = await createTransaction(txRequest);
+        setSwapData(txResponse);
+      } catch (error: any) {
+        setState(DEXIFIER_STATE.WITHDRAWAL_ADDRESS);
+        if (error.response?.data?.error) {
+          throw new Error(error.response.data.error as string);
+        }
+        throw error;
+      }
+    }
+  }
+
   const debounceFetchRoutes = useMemo(
     () =>
       debounce(async () => {
@@ -328,6 +389,21 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
   }, [swapData])
 
   useEffect(() => {
+    if (swapStatus) {
+      setState(DEXIFIER_STATE.PROCESSING);
+      if ("state" in swapStatus) {
+        if(swapStatus.state === 'SENT') setState(DEXIFIER_STATE.SUCCESS)
+        if(swapStatus.state === 'FAILED') setState(DEXIFIER_STATE.FAILED)
+      }
+      if ("status" in swapStatus) {
+        if (swapStatus.status === 'success') setState(DEXIFIER_STATE.SUCCESS)
+        if (swapStatus.status === 'overdue') setState(DEXIFIER_STATE.FAILED)
+        if (swapStatus.status === 'refunded') setState(DEXIFIER_STATE.FAILED)
+      }
+    }
+  }, [swapStatus])
+
+  useEffect(() => {
     axios.get(
       `/api/exolix/currency`
     ).then(result => {
@@ -367,6 +443,11 @@ const DexifierProvider = ({ children }: { children: ReactNode }) => {
         currencies,
         chains,
         coins,
+        withdrawalAddress,
+        setWithdrawalAddress,
+        refundAddress,
+        setRefundAddress,
+        createSwap,
       }}
     >
       {children}
