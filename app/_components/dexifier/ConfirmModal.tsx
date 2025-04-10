@@ -1,35 +1,54 @@
-import { X } from 'lucide-react';
-import { PropsWithChildren, useMemo, useState, useTransition } from 'react';
-import { ConfirmRouteRequest, ConfirmRouteResponse } from 'rango-types/mainApi';
-import CustomLoader from '../common/loader';
-import { rangoSDK, toastError } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { ConnectedWallet, useWidget, useWallets, useWalletList } from '@rango-dev/widget-embedded';
+import { X } from "lucide-react";
+import {
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
+import { ConfirmRouteRequest, ConfirmRouteResponse } from "rango-types/mainApi";
+import CustomLoader from "../common/loader";
+import { rangoSDK, toastError } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  ConnectedWallet,
+  useWidget,
+  useWallets,
+  useWalletList,
+} from "@rango-dev/widget-embedded";
 import { useManager } from "@rango-dev/queue-manager-react";
 import { calculatePendingSwap } from "@rango-dev/queue-manager-rango-preset";
-import { confirmHasError, getWalletsForNewSwap } from '@/app/utils/swap';
-import { Wallet } from '@/app/types/rango';
-import { Button } from '@/components/ui/button';
-import { DEXIFIER_STATE, useDexifier } from '@/app/providers/DexifierProvider';
-import { RadioGroup } from '@/components/ui/radio-group';
+import { confirmHasError, getWalletsForNewSwap } from "@/app/utils/swap";
+import { Wallet } from "@/app/types/rango";
+import { Button } from "@/components/ui/button";
+import { DEXIFIER_STATE, useDexifier } from "@/app/providers/DexifierProvider";
+import { RadioGroup } from "@/components/ui/radio-group";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import ButtonCopyIcon from '../common/coyp-button-icon';
-import WalletConnectModal from './WalletConnectModal';
-import TokenIcon from '../common/token-icon';
+import ButtonCopyIcon from "../common/coyp-button-icon";
+import WalletConnectModal from "./WalletConnectModal";
+import TokenIcon from "../common/token-icon";
 import { getAbbrAddress } from "@/app/utils";
 
 type SwapToken = {
-  amount: number,
-  symbol: string,
-  blockchain?: string,
-}
+  amount: number;
+  symbol: string;
+  blockchain?: string;
+};
 
 type SwapInfo = {
-  from: SwapToken,
-  to: SwapToken,
-}
+  from: SwapToken;
+  to: SwapToken;
+};
 
 // ConfirmModal component for confirming a wallet before swapping assets
 const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
@@ -40,20 +59,47 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const { wallets } = useWidget();
   const { details: connectedWallets } = wallets; // Extract connected wallet details
   const { list } = useWalletList(); // Fetch the list of supported wallets
-  const { selectedRoute, tokenFrom, tokenTo, amountFrom, walletFrom, setWalletFrom, walletTo, setWalletTo, setSwapData, settings, setState, isMobile } = useDexifier();
+  const {
+    selectedRoute,
+    tokenFrom,
+    tokenTo,
+    amountFrom,
+    walletFrom,
+    setWalletFrom,
+    walletTo,
+    setWalletTo,
+    setSwapData,
+    settings,
+    setState,
+    isMobile,
+  } = useDexifier();
   const [isInitializingSwap, initializeSwap] = useTransition();
 
   // State hooks for managing the modal, wallets, and withdrawal address input
   const [open, setOpen] = useState<boolean>(false);
 
   const [withdrawalAddress, setWithdrawalAddress] = useState<string>();
+  console.log(
+    "123",
+    isInitializingSwap,
+    !walletFrom,
+    !walletTo,
+    walletTo === "custom" && !withdrawalAddress
+  );
+  console.log(
+    "1233",
+    isInitializingSwap ||
+      !walletFrom ||
+      !walletTo ||
+      (walletTo === "custom" && !withdrawalAddress)
+  );
 
   const swapInfo: SwapInfo | undefined = useMemo(() => {
-    if (!selectedRoute) return
-    if ('outputAmount' in selectedRoute) {
+    if (!selectedRoute) return;
+    if ("outputAmount" in selectedRoute) {
       const tokenFromRango = selectedRoute.swaps.at(0);
       const tokenToRango = selectedRoute.swaps.at(-1);
-      if (!tokenFromRango || !tokenToRango) return
+      if (!tokenFromRango || !tokenToRango) return;
       return {
         from: {
           amount: Number(tokenFromRango.fromAmount),
@@ -65,10 +111,11 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           symbol: tokenToRango.to.symbol,
           blockchain: tokenToRango.to.blockchain,
         },
-      }
+      };
     }
     // Handle chainflip & exolix swap
-    {/*
+    {
+      /*
     if ('egressAmount' in selectedRoute) {
       const tokenFromChainflip: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === selectedRoute.srcAsset.chain && token.symbol === selectedRoute.srcAsset.asset)
       const tokenToChainflip: Token = tokens.find((token: Token) => formatChainName(token.blockchain) === selectedRoute.destAsset.chain && token.symbol === selectedRoute.destAsset.asset)
@@ -102,8 +149,24 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         },
       }
     }
-    */}
-  }, [selectedRoute, tokenFrom, tokenTo])
+    */
+    }
+  }, [selectedRoute, tokenFrom, tokenTo]);
+
+  useEffect(() => {
+    if (swapInfo && connectedWallets) {
+      setWalletFrom(
+        connectedWallets.filter(
+          (wallet) => wallet.chain === swapInfo.from.blockchain
+        )[0]
+      );
+      setWalletTo(
+        connectedWallets.filter(
+          (wallet) => wallet.chain === swapInfo.to.blockchain
+        )[0]
+      );
+    }
+  }, [swapInfo, connectedWallets]);
 
   async function pasteWithdrawalAddressFromClipboard() {
     try {
@@ -111,17 +174,26 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         const clipboardText = await navigator.clipboard.readText();
         setWithdrawalAddress(clipboardText);
       } else {
-        console.error('Clipboard API not supported.');
+        console.error("Clipboard API not supported.");
       }
     } catch (error) {
-      console.error('Failed to read from clipboard:', error);
+      console.error("Failed to read from clipboard:", error);
     }
   }
 
   const confirmSwap = async () => {
-    if (!selectedRoute || !walletFrom || !walletTo || !tokenFrom || !tokenTo || !amountFrom || (walletTo === 'custom' && !withdrawalAddress)) return
+    if (
+      !selectedRoute ||
+      !walletFrom ||
+      !walletTo ||
+      !tokenFrom ||
+      !tokenTo ||
+      !amountFrom ||
+      (walletTo === "custom" && !withdrawalAddress)
+    )
+      return;
     initializeSwap(async () => {
-      if ('outputAmount' in selectedRoute) {
+      if ("outputAmount" in selectedRoute) {
         // Perform the confirmation when ready
         const selectedWallets = [walletFrom, walletTo]
           .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
@@ -134,22 +206,29 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         const confirmRequest: ConfirmRouteRequest = {
           requestId: selectedRoute.requestId,
           selectedWallets: selectedWallets,
-          destination: typeof walletTo === 'string' ? walletTo : (walletTo as ConnectedWallet).address,
+          destination:
+            typeof walletTo === "string"
+              ? walletTo
+              : (walletTo as ConnectedWallet).address,
         };
 
         // Attempt to confirm the route and handle errors
         try {
-          const confirmData: ConfirmRouteResponse = await rangoSDK.confirmRoute(confirmRequest);
+          const confirmData: ConfirmRouteResponse = await rangoSDK.confirmRoute(
+            confirmRequest
+          );
           if (confirmData && manager) {
             setSwapData(confirmData);
             const confirmSwapResult = confirmData.result;
 
             if (!(confirmSwapResult && confirmSwapResult.result)) {
-              throw Error(confirmData.error || '')
+              throw Error(confirmData.error || "");
             }
 
             const selectedWallets = [walletFrom, walletTo]
-              .filter((wallet): wallet is ConnectedWallet => wallet !== undefined)
+              .filter(
+                (wallet): wallet is ConnectedWallet => wallet !== undefined
+              )
               .map((wallet) => {
                 const _wallet: Wallet = wallet as Wallet;
                 return _wallet;
@@ -162,7 +241,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
               getWalletsForNewSwap(selectedWallets),
               settings,
               confirmHasError(confirmData).error,
-              { blockchains, tokens },
+              { blockchains, tokens }
             );
 
             // Create the swap request via the manager
@@ -176,16 +255,19 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
           toastError(error as string);
         }
       }
-      setOpen(false);  // Close the modal after confirming the swap
-      setState(DEXIFIER_STATE.PROCESSING)
-    })
-  }
+      setOpen(false); // Close the modal after confirming the swap
+      setState(DEXIFIER_STATE.PROCESSING);
+    });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => {
-      // setConfirmData(undefined);  // Clear confirmation data when modal is closed
-      setOpen(open);
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        // setConfirmData(undefined);  // Clear confirmation data when modal is closed
+        setOpen(open);
+      }}
+    >
       <DialogTrigger asChild>{props.children}</DialogTrigger>
       <DialogContent className="w-[30rem] bg-transparent max-h-[90vh] max-w-[90vw] p-6 bg-gradient-to-b from-black to-[#042214] border border-separator !rounded-3xl">
         <DialogHeader>
@@ -196,99 +278,147 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
             </DialogClose>
           </div>
           <Separator className="bg-separator" />
-          <DialogDescription className='flex items-center justify-around'>
-            {swapInfo &&
-              <div className="text-sm font-bold text-center py-2">Confirm Swap &nbsp;
+          <DialogDescription className="flex items-center justify-around">
+            {swapInfo && (
+              <div className="text-sm font-bold text-center py-2">
+                Confirm Swap &nbsp;
                 <span className="text-[#bbbbbb] text-lg">
                   {swapInfo.from.amount.toFixed(2)} &nbsp;
                 </span>
                 {swapInfo.from.symbol} [{swapInfo.from.blockchain}] to &nbsp;
-                <span className="text-[#bbbbbb] text-lg"> {swapInfo.to.amount.toFixed(2)} &nbsp;</span>
+                <span className="text-[#bbbbbb] text-lg">
+                  {" "}
+                  {swapInfo.to.amount.toFixed(2)} &nbsp;
+                </span>
                 {swapInfo.to.symbol} [{swapInfo.to.blockchain}]
               </div>
-            }
+            )}
             {/* <button className="w-[30px] px-1" onClick={confirmWallet}>
               <Image src={"/assets/icons/reset-icon.png"} width={20} height={20} alt="refresh" />
             </button> */}
           </DialogDescription>
         </DialogHeader>
-        <div className='h-[40vh] overflow-y-auto pe-1'>
-          <div className='space-y-4'>
-            {[swapInfo?.from.blockchain, swapInfo?.to.blockchain].map((chain, index) => {
-              const availableWallets = connectedWallets.filter((wallet) => wallet.chain === chain)
-              return (
-                <>
-                  {/* Label for the wallet section */}
-                  <Label htmlFor={chain} className='flex items-center gap-2'>
-                    <div className="rounded-full size-6 bg-primary font-bold grid place-content-center text-black">
-                      <div>{index + 1}</div>
-                    </div>
-                    <span className='text-base'>Your {chain} wallet</span>
-                  </Label>
-                  {/* RadioGroup for selecting the wallet */}
-                  <RadioGroup id={chain} defaultValue={availableWallets[0]?.walletType} className='flex flex-wrap justify-center gap-2'
-                    value={index ? typeof walletTo === 'string' ? walletTo : walletTo?.walletType
-                      : typeof walletFrom === 'string' ? walletFrom : walletFrom?.walletType}
-                    onValueChange={(value) => {
-                      if (index) {
-                        const walletT = connectedWallets.find(wallet => wallet.walletType === value && wallet.chain === chain)
-                        walletT ? setWalletTo(walletT) : setWalletTo(withdrawalAddress);
-                      } else {
-                        const walletF = connectedWallets.find(wallet => wallet.walletType === value && wallet.chain === chain)
-                        walletF ? setWalletFrom(walletF) : setWalletFrom(value);
-                      }
-                    }} // Update the selected wallet when a new wallet type is chosen
-                  >
-                    {/* Map over }the connected wallets and display each wallet */}
-                    {availableWallets.map((wallet: ConnectedWallet, index: number) => (
-                      <RadioGroupPrimitive.Item value={wallet.walletType} id={wallet.walletType} key={index}
-                        className='w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30 hover:border-gray-500'
-                      >
-                        <div className='flex justify-center'>
-                          <TokenIcon
-                            token={{
-                              image: list.find(detail => detail.type === wallet.walletType)?.image,
-                              alt: wallet.walletType,
-                              className: "size-12",
-                            }}
-                          />
-                        </div>
-                        <span className='capitalize'>{wallet.walletType}</span> {/* Display wallet type */}
-                        <span className="flex items-center justify-center text-xs">
-                          <span>{getAbbrAddress(wallet.address)}</span> {/* Display abbreviated wallet address */}
-                          <div className='size-4 place-items-center'>
-                            <ButtonCopyIcon text={wallet.address} /> {/* Copy button for wallet address */}
-                          </div>
-                        </span>
-                      </RadioGroupPrimitive.Item>
-                    ))}
-                    {/* Modal to connect more wallets */}
-                    <WalletConnectModal chain={chain}>
-                      <div className='w-24 h-28 rounded-lg border flex text-center items-center hover:border-gray-500 cursor-pointer'>
-                        More wallet...
+        <div className="h-[40vh] overflow-y-auto pe-1">
+          <div className="space-y-4">
+            {[swapInfo?.from.blockchain, swapInfo?.to.blockchain].map(
+              (chain, index) => {
+                const availableWallets = connectedWallets.filter(
+                  (wallet) => wallet.chain === chain
+                );
+                return (
+                  <>
+                    {/* Label for the wallet section */}
+                    <Label htmlFor={chain} className="flex items-center gap-2">
+                      <div className="rounded-full size-6 bg-primary font-bold grid place-content-center text-black">
+                        <div>{index + 1}</div>
                       </div>
-                    </WalletConnectModal>
-                  </RadioGroup>
-                </>
-              )
-            })}
+                      <span className="text-base">Your {chain} wallet</span>
+                    </Label>
+                    {/* RadioGroup for selecting the wallet */}
+                    <RadioGroup
+                      id={chain}
+                      className="flex flex-wrap justify-center gap-2"
+                      value={
+                        index
+                          ? typeof walletTo === "string"
+                            ? walletTo
+                            : walletTo?.walletType
+                          : typeof walletFrom === "string"
+                          ? walletFrom
+                          : walletFrom?.walletType
+                      }
+                      onValueChange={(value) => {
+                        if (index) {
+                          const walletT = connectedWallets.find(
+                            (wallet) =>
+                              wallet.walletType === value &&
+                              wallet.chain === chain
+                          );
+                          walletT
+                            ? setWalletTo(walletT)
+                            : setWalletTo(withdrawalAddress);
+                        } else {
+                          const walletF = connectedWallets.find(
+                            (wallet) =>
+                              wallet.walletType === value &&
+                              wallet.chain === chain
+                          );
+                          walletF
+                            ? setWalletFrom(walletF)
+                            : setWalletFrom(value);
+                        }
+                      }} // Update the selected wallet when a new wallet type is chosen
+                    >
+                      {/* Map over }the connected wallets and display each wallet */}
+                      {availableWallets.map(
+                        (wallet: ConnectedWallet, index: number) => (
+                          <RadioGroupPrimitive.Item
+                            value={wallet.walletType}
+                            id={wallet.walletType}
+                            key={index}
+                            className="w-24 h-28 rounded-lg border data-[state=checked]:bg-primary/30 hover:border-gray-500"
+                          >
+                            <div className="flex justify-center">
+                              <TokenIcon
+                                token={{
+                                  image: list.find(
+                                    (detail) =>
+                                      detail.type === wallet.walletType
+                                  )?.image,
+                                  alt: wallet.walletType,
+                                  className: "size-12",
+                                }}
+                              />
+                            </div>
+                            <span className="capitalize">
+                              {wallet.walletType}
+                            </span>{" "}
+                            {/* Display wallet type */}
+                            <span className="flex items-center justify-center text-xs">
+                              <span>{getAbbrAddress(wallet.address)}</span>{" "}
+                              {/* Display abbreviated wallet address */}
+                              <div className="size-4 place-items-center">
+                                <ButtonCopyIcon text={wallet.address} />{" "}
+                                {/* Copy button for wallet address */}
+                              </div>
+                            </span>
+                          </RadioGroupPrimitive.Item>
+                        )
+                      )}
+                      {/* Modal to connect more wallets */}
+                      <WalletConnectModal chain={chain}>
+                        <div className="w-24 h-28 rounded-lg border flex text-center items-center hover:border-gray-500 cursor-pointer">
+                          More wallet...
+                        </div>
+                      </WalletConnectModal>
+                    </RadioGroup>
+                  </>
+                );
+              }
+            )}
           </div>
         </div>
         {/* <div className="text-error font-bold text-xs text-center tracking-wide">{confirmHasError(confirmData).message}</div> */}
-        <Button variant={isInitializingSwap ? "outline" : "primary"}
+        <Button
+          variant={isInitializingSwap ? "outline" : "primary"}
           onClick={confirmSwap}
           className="mx-auto h-12 w-48"
-          disabled={isInitializingSwap || !walletFrom || !walletTo || (walletTo === 'custom' && !withdrawalAddress)}
-        >
-          {isInitializingSwap ?
-            <CustomLoader className='!size-8' />
-            :
-            'Confirm'
+          disabled={
+            isInitializingSwap ||
+            !walletFrom ||
+            !walletTo ||
+            (walletTo === "custom" && !withdrawalAddress)
           }
+        >
+          {isInitializingSwap ? (
+            <CustomLoader className="!size-8" />
+          ) : (
+            "Confirm"
+          )}
         </Button>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
 export default ConfirmModal;
