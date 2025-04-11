@@ -160,7 +160,7 @@ const DexifierCard: React.FC = () => {
             className="flex-1 border-none bg-transparent focus-visible:ring-0 focus-visible:outline-0 focus-visible:ring-offset-0 placeholder:text-white/50"
             value={amountFrom}
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              e.target.value = parseFloat(e.target.value).toString();
+              // e.target.value = parseFloat(e.target.value).toString();
               setAmountFrom(e.target.value);
             }}
             token={tokenFrom}
