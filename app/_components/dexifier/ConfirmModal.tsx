@@ -79,20 +79,6 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
   const [open, setOpen] = useState<boolean>(false);
 
   const [withdrawalAddress, setWithdrawalAddress] = useState<string>();
-  console.log(
-    "123",
-    isInitializingSwap,
-    !walletFrom,
-    !walletTo,
-    walletTo === "custom" && !withdrawalAddress
-  );
-  console.log(
-    "1233",
-    isInitializingSwap ||
-      !walletFrom ||
-      !walletTo ||
-      (walletTo === "custom" && !withdrawalAddress)
-  );
 
   const swapInfo: SwapInfo | undefined = useMemo(() => {
     if (!selectedRoute) return;
@@ -256,7 +242,7 @@ const ConfirmModal: React.FC<PropsWithChildren> = (props) => {
         }
       }
       setOpen(false); // Close the modal after confirming the swap
-      setState(DEXIFIER_STATE.PROCESSING);
+      setState(DEXIFIER_STATE.RANGO);
     });
   };
 

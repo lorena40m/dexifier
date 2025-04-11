@@ -77,17 +77,11 @@ export default function SwapPage() {
               </motion.div>
             ) : null}
           </AnimatePresence>
+        ) : state === DEXIFIER_STATE.RANGO ? (
+          <DexifierDetailRango />
         ) : state >= DEXIFIER_STATE.WITHDRAWAL_ADDRESS ? (
           <AddressesCard />
-        ) : swapData ? (
-          // "depositChannelId" in swapData ? (
-          //   <DexifierDetailChainflip />
-          // ) : "traceId" in swapData ? (
-          <DexifierDetailRango />
         ) : (
-          // ) : (
-          //   "id" in swapData && <DexifierDetailExolix />
-          // )
           <></>
         )}
       </section>
