@@ -84,11 +84,12 @@ export enum DEXIFIER_STATE {
   START = 1,
   FETCHING_ROUTES = 2,
   ROUTES = 3,
-  WITHDRAWAL_ADDRESS = 4,
-  PENDING = 5,
-  PROCESSING = 6,
-  FAILED = 7,
-  SUCCESS = 8,
+  RANGO = 4,
+  WITHDRAWAL_ADDRESS = 5,
+  PENDING = 6,
+  PROCESSING = 7,
+  FAILED = 8,
+  SUCCESS = 9,
 }
 
 export type DexifierRoute = MultiRouteSimulationResult | ChainflipQuote | RateResponse
