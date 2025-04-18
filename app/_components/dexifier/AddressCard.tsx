@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import ButtonCopyIcon from "../common/coyp-button-icon";
@@ -23,12 +23,9 @@ import {
   DEXIFIER_STATE,
   useDexifier,
 } from "@/app/providers/DexifierProvider";
-import { ChainflipError, ChainflipSwapStatus } from "@/app/types/chainflip";
-import { ExTxInfo, TxRequest } from "@/app/types/exolix";
+import { ChainflipSwapStatus } from "@/app/types/chainflip";
+import { ExTxInfo } from "@/app/types/exolix";
 import { toastError } from "@/lib/utils";
-import { createTransaction } from "@/app/api/exolix";
-import { createSwap } from "@/app/api/chainflip";
-import { AxiosError } from "axios";
 import { Loader2 } from "lucide-react";
 
 const AddressesCard = () => {
@@ -51,7 +48,7 @@ const AddressesCard = () => {
     state,
   } = useDexifier();
   // const { selectedQuote, srcAsset, destAsset, depositData } = useQuote();
-  const [steps, setSteps] = useState<string[]>([]);
+  const [steps, setSteps] = useState < string[] > ([]);
   const [currentStep, setCurrentStep] = useState(0);
   // const [isLoading, setIsLoading] = useState<boolean>(false);
   const status = useMemo(() => {
@@ -91,34 +88,6 @@ const AddressesCard = () => {
       console.error("Failed to read from clipboard:", error);
     }
   }
-
-  // useEffect(() => {
-  //   if (!swapStatus) setIsLoading(false);
-  // }, [swapStatus]);
-
-  // useEffect(() => {
-  //   if (!txData) return
-  //   if (txData.status === "confirmation") {
-  //     setCurrentStep(0);
-  //     setSteps(['confirmation', `${txData.coinFrom.coinCode} to ${txData.coinTo.coinCode}`, 'Sending'])
-  //     return
-  //   }
-  //   if (txData.status === "confirmed" || txData.status === "exchanging") {
-  //     setCurrentStep(1);
-  //     setSteps(['Confirmed', `${txData.coinFrom.coinCode} to ${txData.coinTo.coinCode}`, 'Sending'])
-  //     return
-  //   }
-  //   if (txData.status === "sending") {
-  //     setCurrentStep(2);
-  //     setSteps(['Confirmed', `${txData.coinFrom.coinCode} to ${txData.coinTo.coinCode}`, `${txData.status}`])
-  //     return
-  //   }
-  //   if (txData.status === "success" || txData.status === "refunded") {
-  //     setCurrentStep(3);
-  //     setSteps(['Confirmed', `${txData.coinFrom.coinCode} to ${txData.coinTo.coinCode}`, `${txData.status}`])
-  //     return
-  //   }
-  // }, [txData])
   const renderExolixStatus = (state: ExTxInfo["status"]) => {
     const exolixStatus = swapStatus as ExTxInfo;
     switch (state) {
@@ -463,22 +432,6 @@ const AddressesCard = () => {
           )}
         </div>
         <div className="my-2">
-          {/* {txData && <div>
-            <Label htmlFor="deposit" className="md:text-lg text-sm md:capitalize uppercase md:text-white text-primary">Deposit <span className="text-primary">{tokenFrom?.blockchain} <span className="md:hidden">{'('}</span>{tokenFrom?.symbol}<span className="md:hidden">{')'}</span></span> address</Label>
-            <div id="deposit" className={`${txData.depositAddress ? "border-primary/40" : "border-[#695F5F]"} border flex items-center justify-between rounded-lg md:p-3 p-2 shadow-md max-h-[3.3125rem] md:my-3 mt-1 mb-3 bg-transparent`}>
-              <Input
-                type='text'
-                value={txData.depositAddress || ""}
-                className="md:text-primary text-white md:text-base text-xs bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 md:px-3 px-1"
-                readOnly={true}
-              />
-              {txData.depositAddress && <><QrCodeGenerator text={txData.depositAddress} /> <ButtonCopyIcon text={txData.depositAddress} /></>}
-            </div>
-            {txData.status === "wait" ? <div className="flex flex-col items-center text-primary"><CustomLoader /><span className="md:text-primary text-white">Waiting to receive funds</span></div> :
-              txData.status === "success" ? <div className="flex flex-col items-center text-primary"><StatusBar steps={steps} currentStep={currentStep} /><span>Transaction is completed and funds are received</span></div> :
-                txData.status === "overdue" ? <div className="flex justify-center"><span >Transation is overdue</span></div> :
-                  <StatusBar steps={steps} currentStep={currentStep} />}
-          </div>} */}
           {status && (
             <div>
               <Label
